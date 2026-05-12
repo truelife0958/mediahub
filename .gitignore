@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+*.log
+.DS_Store
+.idea
+.vscode
+*.local
+backend/data/
+backend/backend/data/
+.superpowers/

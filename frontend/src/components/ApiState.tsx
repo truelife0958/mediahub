@@ -1,0 +1,21 @@
+interface ApiStateProps {
+  title: string;
+  description: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}
+
+export default function ApiState({ title, description, actionLabel = '重试', onAction }: ApiStateProps) {
+  return (
+    <div className="api-state">
+      <div className="api-state-icon">!</div>
+      <h3 className="text-lg font-semibold mb-1">{title}</h3>
+      <p className="text-sm text-[var(--text-muted)] mb-4">{description}</p>
+      {onAction && (
+        <button onClick={onAction} className="api-state-button">
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}

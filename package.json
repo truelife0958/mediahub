@@ -1,0 +1,20 @@
+{
+  "name": "mediahub",
+  "version": "1.0.0",
+  "description": "MediaHub - 热门内容推荐平台",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspace=frontend",
+    "start": "npm run start --workspace=backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}
