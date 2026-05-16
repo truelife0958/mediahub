@@ -144,6 +144,72 @@ test.describe('MediaHub 全流程回归', () => {
     await expect(page.getByTestId('admin-source-routing-effective-anime')).toContainText('当前链路：AI 热门检索');
   });
 
+  test('后台系统设置每一项运行参数都可编辑保存', async ({ page }) => {
+    await loginAdmin(page);
+    await page.getByTestId('admin-nav-monitor').click();
+    await page.getByTestId('admin-tab-monitor-system').click();
+
+    await page.getByLabel('自动刷新').uncheck();
+    await page.getByLabel('启动即刷新').check();
+    await page.getByLabel('执行小时').fill('6');
+    await page.getByLabel('执行分钟').fill('45');
+    await page.getByLabel('补采页数').fill('4');
+    await page.getByLabel('每页条数').fill('24');
+    await page.getByLabel('排序：热度').check();
+    await page.getByLabel('排序：最新').check();
+    await page.getByLabel('缓存 TTL（毫秒）').fill('180000');
+    await page.getByLabel('上游超时（毫秒）').fill('9000');
+    await page.getByLabel('超时重试次数').fill('4');
+    await page.getByLabel('重试基础退避（毫秒）').fill('650');
+    await page.getByLabel('熔断失败阈值').fill('8');
+    await page.getByLabel('熔断开启时间（毫秒）').fill('45000');
+    await page.getByLabel('每秒限流').fill('12');
+    await page.getByLabel('限流突发').fill('24');
+    await page.getByRole('button', { name: '保存系统设置' }).click();
+
+    await expect(page.getByTestId('admin-feedback-message')).toContainText('系统设置已保存');
+    await expect(page.getByLabel('自动刷新')).not.toBeChecked();
+    await expect(page.getByLabel('启动即刷新')).toBeChecked();
+    await expect(page.getByLabel('执行小时')).toHaveValue('6');
+    await expect(page.getByLabel('执行分钟')).toHaveValue('45');
+    await expect(page.getByLabel('补采页数')).toHaveValue('4');
+    await expect(page.getByLabel('每页条数')).toHaveValue('24');
+    await expect(page.getByLabel('缓存 TTL（毫秒）')).toHaveValue('180000');
+    await expect(page.getByLabel('上游超时（毫秒）')).toHaveValue('9000');
+    await expect(page.getByLabel('超时重试次数')).toHaveValue('4');
+    await expect(page.getByLabel('重试基础退避（毫秒）')).toHaveValue('650');
+    await expect(page.getByLabel('熔断失败阈值')).toHaveValue('8');
+    await expect(page.getByLabel('熔断开启时间（毫秒）')).toHaveValue('45000');
+    await expect(page.getByLabel('每秒限流')).toHaveValue('12');
+    await expect(page.getByLabel('限流突发')).toHaveValue('24');
+    await expect(page.getByTestId('admin-setting-source-mode')).toContainText('仅 AI 模型');
+  });
+
+  test('后台规则参考每一项都可编辑保存', async ({ page }) => {
+    await loginAdmin(page);
+    await page.getByTestId('admin-nav-reference').click();
+    await page.getByTestId('admin-tab-reference-prompt').click();
+    await page.getByLabel('Prompt 版本 1').fill('v9.9');
+    await page.getByLabel('Prompt 名称 1').fill('可编辑 Prompt');
+    await page.getByLabel('Prompt 状态 1').fill('测试');
+    await page.getByLabel('Prompt 内容 1').fill('只返回可解析 JSON，不要解释。');
+    await page.getByRole('button', { name: '保存 Prompt 模板' }).click();
+    await expect(page.getByTestId('admin-feedback-message')).toContainText('Prompt 模板已保存');
+    await expect(page.getByLabel('Prompt 名称 1')).toHaveValue('可编辑 Prompt');
+
+    await page.getByTestId('admin-tab-reference-keywords').click();
+    await page.getByLabel('热门关键词 1').fill('可编辑关键词');
+    await page.getByRole('button', { name: '保存热门关键词' }).click();
+    await expect(page.getByTestId('admin-feedback-message')).toContainText('热门关键词已保存');
+    await expect(page.getByLabel('热门关键词 1')).toHaveValue('可编辑关键词');
+
+    await page.getByTestId('admin-tab-reference-rules').click();
+    await page.getByLabel('推荐规则 1').fill('可编辑推荐规则');
+    await page.getByRole('button', { name: '保存推荐规则' }).click();
+    await expect(page.getByTestId('admin-feedback-message')).toContainText('推荐规则已保存');
+    await expect(page.getByLabel('推荐规则 1')).toHaveValue('可编辑推荐规则');
+  });
+
   test('移动端布局可操作且无明显遮挡', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');

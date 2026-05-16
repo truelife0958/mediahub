@@ -73,7 +73,7 @@ function createMockResponse(resolve) {
 async function sendRequest(app, { method = 'GET', pathname, headers = {}, body } = {}) {
   return new Promise((resolve, reject) => {
     const payload = body === undefined ? null : JSON.stringify(body);
-    const req = Readable.from(payload ? [payload] : []);
+    const req = Readable.from(payload ? [Buffer.from(payload)] : []);
     req.method = method;
     req.url = pathname;
     req.headers = {
@@ -681,6 +681,10 @@ test('GET /api/system/settings returns runtime system settings snapshot', async 
     UPSTREAM_TIMEOUT_MS: process.env.UPSTREAM_TIMEOUT_MS,
     UPSTREAM_RETRY_MAX_ATTEMPTS: process.env.UPSTREAM_RETRY_MAX_ATTEMPTS,
     UPSTREAM_RETRY_BASE_DELAY_MS: process.env.UPSTREAM_RETRY_BASE_DELAY_MS,
+    UPSTREAM_CIRCUIT_BREAKER_FAILURE_THRESHOLD: process.env.UPSTREAM_CIRCUIT_BREAKER_FAILURE_THRESHOLD,
+    UPSTREAM_CIRCUIT_BREAKER_OPEN_MS: process.env.UPSTREAM_CIRCUIT_BREAKER_OPEN_MS,
+    UPSTREAM_RATE_LIMIT_PER_SECOND: process.env.UPSTREAM_RATE_LIMIT_PER_SECOND,
+    UPSTREAM_RATE_LIMIT_BURST: process.env.UPSTREAM_RATE_LIMIT_BURST,
   };
 
   process.env.MEDIAHUB_AUTO_REFRESH_ENABLED = 'true';
@@ -741,6 +745,151 @@ test('GET /api/system/settings filters and deduplicates ingest sort modes', asyn
       process.env.MEDIAHUB_INGEST_BACKFILL_SORTS = previous;
     }
   }
+});
+
+test('PUT /api/system/settings updates every editable runtime setting', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'mediahub-system-settings-test-'));
+  const envPath = path.join(tempDir, '.env');
+  const previous = {
+    MEDIAHUB_ENV_FILE_PATH: process.env.MEDIAHUB_ENV_FILE_PATH,
+    MEDIAHUB_AUTO_REFRESH_ENABLED: process.env.MEDIAHUB_AUTO_REFRESH_ENABLED,
+    MEDIAHUB_AUTO_REFRESH_HOUR: process.env.MEDIAHUB_AUTO_REFRESH_HOUR,
+    MEDIAHUB_AUTO_REFRESH_MINUTE: process.env.MEDIAHUB_AUTO_REFRESH_MINUTE,
+    MEDIAHUB_AUTO_REFRESH_ON_STARTUP: process.env.MEDIAHUB_AUTO_REFRESH_ON_STARTUP,
+    MEDIAHUB_INGEST_BACKFILL_PAGES: process.env.MEDIAHUB_INGEST_BACKFILL_PAGES,
+    MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE: process.env.MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE,
+    MEDIAHUB_INGEST_BACKFILL_SORTS: process.env.MEDIAHUB_INGEST_BACKFILL_SORTS,
+    CACHE_TTL_MS: process.env.CACHE_TTL_MS,
+    UPSTREAM_TIMEOUT_MS: process.env.UPSTREAM_TIMEOUT_MS,
+    UPSTREAM_RETRY_MAX_ATTEMPTS: process.env.UPSTREAM_RETRY_MAX_ATTEMPTS,
+    UPSTREAM_RETRY_BASE_DELAY_MS: process.env.UPSTREAM_RETRY_BASE_DELAY_MS,
+  };
+  process.env.MEDIAHUB_ENV_FILE_PATH = envPath;
+
+  try {
+    const client = createTestClient();
+    const updateResponse = await adminRequest(client, {
+      method: 'PUT',
+      pathname: '/api/system/settings',
+      body: {
+        autoRefresh: {
+          enabled: false,
+          hour: 6,
+          minute: 45,
+          runOnStartup: true,
+        },
+        ingestBackfill: {
+          pages: 4,
+          pageSize: 24,
+          sorts: ['latest', 'hot', 'latest'],
+        },
+        cache: {
+          ttlMs: 180000,
+          timeoutMs: 9000,
+          retryMaxAttempts: 4,
+          retryBaseDelayMs: 650,
+          circuitBreakerFailureThreshold: 8,
+          circuitBreakerOpenMs: 45000,
+          rateLimitPerSecond: 12,
+          rateLimitBurst: 24,
+        },
+      },
+    });
+
+    assert.equal(updateResponse.status, 200);
+    assert.equal(updateResponse.data.code, 0);
+    assert.equal(updateResponse.data.data.autoRefresh.enabled, false);
+    assert.equal(updateResponse.data.data.autoRefresh.hour, 6);
+    assert.equal(updateResponse.data.data.autoRefresh.minute, 45);
+    assert.equal(updateResponse.data.data.autoRefresh.runOnStartup, true);
+    assert.equal(updateResponse.data.data.ingestBackfill.pages, 4);
+    assert.equal(updateResponse.data.data.ingestBackfill.pageSize, 24);
+    assert.deepEqual(updateResponse.data.data.ingestBackfill.sorts, ['latest', 'hot']);
+    assert.equal(updateResponse.data.data.cache.ttlMs, 180000);
+    assert.equal(updateResponse.data.data.cache.timeoutMs, 9000);
+    assert.equal(updateResponse.data.data.cache.retryMaxAttempts, 4);
+    assert.equal(updateResponse.data.data.cache.retryBaseDelayMs, 650);
+    assert.equal(updateResponse.data.data.cache.circuitBreakerFailureThreshold, 8);
+    assert.equal(updateResponse.data.data.cache.circuitBreakerOpenMs, 45000);
+    assert.equal(updateResponse.data.data.cache.rateLimitPerSecond, 12);
+    assert.equal(updateResponse.data.data.cache.rateLimitBurst, 24);
+
+    const readResponse = await adminRequest(client, { pathname: '/api/system/settings' });
+    assert.equal(readResponse.status, 200);
+    assert.deepEqual(readResponse.data.data.ingestBackfill.sorts, ['latest', 'hot']);
+    assert.equal(readResponse.data.data.cache.retryBaseDelayMs, 650);
+    assert.equal(readResponse.data.data.cache.circuitBreakerFailureThreshold, 8);
+    assert.equal(readResponse.data.data.cache.rateLimitBurst, 24);
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('PUT /api/system/settings rejects invalid runtime setting values', async () => {
+  const client = createTestClient();
+  const response = await adminRequest(client, {
+    method: 'PUT',
+    pathname: '/api/system/settings',
+    body: {
+      autoRefresh: { hour: 25 },
+    },
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.data.error, 'invalid_request');
+});
+
+test('GET and PUT /api/system/reference-settings edits prompt, keywords and rules', async () => {
+  const client = createTestClient();
+  const readResponse = await adminRequest(client, { pathname: '/api/system/reference-settings' });
+  assert.equal(readResponse.status, 200);
+  assert.equal(readResponse.data.code, 0);
+  assert.ok(readResponse.data.data.promptTemplates.length > 0);
+  assert.ok(readResponse.data.data.keywordPresets.length > 0);
+  assert.ok(readResponse.data.data.recommendationRules.length > 0);
+
+  const updateResponse = await adminRequest(client, {
+    method: 'PUT',
+    pathname: '/api/system/reference-settings',
+    body: {
+      promptTemplates: [
+        { version: 'v9.9', name: '可编辑 Prompt', status: '测试', prompt: '返回 JSON，不要解释。' },
+      ],
+      keywordPresets: ['可编辑关键词', 'AI 热门'],
+      recommendationRules: ['可编辑推荐规则'],
+    },
+  });
+
+  assert.equal(updateResponse.status, 200);
+  assert.equal(updateResponse.data.code, 0);
+  assert.equal(updateResponse.data.data.promptTemplates[0].version, 'v9.9');
+  assert.equal(updateResponse.data.data.promptTemplates[0].name, '可编辑 Prompt');
+  assert.deepEqual(updateResponse.data.data.keywordPresets, ['可编辑关键词', 'AI 热门']);
+  assert.deepEqual(updateResponse.data.data.recommendationRules, ['可编辑推荐规则']);
+
+  const rereadResponse = await adminRequest(client, { pathname: '/api/system/reference-settings' });
+  assert.equal(rereadResponse.data.data.promptTemplates[0].prompt, '返回 JSON，不要解释。');
+  assert.deepEqual(rereadResponse.data.data.recommendationRules, ['可编辑推荐规则']);
+});
+
+test('PUT /api/system/reference-settings rejects empty editable reference lists', async () => {
+  const client = createTestClient();
+  const response = await adminRequest(client, {
+    method: 'PUT',
+    pathname: '/api/system/reference-settings',
+    body: {
+      promptTemplates: [],
+      keywordPresets: ['关键词'],
+      recommendationRules: ['规则'],
+    },
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.data.error, 'invalid_request');
 });
 
 test('GET /api/contents omits cover when MEDIAHUB_HIDE_COVER=true', async () => {

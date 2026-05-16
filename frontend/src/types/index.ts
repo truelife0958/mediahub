@@ -113,8 +113,27 @@ export interface SystemSettings {
     timeoutMs: number;
     retryMaxAttempts?: number;
     retryBaseDelayMs?: number;
+    circuitBreakerFailureThreshold: number;
+    circuitBreakerOpenMs: number;
+    rateLimitPerSecond: number;
+    rateLimitBurst: number;
   };
   sourceRouting?: SourceRoutingSettings;
+}
+
+export type EditableSystemSettings = Omit<SystemSettings, 'sourceRouting'>;
+
+export interface ReferencePromptTemplate {
+  version: string;
+  name: string;
+  status: string;
+  prompt: string;
+}
+
+export interface ReferenceSettings {
+  promptTemplates: ReferencePromptTemplate[];
+  keywordPresets: string[];
+  recommendationRules: string[];
 }
 
 export interface ContentQualityStats {

@@ -8,6 +8,7 @@ import {
   getAdminContents,
   getAdminLogs,
   getAdminQuality,
+  getReferenceSettings,
   getAdminSummary,
   getAiConfig,
   getSourceHealth,
@@ -18,6 +19,8 @@ import {
   refreshContentType,
   updateAdminContent,
   updateAiConfig,
+  updateReferenceSettings,
+  updateSystemSettings,
 } from '../api';
 import type {
   AdminLogs,
@@ -25,6 +28,9 @@ import type {
   AiConfig,
   Content,
   ContentQualityStats,
+  EditableSystemSettings,
+  ReferencePromptTemplate,
+  ReferenceSettings,
   SourceHealth,
   SourceStatus,
   SystemSettings,
@@ -80,13 +86,7 @@ const TYPE_LABEL: Record<ContentType, string> = {
   anime: '动漫',
 };
 
-const promptTemplates = [
-  { version: 'v3.2', name: '热门发现', status: '线上', prompt: '请输出真实世界热门内容清单，严格 JSON，字段含 title/summary/tags/hotScore/sourceUrl。' },
-  { version: 'v2.8', name: '质量补全', status: '备用', prompt: '根据标题补齐简介、标签、IP 名和热度解释，避免虚构不存在来源。' },
-  { version: 'v2.1', name: '去重说明', status: '归档', prompt: '解释重复候选之间的标题、IP、来源相似点，并给出主记录建议。' },
-];
-
-const keywordPresets = ['短剧爽文', '国漫热播', '赛博朋克', '悬疑反转', '女性成长', '校园恋爱', '修仙升级', '治愈日常'];
+type ReferenceSection = 'prompt' | 'keywords' | 'rules';
 
 function splitList(value: string) {
   return value.split(/[,\n，]/).map(item => item.trim()).filter(Boolean);
@@ -122,6 +122,7 @@ function classifyError(error: unknown) {
 
 export default function Admin() {
   const [settings, setSettings] = useState<SystemSettings | null>(null);
+  const [referenceSettings, setReferenceSettings] = useState<ReferenceSettings | null>(null);
   const [sources, setSources] = useState<SourceStatus[]>([]);
   const [sourceHealth, setSourceHealth] = useState<SourceHealth[]>([]);
   const [aiConfig, setAiConfig] = useState<AiConfig | null>(null);
@@ -143,6 +144,8 @@ export default function Admin() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<Record<ContentType, boolean>>(initialRefreshingState);
   const [savingAi, setSavingAi] = useState(false);
+  const [savingSystemSettings, setSavingSystemSettings] = useState(false);
+  const [savingReference, setSavingReference] = useState<ReferenceSection | null>(null);
   const [savingContent, setSavingContent] = useState(false);
   const [creatingContent, setCreatingContent] = useState(false);
   const [fillingContent, setFillingContent] = useState(false);
@@ -188,16 +191,18 @@ export default function Admin() {
     setLoading(true);
     setError(null);
     try {
-      const [settingsData, sourceData, aiData, healthData] = await Promise.all([
+      const [settingsData, sourceData, aiData, healthData, referenceData] = await Promise.all([
         getSystemSettings(),
         getSourceStatuses(),
         getAiConfig(),
         getSourceHealth(),
+        getReferenceSettings(),
       ]);
       setSettings(settingsData);
       setSources(sourceData);
       setSourceHealth(healthData);
       setAiConfig(aiData);
+      setReferenceSettings(referenceData);
       setAiForm({ enabled: aiData.enabled, model: aiData.model, baseUrl: aiData.baseUrl, apiKey: '', persistTarget: 'runtime' });
       await Promise.all([refreshAdminSnapshots(), loadContents('anime', '')]);
     } catch (err) {
@@ -425,6 +430,47 @@ export default function Admin() {
     }
   }, []);
 
+  const saveSystemSettings = useCallback(async (payload: EditableSystemSettings) => {
+    setSavingSystemSettings(true);
+    setMessage('');
+    try {
+      const next = await updateSystemSettings(payload);
+      setSettings(next);
+      setMessage('系统设置已保存');
+    } catch (err) {
+      setMessage(classifyError(err));
+    } finally {
+      setSavingSystemSettings(false);
+    }
+  }, []);
+
+  const saveReferenceSection = useCallback(async (section: ReferenceSection, successMessage: string) => {
+    if (!referenceSettings) return;
+    setSavingReference(section);
+    setMessage('');
+    try {
+      const next = await updateReferenceSettings(referenceSettings);
+      setReferenceSettings(next);
+      setMessage(successMessage);
+    } catch (err) {
+      setMessage(classifyError(err));
+    } finally {
+      setSavingReference(null);
+    }
+  }, [referenceSettings]);
+
+  const setPromptTemplates = useCallback((promptTemplates: ReferencePromptTemplate[]) => {
+    setReferenceSettings(prev => prev ? { ...prev, promptTemplates } : prev);
+  }, []);
+
+  const setKeywordPresets = useCallback((keywordPresets: string[]) => {
+    setReferenceSettings(prev => prev ? { ...prev, keywordPresets } : prev);
+  }, []);
+
+  const setRecommendationRules = useCallback((recommendationRules: string[]) => {
+    setReferenceSettings(prev => prev ? { ...prev, recommendationRules } : prev);
+  }, []);
+
   const openContentEditor = useCallback((content: Content) => {
     setSelectedContent(content);
     setContentEditorOpen(true);
@@ -486,8 +532,7 @@ export default function Admin() {
 
   const renderSystemPanel = () => (
     <div className="space-y-4">
-      <SystemSettingsCard settings={settings} />
-      <CachePanel settings={settings} />
+      <SystemSettingsCard settings={settings} saving={savingSystemSettings} onSave={saveSystemSettings} />
     </div>
   );
 
@@ -504,9 +549,36 @@ export default function Admin() {
   );
 
   const renderReferencePanel = () => {
-    if (activeTab === 'prompt') return <PromptTemplates />;
-    if (activeTab === 'keywords') return <KeywordManager />;
-    return <RuleCards title="推荐规则" items={['候选池先按 hotScore 初排', '同 IP 与同标签提高相似度', 'AI 可用时补充推荐理由', '失败时保留本地排序，不影响用户浏览']} />;
+    if (!referenceSettings) return <EmptyHint>规则参考加载中...</EmptyHint>;
+    if (activeTab === 'prompt') {
+      return (
+        <PromptTemplates
+          templates={referenceSettings.promptTemplates}
+          saving={savingReference === 'prompt'}
+          onChange={setPromptTemplates}
+          onSave={() => saveReferenceSection('prompt', 'Prompt 模板已保存')}
+        />
+      );
+    }
+    if (activeTab === 'keywords') {
+      return (
+        <KeywordManager
+          keywords={referenceSettings.keywordPresets}
+          saving={savingReference === 'keywords'}
+          onChange={setKeywordPresets}
+          onSave={() => saveReferenceSection('keywords', '热门关键词已保存')}
+        />
+      );
+    }
+    return (
+      <RuleCards
+        title="推荐规则"
+        items={referenceSettings.recommendationRules}
+        saving={savingReference === 'rules'}
+        onChange={setRecommendationRules}
+        onSave={() => saveReferenceSection('rules', '推荐规则已保存')}
+      />
+    );
   };
 
   const renderActivePanel = () => {
@@ -836,34 +908,121 @@ function DuplicatePanel({ quality }: { quality: ContentQualityStats | null }) {
   );
 }
 
-function PromptTemplates() {
+function PromptTemplates({
+  templates,
+  saving,
+  onChange,
+  onSave,
+}: {
+  templates: ReferencePromptTemplate[];
+  saving: boolean;
+  onChange: (templates: ReferencePromptTemplate[]) => void;
+  onSave: () => void;
+}) {
+  const inputClass = 'mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]';
+  const updateTemplate = (index: number, patch: Partial<ReferencePromptTemplate>) => {
+    onChange(templates.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
+  };
+
   return (
-    <AdminSection title="Prompt 模板版本" description="内置版本管理，后续可接入数据库持久化。">
-      <div className="space-y-3">{promptTemplates.map(item => <div key={item.version} className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-3"><div className="flex items-center justify-between"><strong>{item.name}</strong><Pill tone={item.status === '线上' ? 'ok' : 'default'}>{item.version} · {item.status}</Pill></div><p className="mt-2 text-xs text-[var(--text-muted)]">{item.prompt}</p></div>)}</div>
+    <AdminSection
+      title="Prompt 模板"
+      description="每个模板均可直接编辑并保存到后台运行配置。"
+      action={<button className="gold-surface rounded-lg px-4 py-2 text-sm font-bold" onClick={onSave} disabled={saving}>{saving ? '保存中...' : '保存 Prompt 模板'}</button>}
+    >
+      <datalist id="prompt-status-options">
+        <option value="线上" />
+        <option value="备用" />
+        <option value="归档" />
+        <option value="测试" />
+      </datalist>
+      <div className="space-y-3">
+        {templates.map((item, index) => (
+          <div key={`${item.version}-${index}`} className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <label className="block text-xs font-semibold text-[var(--text-muted)]">
+                {`Prompt 版本 ${index + 1}`}
+                <input value={item.version} onChange={e => updateTemplate(index, { version: e.target.value })} className={inputClass} />
+              </label>
+              <label className="block text-xs font-semibold text-[var(--text-muted)]">
+                {`Prompt 名称 ${index + 1}`}
+                <input value={item.name} onChange={e => updateTemplate(index, { name: e.target.value })} className={inputClass} />
+              </label>
+              <label className="block text-xs font-semibold text-[var(--text-muted)]">
+                {`Prompt 状态 ${index + 1}`}
+                <input list="prompt-status-options" value={item.status} onChange={e => updateTemplate(index, { status: e.target.value })} className={inputClass} />
+              </label>
+            </div>
+            <label className="mt-3 block text-xs font-semibold text-[var(--text-muted)]">
+              {`Prompt 内容 ${index + 1}`}
+              <textarea value={item.prompt} onChange={e => updateTemplate(index, { prompt: e.target.value })} rows={3} className={inputClass} />
+            </label>
+          </div>
+        ))}
+      </div>
     </AdminSection>
   );
 }
 
-function KeywordManager() {
+function KeywordManager({
+  keywords,
+  saving,
+  onChange,
+  onSave,
+}: {
+  keywords: string[];
+  saving: boolean;
+  onChange: (keywords: string[]) => void;
+  onSave: () => void;
+}) {
+  const inputClass = 'mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]';
   return (
-    <AdminSection title="热门关键词管理" description="用于指导 AI 热门检索和运营选题。">
-      <div className="flex flex-wrap gap-2">{keywordPresets.map(item => <Pill key={item} tone="ok">{item}</Pill>)}</div>
+    <AdminSection
+      title="热门关键词"
+      description="用于指导 AI 热门检索和运营选题；每个词条可直接编辑。"
+      action={<button className="gold-surface rounded-lg px-4 py-2 text-sm font-bold" onClick={onSave} disabled={saving}>{saving ? '保存中...' : '保存热门关键词'}</button>}
+    >
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {keywords.map((item, index) => (
+          <label key={`${item}-${index}`} className="block text-xs font-semibold text-[var(--text-muted)]">
+            {`热门关键词 ${index + 1}`}
+            <input value={item} onChange={e => onChange(keywords.map((keyword, itemIndex) => itemIndex === index ? e.target.value : keyword))} className={inputClass} />
+          </label>
+        ))}
+      </div>
     </AdminSection>
   );
 }
 
-function RuleCards({ title, items }: { title: string; items: string[] }) {
-  return <AdminSection title={title}>{items.map(item => <div key={item} className="mb-2 rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-3 text-sm text-[var(--text-secondary)]">{item}</div>)}</AdminSection>;
-}
-
-function CachePanel({ settings }: { settings: SystemSettings | null }) {
+function RuleCards({
+  title,
+  items,
+  saving,
+  onChange,
+  onSave,
+}: {
+  title: string;
+  items: string[];
+  saving: boolean;
+  onChange: (items: string[]) => void;
+  onSave: () => void;
+}) {
+  const inputClass = 'mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]';
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-      <AdminMetricCard label="缓存 TTL" value={`${settings?.cache.ttlMs ?? 0}ms`} />
-      <AdminMetricCard label="上游超时" value={`${settings?.cache.timeoutMs ?? 0}ms`} tone="cyan" />
-      <AdminMetricCard label="重试次数" value={settings?.cache.retryMaxAttempts ?? 2} tone="purple" />
-      <AdminMetricCard label="退避基线" value={`${settings?.cache.retryBaseDelayMs ?? 300}ms`} tone="gold" />
-    </div>
+    <AdminSection
+      title={title}
+      description="推荐排序规则集中维护；每条规则都可编辑保存。"
+      action={<button className="gold-surface rounded-lg px-4 py-2 text-sm font-bold" onClick={onSave} disabled={saving}>{saving ? '保存中...' : '保存推荐规则'}</button>}
+    >
+      <div className="space-y-3">
+        {items.map((item, index) => (
+          <label key={`${item}-${index}`} className="block text-xs font-semibold text-[var(--text-muted)]">
+            {`推荐规则 ${index + 1}`}
+            <textarea value={item} onChange={e => onChange(items.map((rule, itemIndex) => itemIndex === index ? e.target.value : rule))} rows={2} className={inputClass} />
+          </label>
+        ))}
+      </div>
+    </AdminSection>
   );
 }
 

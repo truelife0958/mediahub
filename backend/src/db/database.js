@@ -135,6 +135,18 @@ function ensureIngestionCursors(db) {
   db.exec('CREATE INDEX IF NOT EXISTS idx_ingestion_cursors_type_refreshed ON ingestion_cursors(type, refreshed_at DESC)');
 }
 
+function ensureAdminReferenceSettings(db) {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS admin_reference_settings (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      prompt_templates_json TEXT NOT NULL,
+      keyword_presets_json TEXT NOT NULL,
+      recommendation_rules_json TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+}
+
 function initializeSchema(db) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS contents (
@@ -205,6 +217,7 @@ function initializeSchema(db) {
   ensureContentIndexes(db);
   ensureContentFts(db);
   ensureIngestionCursors(db);
+  ensureAdminReferenceSettings(db);
 }
 
 function getDatabase() {

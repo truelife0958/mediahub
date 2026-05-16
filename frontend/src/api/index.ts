@@ -7,6 +7,8 @@ import type {
   SystemSettings,
   SourceHealth,
   SourceRoutingSettings,
+  EditableSystemSettings,
+  ReferenceSettings,
   AdminSummary,
   AdminLogs,
   ContentQualityStats,
@@ -338,6 +340,26 @@ export async function updateAiConfig(payload: {
 
 export async function getSystemSettings() {
   return requestJson<SystemSettings>('/system/settings', { timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS });
+}
+
+export async function updateSystemSettings(payload: EditableSystemSettings) {
+  return requestJson<SystemSettings>('/system/settings', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+    timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS,
+  });
+}
+
+export async function getReferenceSettings() {
+  return requestJson<ReferenceSettings>('/system/reference-settings', { timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS });
+}
+
+export async function updateReferenceSettings(payload: ReferenceSettings) {
+  return requestJson<ReferenceSettings>('/system/reference-settings', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+    timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS,
+  });
 }
 
 export async function getSourceRoutingSettings() {

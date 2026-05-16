@@ -6,6 +6,8 @@ import {
   upsertSourceChainOverride,
   clearSourceChainOverride,
 } from '../services/sourceStrategyService.js';
+import { getSystemSettingsSnapshot, updateSystemSettings } from '../services/systemSettingsService.js';
+import { getReferenceSettings, updateReferenceSettings } from '../services/referenceSettingsService.js';
 import {
   buildAdminSummary,
   getAdminLogs,
@@ -18,64 +20,21 @@ import {
 
 const router = express.Router();
 
-function parseBoolean(value, fallback) {
-  if (value === undefined || value === null || value === '') return fallback;
-  const normalized = String(value).trim().toLowerCase();
-  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
-  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
-  return fallback;
-}
-
-function parseBoundedInteger(value, fallback, min, max) {
-  const parsed = Number.parseInt(String(value ?? ''), 10);
-  if (Number.isNaN(parsed)) return fallback;
-  if (parsed < min || parsed > max) return fallback;
-  return parsed;
-}
-
-function parseRetryMaxAttempts() {
-  return parseBoundedInteger(process.env.UPSTREAM_RETRY_MAX_ATTEMPTS, 2, 1, 5);
-}
-
-function parseRetryBaseDelayMs() {
-  return parseBoundedInteger(process.env.UPSTREAM_RETRY_BASE_DELAY_MS, 300, 0, 5_000);
-}
-
-function parseBackfillSortModes(value) {
-  const values = String(value || 'hot')
-    .split(',')
-    .map(item => item.trim())
-    .filter(Boolean);
-  const unique = [...new Set(values)]
-    .filter(item => item === 'hot' || item === 'latest');
-  return unique.length > 0 ? unique : ['hot'];
-}
-
 router.get('/settings', asyncHandler(async (_req, res) => {
-  const data = {
-    autoRefresh: {
-      enabled: parseBoolean(process.env.MEDIAHUB_AUTO_REFRESH_ENABLED, true),
-      hour: parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_HOUR, 3, 0, 23),
-      minute: parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_MINUTE, 0, 0, 59),
-      runOnStartup: parseBoolean(process.env.MEDIAHUB_AUTO_REFRESH_ON_STARTUP, true),
-    },
-    ingestBackfill: {
-      pages: parseBoundedInteger(process.env.MEDIAHUB_INGEST_BACKFILL_PAGES, 3, 1, 10),
-      pageSize: parseBoundedInteger(process.env.MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE, 30, 1, 50),
-      sorts: parseBackfillSortModes(process.env.MEDIAHUB_INGEST_BACKFILL_SORTS),
-    },
-    cache: {
-      ttlMs: Math.max(15_000, Number(process.env.CACHE_TTL_MS || 180_000)),
-      timeoutMs: Math.max(2_000, Number(process.env.UPSTREAM_TIMEOUT_MS || 10_000)),
-      retryMaxAttempts: parseRetryMaxAttempts(),
-      retryBaseDelayMs: parseRetryBaseDelayMs(),
-      circuitBreakerFailureThreshold: parseBoundedInteger(process.env.UPSTREAM_CIRCUIT_BREAKER_FAILURE_THRESHOLD, 5, 1, 50),
-      circuitBreakerOpenMs: parseBoundedInteger(process.env.UPSTREAM_CIRCUIT_BREAKER_OPEN_MS, 30000, 1000, 300000),
-      rateLimitPerSecond: parseBoundedInteger(process.env.UPSTREAM_RATE_LIMIT_PER_SECOND, 6, 1, 100),
-      rateLimitBurst: parseBoundedInteger(process.env.UPSTREAM_RATE_LIMIT_BURST, 6, 1, 200),
-    },
-    sourceRouting: getSourceRoutingSettingsSnapshot(),
-  };
+  res.json({ code: 0, data: getSystemSettingsSnapshot() });
+}));
+
+router.put('/settings', asyncHandler(async (req, res) => {
+  const data = updateSystemSettings(req.body || {});
+  res.json({ code: 0, data });
+}));
+
+router.get('/reference-settings', asyncHandler(async (_req, res) => {
+  res.json({ code: 0, data: getReferenceSettings() });
+}));
+
+router.put('/reference-settings', asyncHandler(async (req, res) => {
+  const data = updateReferenceSettings(req.body || {});
   res.json({ code: 0, data });
 }));
 
