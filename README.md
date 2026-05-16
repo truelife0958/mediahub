@@ -1,93 +1,91 @@
 # MediaHub
 
-MediaHub 是一个聚合短剧、小说、漫画、动漫内容的全栈示例项目，前端负责浏览与用户交互，后端负责内容聚合、缓存、用户状态与来源刷新。
+## 最小可运行
 
-## 技术栈
+### 环境要求
+- Node.js 22+
+- npm 10+
 
-- 前端：`React 19`、`TypeScript`、`Vite 8`、`Tailwind CSS 4`
-- 后端：`Node.js 22`、`Express 4`、`node:sqlite`
-- 测试与校验：`node:test`、`ESLint`
-
-## 目录结构
-
-- `frontend/`：前端应用
-- `backend/`：后端 API、SQLite 仓储与聚合服务
-- `docs/superpowers/specs/`：设计文档
-- `docs/superpowers/plans/`：实施计划
-- `docs/superpowers/audits/`：审计与回归记录
-- `需求文档_MediaHub.md`：原始需求说明
-- `技术方案_MediaHub.md`：原始技术方案
-
-## 本地启动
-
-### 1. 安装依赖
-
+### 安装
 ```bash
 npm install
 ```
 
-### 2. 启动前后端
-
+### 启动（前后端一起）
 ```bash
 npm run dev
 ```
 
-默认端口：
-
-- 前端：`http://127.0.0.1:5173` 或 Vite 自动分配端口
+默认地址：
+- 前端：`http://127.0.0.1:5173`（或 Vite 自动分配端口）
 - 后端：`http://127.0.0.1:3001`
 
-### 3. 单独启动
-
+### 常用命令
 ```bash
-npm run dev:backend
-npm run dev:frontend
-```
+# 后端测试
+npm run test --workspace=backend
 
-## 常用命令
-
-```bash
-npm test --workspace=backend
+# 前端静态检查
 npm run lint --workspace=frontend
+
+# 前端构建
 npm run build --workspace=frontend
-npm run start
+
+# 根构建（当前等价于 frontend build）
+npm run build
+
+# 一次性迁移：删除历史库中的 platform_sources 表
+npm run db:migrate:drop-platform-sources
 ```
 
-## 数据与缓存
+---
 
-- 默认 SQLite 文件：`data/mediahub.sqlite`
-- 可通过 `MEDIAHUB_DB_PATH` 覆盖数据库路径
-- 当公开上游不可用时，后端会优先返回本地缓存并标记 `stale`
+## 当前架构
 
-## 当前稳定性状态
+### 目录
+- `backend/`：Express API + SQLite 持久化 + 聚合/刷新服务
+- `frontend/`：React + TypeScript + Vite 单页应用
 
-截至 `2026-05-12`，已完成一轮针对前后端与浏览器主流程的稳定性审计，重点结果如下：
+### 后端分层（`backend/src`）
+- `routes/`：HTTP 路由层（contents/recommendations/users/categories/sources/ingestion/system）
+- `services/`：业务层（目录聚合、平台采集、AI 排序、自动刷新、用户态等）
+- `repositories/`：数据访问层（内容、用户、来源、AI 配置、平台配置）
+- `db/`：数据库初始化
+- `middleware/`、`utils/`：错误处理、请求上下文、重试与游标工具
 
-- 后端已拆分为可测试的 `app factory`，支持进程内 HTTP 契约测试
-- 后端关键契约已覆盖：健康检查、分类、登录/登出、`/me`、历史鉴权、内容列表/详情缓存回退、来源状态
-- 前端已修复详情页响应式横向溢出问题
-- 已完成移动端主流程回归：搜索、清除、分类切换、来源刷新、未登录拦截、注册、标记已看、收藏、个人中心校验、退出登录
+### 前端结构（`frontend/src`）
+- `pages/`：`Home`、`Detail`、`Admin`
+- `api/`：统一后端 API 调用
+- `components/`：内容卡片、搜索、状态与反馈组件
+- `types/`、`constants/`：类型与常量
 
-详细记录见 `docs/superpowers/audits/2026-05-12-mediahub-stability-audit.md`
+### 关键运行链路
+1. 前端只调用 `/api/*`。
+2. 后端优先走平台来源（启用时），失败回退公开来源。
+3. 内容统一归一化后入库，并提供列表/详情/推荐查询。
+4. 启动后自动调度每日刷新任务。
 
-## 已知限制
+---
 
-- 公开上游依赖（`TVMaze`、`Jikan`、`Open Library`）在当前环境下可能超时或返回错误
-- 当前项目的稳定性主要依赖本地缓存兜底；无缓存时前端会展示错误态
-- `node:sqlite` 仍带有实验性提示，推荐使用 Node.js 22 运行
+## 已修复问题
 
-## 本次补强内容
+本轮已完成：
+- 执行激进清理（删除非运行必需内容）：
+  - 已删除：`docs/`、`backend/backend.log`、`frontend/node_modules/.vite`
+  - 已清空但目录不可移除（挂载占用）：`.agents/`、`.codex/`
+  - `backend/data/` 已尝试删除，但被运行进程自动重建（SQLite 文件）
+- 完成回归验证：
+  - `npm run test --workspace=backend`：15/15 通过
+  - `npm run lint --workspace=frontend`：通过
+  - `npm run build --workspace=frontend`：通过
+  - `npm run build`：通过
 
-- `backend/src/app.js`：新增后端应用工厂，解耦应用创建与监听
-- `backend/test/httpRoutes.test.js`：新增并补强后端契约测试
-- `frontend/src/components/Header.tsx`：收敛顶部响应式布局
-- `frontend/src/pages/Profile.tsx`：修正移动端登录卡片宽度约束
-- `frontend/src/pages/Detail.tsx`：修正背景层与封面徽标导致的页面级横向溢出
-- `docs/superpowers/audits/2026-05-12-mediahub-stability-audit.md`：补充审计与回归证据
+---
 
-## 后续建议
+## 后续优化建议
 
-- 为前端主流程补充可重复执行的 E2E 自动化
-- 为上游聚合层增加更细粒度的熔断、重试与观测信息
-- 为来源刷新与缓存状态增加更明确的用户提示
-- 清理历史临时文件与非核心产物前，先做一次明确范围确认
+1. 把 `backend/data` 改为可配置外置路径，并在开发脚本中区分“临时数据”与“持久数据”。
+2. 增加 `clean` 脚本（仅删缓存/构建产物），避免人工 `rm -rf`。
+3. 将 `frontend lint/build` 与 `backend test` 接入 CI，阻断未通过构建的提交。
+4. 为平台采集链路增加端到端冒烟测试（最小样本 + 超时/回退断言）。
+5. 按模块继续收敛 `services` 体积，避免单文件职责膨胀。

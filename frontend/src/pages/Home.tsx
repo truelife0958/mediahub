@@ -1,11 +1,10 @@
 import { useState, useCallback } from 'react';
-import { refreshContentType, useCategories, useContents, useRecommendations, useSourceStatus } from '../api';
+import { useCategories, useContents, useRecommendations } from '../api';
 import ContentGrid from '../components/ContentGrid';
 import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import SectionHeader from '../components/SectionHeader';
 import ApiState from '../components/ApiState';
-import SourceStatusBar from '../components/SourceStatusBar';
 import type { Category, Content } from '../types';
 
 function CategoryTabs({
@@ -23,7 +22,7 @@ function CategoryTabs({
         <button
           key={cat.id}
           onClick={() => onChange(cat.id)}
-          className={`relative whitespace-nowrap px-4 py-2 rounded-lg font-medium text-sm inline-flex items-center gap-1.5 transition-all duration-200 border cursor-pointer ${active === cat.id ? 'text-[var(--text-primary)] bg-[var(--bg-card)] border-[var(--border)]' : 'text-[var(--text-muted)] bg-transparent border-transparent hover:text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.03)]'}`}
+          className={`control-button relative whitespace-nowrap px-4 py-2 rounded-lg font-medium text-sm inline-flex items-center gap-1.5 cursor-pointer ${active === cat.id ? 'is-active' : ''}`}
         >
           <span className="text-base">{cat.icon}</span>
           <span>{cat.name}</span>
@@ -34,20 +33,16 @@ function CategoryTabs({
 }
 
 export default function Home() {
-  const [activeType, setActiveType] = useState('drama');
+  const [activeType, setActiveType] = useState<Content['type']>('drama');
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<'hot' | 'latest'>('hot');
   const [retryKey, setRetryKey] = useState(0);
-  const [sourceRetryKey, setSourceRetryKey] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [refreshError, setRefreshError] = useState<string | null>(null);
 
-  const { categories, error: categoryError } = useCategories();
+  const { categories, error: categoryError } = useCategories(retryKey);
   const {
     contents,
     total,
-    stale,
     loading: contentLoading,
     error: contentError,
   } = useContents(activeType, page, keyword, sort, retryKey);
@@ -56,17 +51,11 @@ export default function Home() {
     loading: recLoading,
     error: recError,
   } = useRecommendations(activeType, retryKey);
-  const {
-    statuses,
-    loading: statusLoading,
-    error: statusError,
-  } = useSourceStatus(sourceRetryKey);
 
   const hasMore = contents.length < total;
-  const currentStatus = statuses.find(status => status.type === activeType);
 
   const handleTypeChange = useCallback((type: string) => {
-    setActiveType(type);
+    setActiveType(type as Content['type']);
     setPage(1);
     setKeyword('');
     setSort('hot');
@@ -84,33 +73,11 @@ export default function Home() {
   const handleRetry = useCallback(() => {
     setPage(1);
     setRetryKey(key => key + 1);
-    setSourceRetryKey(key => key + 1);
   }, []);
 
-  const handleRefreshSource = useCallback(async () => {
-    setIsRefreshing(true);
-    setRefreshError(null);
-    try {
-      await refreshContentType(activeType);
-      setPage(1);
-      setRetryKey(key => key + 1);
-      setSourceRetryKey(key => key + 1);
-    } catch (error) {
-      setRefreshError(error instanceof Error ? error.message : '刷新失败');
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [activeType]);
-
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
-      <div
-        className="absolute top-0 left-0 right-0 h-[420px] pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse 85% 55% at 50% 0%, rgba(232,168,56,0.08) 0%, transparent 62%)',
-        }}
-      />
+    <div className="min-h-screen bg-[var(--bg-primary)] relative overflow-x-hidden">
+      <div className="app-backdrop" />
 
       <Header>
         <SearchBar value={keyword} onChange={handleKeywordChange} />
@@ -118,8 +85,8 @@ export default function Home() {
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8 relative">
         {!keyword && (
-          <section className="mb-10">
-            <SectionHeader title="为你推荐" />
+          <section className="section-shell mb-10">
+            <SectionHeader title="为你推荐" subtitle="基于热度、相似 IP 与近期更新综合排序" />
             {recError ? (
               <ApiState
                 title="推荐源暂不可用"
@@ -134,7 +101,7 @@ export default function Home() {
                 cardSize="large"
                 showReason
                 emptyTitle="暂无推荐内容"
-                emptyDesc="公开内容源暂未返回可推荐条目，换个分类或稍后重试。"
+                emptyDesc="推荐数据暂未返回，换个分类或稍后重试。"
                 emptyIcon="推荐"
                 onRetry={handleRetry}
               />
@@ -144,14 +111,17 @@ export default function Home() {
 
         <section>
           <div className="flex items-center justify-between gap-3 mb-4">
-            <SectionHeader title={keyword ? '搜索结果' : '热门内容'} />
-            <div className="hidden md:flex items-center gap-2">
+            <SectionHeader
+              title={keyword ? '搜索结果' : '热门内容'}
+              subtitle={keyword ? '按关键词匹配标题、人物与 IP 线索' : '优先展示当前分类的高热度内容'}
+            />
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => {
                   setSort('hot');
                   setPage(1);
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${sort === 'hot' ? 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)]' : 'bg-transparent border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+                className={`control-button px-3 py-1.5 rounded-lg text-xs cursor-pointer ${sort === 'hot' ? 'is-active' : ''}`}
               >
                 热度
               </button>
@@ -160,22 +130,12 @@ export default function Home() {
                   setSort('latest');
                   setPage(1);
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${sort === 'latest' ? 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)]' : 'bg-transparent border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+                className={`control-button px-3 py-1.5 rounded-lg text-xs cursor-pointer ${sort === 'latest' ? 'is-active' : ''}`}
               >
                 最新
               </button>
             </div>
           </div>
-
-          <SourceStatusBar
-            type={activeType as Content['type']}
-            status={currentStatus}
-            isStale={stale}
-            isLoading={statusLoading}
-            isRefreshing={isRefreshing}
-            error={refreshError || statusError}
-            onRefresh={handleRefreshSource}
-          />
 
           <CategoryTabs categories={categories} active={activeType} onChange={handleTypeChange} />
 
@@ -183,7 +143,7 @@ export default function Home() {
             <div className="mb-4">
               <ApiState
                 title={categoryError ? '分类源暂不可用' : '内容源暂不可用'}
-                description={categoryError || contentError || '公开 API 暂时无法返回内容，请稍后重试。'}
+                description={categoryError || contentError || '数据源暂不可用，请稍后重试。'}
                 onAction={handleRetry}
               />
             </div>
@@ -202,7 +162,7 @@ export default function Home() {
                 }}
                 className="px-3 py-1.5 text-xs rounded-md bg-transparent text-[var(--text-secondary)] border-0 cursor-pointer hover:text-[var(--text-primary)]"
               >
-                清除
+                清空筛选
               </button>
             </div>
           )}
@@ -214,7 +174,7 @@ export default function Home() {
                 loading={contentLoading}
                 page={page}
                 emptyTitle="没有找到相关内容"
-                emptyDesc="试试其他关键词、分类，或刷新当前公开来源。"
+                emptyDesc="试试其他关键词或分类，或稍后重试。"
                 onRetry={handleRetry}
               />
 

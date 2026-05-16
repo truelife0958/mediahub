@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { IconUser } from './Icons';
+import { IconGear } from './Icons';
 
 export default function Header({ children }: { children?: React.ReactNode }) {
   return (
@@ -13,11 +13,11 @@ export default function Header({ children }: { children?: React.ReactNode }) {
             <h1 className="text-lg md:text-xl font-bold tracking-tight truncate">MediaHub</h1>
           </Link>
           <Link
-            to="/profile"
-            className="ml-auto flex-shrink-0 flex items-center gap-2 text-sm py-2 px-3 md:px-4 rounded-lg md:rounded-xl font-medium bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:border-[var(--border-light)]"
+            to="/admin"
+            className="ml-auto inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] text-xs font-semibold transition-colors hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)]"
           >
-            <IconUser size={16} />
-            个人中心
+            <IconGear size={14} />
+            后台管理
           </Link>
         </div>
         {children}

@@ -1,6 +1,5 @@
 import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../api';
 import { CATEGORY_COLORS, CATEGORY_TEXT } from '../constants';
 import type { Content } from '../types';
 
@@ -11,46 +10,28 @@ interface ContentCardProps {
 }
 
 const HEIGHTS: Record<string, string> = {
-  large: 'h-[320px]',
-  medium: 'h-[290px]',
-  small: 'h-[240px]',
+  large: 'min-h-[190px]',
+  medium: 'min-h-[170px]',
+  small: 'min-h-[150px]',
 };
 
 const ContentCard = memo(function ContentCard({ content, size = 'medium', showReason }: ContentCardProps) {
   const navigate = useNavigate();
-  const { markWatched, toggleFavorite, userId, watchedIds, favoriteIds } = useUser();
-
-  const isWatched = watchedIds.has(content.id);
-  const isFavorite = favoriteIds.has(content.id);
 
   const handleClick = useCallback(() => navigate(`/detail/${content.id}`), [content.id, navigate]);
-
-  const handleMarkWatched = useCallback((event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (!userId) {
-      navigate('/profile');
-      return;
-    }
-    void markWatched(content.id);
-  }, [content.id, markWatched, userId, navigate]);
-
-  const handleToggleFavorite = useCallback((event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (!userId) {
-      navigate('/profile');
-      return;
-    }
-    void toggleFavorite(content.id);
-  }, [content.id, toggleFavorite, userId, navigate]);
 
   const statusText = content.status === 'ongoing' ? '连载中' : '已完结';
   const displayAuthor = content.actors?.length > 0 ? content.actors.slice(0, 2).join(' / ') : content.author;
   const paddingClass = size === 'large' ? 'p-4' : 'p-3';
 
   return (
-    <div className={`content-card ${HEIGHTS[size]}`} onClick={handleClick}>
-      <img src={content.cover} alt={content.title} loading="lazy" />
-      <div className={`absolute inset-0 z-10 flex flex-col justify-end ${paddingClass}`}>
+    <button
+      type="button"
+      className={`content-card ${HEIGHTS[size]} w-full text-left will-change-transform`}
+      onClick={handleClick}
+      aria-label={`查看详情：${content.title}`}
+    >
+      <div className={`relative z-10 flex h-full flex-col ${paddingClass}`}>
         <div className="flex items-center gap-1.5 mb-2">
           <span
             className="text-[10px] font-semibold px-2 py-0.5 rounded-md tracking-[0.02em] text-white"
@@ -67,6 +48,7 @@ const ContentCard = memo(function ContentCard({ content, size = 'medium', showRe
 
         <h3 className="card-meta-title line-clamp-2">{content.title}</h3>
         <p className="text-xs text-[var(--text-muted)] mb-2">{displayAuthor}</p>
+        <p className="mb-3 line-clamp-2 text-xs text-[var(--text-secondary)]">{content.summary || '暂无简介'}</p>
 
         {showReason && content.reason && (
           <div className="mb-2">
@@ -74,28 +56,11 @@ const ContentCard = memo(function ContentCard({ content, size = 'medium', showRe
           </div>
         )}
 
-        <div className="card-meta-bottom">
+        <div className="card-meta-bottom mt-auto">
           <span className="hot-score">热度 {content.hotScore.toLocaleString()}</span>
-          <div className="card-actions relative z-20">
-            <button
-              onClick={handleToggleFavorite}
-              onMouseDown={event => event.stopPropagation()}
-              className={`card-watched-btn ${isFavorite ? 'watched' : ''}`}
-              title={isFavorite ? '取消收藏' : '收藏'}
-            >
-              {isFavorite ? '已藏' : '收藏'}
-            </button>
-            <button
-              onClick={handleMarkWatched}
-              onMouseDown={event => event.stopPropagation()}
-              className={`card-watched-btn ${isWatched ? 'watched' : ''}`}
-            >
-              {isWatched ? '已看' : '标已看'}
-            </button>
-          </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 });
 

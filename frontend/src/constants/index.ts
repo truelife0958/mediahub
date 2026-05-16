@@ -18,5 +18,3 @@ export const CATEGORY_ICONS: Record<string, string> = {
   comic: '漫',
   anime: '动',
 };
-
-export const API_BASE = '/api';

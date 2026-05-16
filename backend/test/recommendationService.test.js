@@ -11,19 +11,19 @@ const baseContent = {
   type: 'anime',
   tags: ['Action'],
   actors: ['Studio A'],
-  author: 'Jikan',
+  author: 'AI Discovery',
   ipName: 'Shared IP',
   status: 'completed',
   createdAt: '2020-01-01T00:00:00.000Z',
   updatedAt: '2026-05-12T00:00:00.000Z',
-  source: { provider: 'jikan', label: 'Jikan', url: 'https://api.jikan.moe/v4/anime/1' },
+  source: { provider: 'ai-search', label: 'AI Discovery', url: 'https://example.com/ai-search/1' },
 };
 
 test('getRecommendations builds profile from persisted watch history', async () => {
   resetDatabaseForTest(':memory:');
-  const watched = { ...baseContent, id: 'anime:jikan:1', title: 'Watched Anime', hotScore: 500 };
-  const matched = { ...baseContent, id: 'anime:jikan:2', title: 'Matched Anime', hotScore: 300 };
-  const fallback = { ...baseContent, id: 'anime:jikan:3', title: 'Fallback Anime', tags: ['Drama'], actors: ['Studio B'], ipName: 'Other IP', hotScore: 900 };
+  const watched = { ...baseContent, id: 'anime:ai-search:1', title: 'Watched Anime', hotScore: 500 };
+  const matched = { ...baseContent, id: 'anime:ai-search:2', title: 'Matched Anime', hotScore: 300 };
+  const fallback = { ...baseContent, id: 'anime:ai-search:3', title: 'Fallback Anime', tags: ['Drama'], actors: ['Studio B'], ipName: 'Other IP', hotScore: 900 };
   upsertContents([watched, matched, fallback]);
   const user = createUser('recommendation-user');
   upsertWatchHistory(user.id, watched.id);

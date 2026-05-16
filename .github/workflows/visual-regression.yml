@@ -1,0 +1,47 @@
+name: PR Quality Gates
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  quality-gates:
+    name: Contract + Regression + Visual
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Gate 1 - API contract
+        run: npm run test:contract
+
+      - name: Gate 2 - full regression e2e
+        run: npm run test:e2e -- e2e/full-regression.spec.js
+
+      - name: Gate 3 - visual regression
+        run: npm run test:visual
+
+      - name: Upload e2e/visual artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gates-artifacts
+          path: |
+            test-results/**
+            playwright-report/**
+          if-no-files-found: ignore
+          retention-days: 14

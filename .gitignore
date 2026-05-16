@@ -9,3 +9,7 @@ dist
 backend/data/
 backend/backend/data/
 .superpowers/
+tmp-lighthouse-report.json
+test-results/
+frontend/dist/
+C:\\Users\\*

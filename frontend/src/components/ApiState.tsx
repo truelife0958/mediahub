@@ -9,8 +9,8 @@ export default function ApiState({ title, description, actionLabel = '重试', o
   return (
     <div className="api-state">
       <div className="api-state-icon">!</div>
-      <h3 className="text-lg font-semibold mb-1">{title}</h3>
-      <p className="text-sm text-[var(--text-muted)] mb-4">{description}</p>
+      <h3 className="text-lg font-semibold mb-1 tracking-[-0.01em]">{title}</h3>
+      <p className="text-sm text-[var(--text-muted)] mb-4 max-w-md mx-auto">{description}</p>
       {onAction && (
         <button onClick={onAction} className="api-state-button">
           {actionLabel}

@@ -5,8 +5,8 @@ import { recordSourceRun, getSourceStatuses } from '../src/repositories/sourceRe
 
 test('recordSourceRun stores latest source status by type', () => {
   resetDatabaseForTest(':memory:');
-  recordSourceRun({ type: 'anime', source: 'jikan', status: 'success', count: 12, error: null });
-  recordSourceRun({ type: 'novel', source: 'openlibrary', status: 'failed', count: 0, error: 'timeout' });
+  recordSourceRun({ type: 'anime', source: 'ai_search', status: 'success', count: 12, error: null });
+  recordSourceRun({ type: 'novel', source: 'ai_search', status: 'failed', count: 0, error: 'timeout' });
 
   const statuses = getSourceStatuses();
   const anime = statuses.find(item => item.type === 'anime');

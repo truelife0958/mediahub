@@ -4,7 +4,7 @@ import { normalizeContent } from '../src/services/contentNormalizer.js';
 
 test('normalizeContent preserves real source metadata and required fields', () => {
   const result = normalizeContent({
-    id: 'anime:jikan:1',
+    id: 'anime:ai-search:1',
     title: 'Cowboy Bebop',
     cover: 'https://example.com/cover.jpg',
     summary: 'Space bounty hunters.',
@@ -18,15 +18,15 @@ test('normalizeContent preserves real source metadata and required fields', () =
     createdAt: '1998-04-03T00:00:00.000Z',
     updatedAt: '2026-05-12T00:00:00.000Z',
     source: {
-      provider: 'jikan',
-      label: 'Jikan',
-      url: 'https://api.jikan.moe/v4/anime/1',
+      provider: 'ai-search',
+      label: 'AI Discovery',
+      url: 'https://example.com/ai-search/1',
     },
   });
 
-  assert.equal(result.id, 'anime:jikan:1');
-  assert.equal(result.source.provider, 'jikan');
-  assert.equal(result.source.label, 'Jikan');
-  assert.equal(result.source.url, 'https://api.jikan.moe/v4/anime/1');
+  assert.equal(result.id, 'anime:ai-search:1');
+  assert.equal(result.source.provider, 'ai-search');
+  assert.equal(result.source.label, 'AI Discovery');
+  assert.equal(result.source.url, 'https://example.com/ai-search/1');
   assert.deepEqual(result.tags, ['Action']);
 });

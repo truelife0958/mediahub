@@ -1,11 +1,11 @@
 import { Suspense, lazy, Component, type ReactNode, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { UserProvider } from './api';
 import ScrollToTopButton from './components/ScrollToTopButton';
+import ApiState from './components/ApiState';
 
 const Home = lazy(() => import('./pages/Home'));
 const Detail = lazy(() => import('./pages/Detail'));
-const Profile = lazy(() => import('./pages/Profile'));
+const Admin = lazy(() => import('./pages/Admin'));
 
 class ErrorBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: ReactNode; fallback?: ReactNode }) {
@@ -59,17 +59,28 @@ export default function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <UserProvider>
-          <ScrollToTop />
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/detail/:id" element={<Detail />} />
-              <Route path="/profile" element={<Profile />} />
-            </Routes>
-          </Suspense>
-          <ScrollToTopButton />
-        </UserProvider>
+        <ScrollToTop />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/detail/:id" element={<Detail />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route
+              path="*"
+              element={(
+                <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] px-4">
+                  <ApiState
+                    title="页面不存在"
+                    description="访问路径无效，请返回首页重新选择内容。"
+                    actionLabel="返回首页"
+                    onAction={() => { window.location.href = '/'; }}
+                  />
+                </div>
+              )}
+            />
+          </Routes>
+        </Suspense>
+        <ScrollToTopButton />
       </BrowserRouter>
     </ErrorBoundary>
   );

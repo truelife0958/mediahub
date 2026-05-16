@@ -1,47 +1,18 @@
 import { useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useContentDetail, useUser } from '../api';
+import { useContentDetail } from '../api';
 import RelatedCard from '../components/RelatedCard';
-import Toast from '../components/Toast';
 import ApiState from '../components/ApiState';
-import { useToast } from '../hooks/useToast';
 import { CATEGORY_COLORS, CATEGORY_TEXT, CATEGORY_ICONS } from '../constants';
-import { IconBack, IconCheck } from '../components/Icons';
+import { IconBack } from '../components/Icons';
 
 export default function Detail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [retryKey, setRetryKey] = useState(0);
-  const { content, loading, error } = useContentDetail(id!, retryKey);
-  const { markWatched, toggleFavorite, userId, watchedIds, favoriteIds } = useUser();
-  const { toast, showToast } = useToast();
-
-  const isWatched = content ? watchedIds.has(content.id) : false;
-  const isFavorite = content ? favoriteIds.has(content.id) : false;
-
-  const handleMarkWatched = useCallback(() => {
-    if (!userId) {
-      showToast('请先登录', 'error');
-      return;
-    }
-    markWatched(content!.id).then(() => {
-      showToast(isWatched ? '已更新观看记录' : '已标记为已看');
-    }).catch(() => {
-      showToast('操作失败', 'error');
-    });
-  }, [userId, content, markWatched, showToast, isWatched]);
-
-  const handleToggleFavorite = useCallback(() => {
-    if (!userId) {
-      showToast('请先登录', 'error');
-      return;
-    }
-    toggleFavorite(content!.id).then((isFavorite) => {
-      showToast(isFavorite ? '已添加收藏' : '已取消收藏');
-    }).catch(() => {
-      showToast('操作失败', 'error');
-    });
-  }, [userId, content, toggleFavorite, showToast]);
+  const contentId = id || '';
+  const invalidContentId = !/^[a-z]+:[a-z0-9-]+:[\w-]+$/i.test(contentId);
+  const { content, loading, error } = useContentDetail(contentId, retryKey);
 
   const handleGoBack = useCallback(() => navigate(-1), [navigate]);
 
@@ -64,7 +35,14 @@ export default function Detail() {
         <ApiState
           title="详情源暂不可用"
           description={error || '内容不存在'}
-          onAction={() => setRetryKey(key => key + 1)}
+          actionLabel={invalidContentId ? '返回首页' : '重新加载'}
+          onAction={() => {
+            if (invalidContentId) {
+              navigate('/');
+              return;
+            }
+            setRetryKey(key => key + 1);
+          }}
         />
         <button
           onClick={handleGoBack}
@@ -78,15 +56,6 @@ export default function Detail() {
 
   return (
     <div className="relative min-h-screen bg-[var(--bg-primary)] overflow-x-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[260px] overflow-hidden sm:h-[360px]">
-        <div
-          className="detail-backdrop"
-          style={{
-            backgroundImage: `url(${content.cover})`,
-          }}
-        />
-      </div>
-
       <header className="sticky top-0 z-50 glass-strong">
         <div className="max-w-4xl mx-auto px-4 md:px-6 py-3">
           <div className="flex items-center gap-3">
@@ -103,23 +72,10 @@ export default function Detail() {
 
       <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8 relative">
         <div className="rounded-2xl p-4 md:p-6 mb-6 animate-fade-in bg-[var(--bg-card)] border border-[var(--border)] shadow-[var(--shadow-card)]">
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="relative w-fit flex-shrink-0 mx-auto md:mx-0">
-              <div className="w-[180px] h-[240px] rounded-[var(--radius-lg)] overflow-hidden flex-shrink-0 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.6)] mx-auto md:mx-0">
-                <img src={content.cover} alt={content.title} className="w-full h-full object-cover" />
-              </div>
-              <div
-                className="absolute bottom-3 right-3 w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]"
-                style={{ background: CATEGORY_COLORS[content.type] }}
-              >
-                {CATEGORY_ICONS[content.type]}
-              </div>
-            </div>
-
-            <div className="flex-1 min-w-0">
+          <div className="flex min-w-0 flex-col">
               <div className="flex flex-wrap gap-2 mb-4">
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md tracking-[0.02em] text-white" style={{ background: CATEGORY_COLORS[content.type] }}>
-                  {CATEGORY_TEXT[content.type]}
+                  {CATEGORY_ICONS[content.type]} {CATEGORY_TEXT[content.type]}
                 </span>
                 <span className={`px-3 py-1 rounded-lg text-xs font-medium font-[tabular-nums] ${content.status === 'ongoing' ? 'bg-[rgba(34,197,94,0.12)] text-[#4ade80] border border-[rgba(34,197,94,0.2)]' : 'bg-[rgba(161,161,170,0.12)] text-[var(--text-muted)] border border-[rgba(161,161,170,0.15)]'}`}>
                   {content.status === 'ongoing' ? '连载中' : '已完结'}
@@ -152,22 +108,12 @@ export default function Detail() {
               <p className="text-[var(--text-secondary)] text-[15px] leading-relaxed mb-6 break-words">{content.summary}</p>
 
               <div className="detail-actions">
-                <button
-                  onClick={handleMarkWatched}
-                  className={`detail-action-primary ${isWatched ? 'watched' : ''}`}
-                >
-                  <IconCheck size={16} />
-                  {isWatched ? '已看' : '标记已看'}
-                </button>
-                <button
-                  onClick={handleToggleFavorite}
-                  className={`detail-action-secondary ${isFavorite ? 'favorite' : ''}`}
-                >
-                  {isFavorite ? '已收藏' : '收藏'}
-                </button>
                 <div className="detail-hot-score">
                   热度 {content.hotScore.toLocaleString()}
                 </div>
+                <span className="rounded-lg border border-[var(--border)] bg-[rgba(255,255,255,0.03)] px-3 py-1.5 text-xs font-semibold text-[var(--text-muted)]">
+                  仅浏览展示
+                </span>
               </div>
 
               {content.source && (
@@ -181,7 +127,6 @@ export default function Detail() {
                   更新于 {new Date(content.updatedAt).toLocaleDateString('zh-CN')}
                 </div>
               )}
-            </div>
           </div>
         </div>
 
@@ -213,8 +158,6 @@ export default function Detail() {
           </section>
         )}
       </main>
-
-      <Toast toast={toast} />
     </div>
   );
 }

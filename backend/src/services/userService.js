@@ -8,12 +8,12 @@ import {
   listFavorites,
 } from '../repositories/userRepository.js';
 import { getCachedContentById, upsertContents } from '../repositories/contentRepository.js';
-import { AppError } from '../middleware/errorHandler.js';
+import { createApiError } from '../utils/apiErrors.js';
 import { parseContentId, getContentById as fetchContentById } from './catalogService.js';
 
 function findUser(userId) {
   const user = getUserById(userId);
-  if (!user) throw new AppError('User not found', 404, 1002);
+  if (!user) throw createApiError('not_found', 'User not found');
   return user;
 }
 
@@ -34,7 +34,7 @@ export function getUserProfile(userId) {
 }
 
 export async function markWatched(userId, contentId) {
-  if (!userId || !contentId) throw new AppError('Missing userId or contentId', 400, 1001);
+  if (!userId || !contentId) throw createApiError('invalid_request', 'Missing userId or contentId');
 
   await ensureContentExists(contentId);
   findUser(userId);
@@ -48,7 +48,7 @@ export function getWatchHistory(userId) {
 
 export function registerUser(username) {
   const trimmed = (username || '').trim().slice(0, 50);
-  if (!trimmed) throw new AppError('Invalid username', 400, 1001);
+  if (!trimmed) throw createApiError('invalid_request', 'Invalid username');
 
   const existing = findUserByUsername(trimmed);
   if (existing) return { id: existing.id, username: existing.username };
@@ -58,7 +58,7 @@ export function registerUser(username) {
 }
 
 export async function toggleFavorite(userId, contentId) {
-  if (!userId || !contentId) throw new AppError('Missing userId or contentId', 400, 1001);
+  if (!userId || !contentId) throw createApiError('invalid_request', 'Missing userId or contentId');
 
   await ensureContentExists(contentId);
   findUser(userId);

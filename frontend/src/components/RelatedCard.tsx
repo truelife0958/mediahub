@@ -12,13 +12,12 @@ const RelatedCard = memo(function RelatedCard({ content }: RelatedCardProps) {
   const handleClick = useCallback(() => navigate(`/detail/${content.id}`), [content.id, navigate]);
 
   return (
-    <div
+    <button
+      type="button"
       className="flex gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 hover:bg-[var(--bg-card-hover)] group"
       onClick={handleClick}
+      aria-label={`查看关联内容：${content.title}`}
     >
-      <div className="relative w-16 h-22 rounded-lg overflow-hidden flex-shrink-0">
-        <img src={content.cover} alt={content.title} className="w-full h-full object-cover" loading="lazy" />
-      </div>
       <div className="flex flex-col justify-center flex-1 min-w-0">
         <h4 className="font-medium text-sm truncate mb-1 group-hover:text-[var(--accent-primary)] transition-colors">
           {content.title}
@@ -37,7 +36,7 @@ const RelatedCard = memo(function RelatedCard({ content }: RelatedCardProps) {
       <div className="flex items-center gap-1 text-[#fb923c] font-semibold text-xs">
         {content.hotScore.toLocaleString()}
       </div>
-    </div>
+    </button>
   );
 });
 

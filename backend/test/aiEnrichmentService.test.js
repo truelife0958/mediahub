@@ -22,3 +22,61 @@ test('enrichPublicContent rejects empty public text', async () => {
     /公开页面文本不足/
   );
 });
+
+test('enrichPublicContent accepts AI JSON output when model gateway returns structured data', async () => {
+  const prevEnabled = process.env.MEDIAHUB_AI_ENABLED;
+  const prevModel = process.env.MEDIAHUB_AI_MODEL;
+  const prevBaseUrl = process.env.MEDIAHUB_AI_BASE_URL;
+  const prevApiKey = process.env.MEDIAHUB_AI_API_KEY;
+
+  process.env.MEDIAHUB_AI_ENABLED = 'true';
+  process.env.MEDIAHUB_AI_MODEL = 'gpt-5-mini';
+  process.env.MEDIAHUB_AI_BASE_URL = 'https://example.ai/v1';
+  process.env.MEDIAHUB_AI_API_KEY = 'sk-test';
+
+  const originalFetch = global.fetch;
+  global.fetch = async (url) => {
+    if (String(url).includes('/chat/completions')) {
+      return new Response(JSON.stringify({
+        choices: [{ message: { content: JSON.stringify({
+          summary: 'AI摘要',
+          tags: ['玄幻', '热血'],
+          actors: ['配音A'],
+          author: 'AI作者',
+          ipName: '星际计划',
+          status: 'ongoing',
+          hotScore: 888,
+        }) } }],
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    throw new Error('unexpected fetch');
+  };
+
+  try {
+    const result = await enrichPublicContent({
+      title: '星际计划',
+      text: '这是一部长篇玄幻冒险故事。'.repeat(20),
+      type: 'novel',
+      sourceUrl: 'https://example.com/public',
+      base: {
+        source: { provider: 'fanqie', label: '番茄小说', url: 'https://example.com/public' },
+      },
+    });
+
+    assert.equal(result.summary, 'AI摘要');
+    assert.deepEqual(result.tags.slice(0, 2), ['玄幻', '热血']);
+    assert.equal(result.author, 'AI作者');
+    assert.equal(result.status, 'ongoing');
+    assert.equal(result.hotScore, 888);
+  } finally {
+    global.fetch = originalFetch;
+    if (prevEnabled === undefined) delete process.env.MEDIAHUB_AI_ENABLED;
+    else process.env.MEDIAHUB_AI_ENABLED = prevEnabled;
+    if (prevModel === undefined) delete process.env.MEDIAHUB_AI_MODEL;
+    else process.env.MEDIAHUB_AI_MODEL = prevModel;
+    if (prevBaseUrl === undefined) delete process.env.MEDIAHUB_AI_BASE_URL;
+    else process.env.MEDIAHUB_AI_BASE_URL = prevBaseUrl;
+    if (prevApiKey === undefined) delete process.env.MEDIAHUB_AI_API_KEY;
+    else process.env.MEDIAHUB_AI_API_KEY = prevApiKey;
+  }
+});

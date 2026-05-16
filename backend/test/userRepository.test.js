@@ -13,20 +13,20 @@ import {
 import { upsertContents } from '../src/repositories/contentRepository.js';
 
 const content = {
-  id: 'anime:jikan:1',
+  id: 'anime:ai-search:1',
   title: 'Persisted Anime',
   cover: 'https://example.com/c.jpg',
   summary: 'Summary',
   type: 'anime',
   tags: ['Action'],
   actors: ['Studio'],
-  author: 'Jikan',
+  author: 'AI Discovery',
   ipName: 'Persisted Anime',
   status: 'completed',
   hotScore: 100,
   createdAt: '2020-01-01T00:00:00.000Z',
   updatedAt: '2026-05-12T00:00:00.000Z',
-  source: { provider: 'jikan', label: 'Jikan', url: 'https://api.jikan.moe/v4/anime/1' },
+  source: { provider: 'ai-search', label: 'AI Discovery', url: 'https://example.com/ai-search/1' },
 };
 
 test('userRepository persists users, history, and favorites', () => {

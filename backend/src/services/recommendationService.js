@@ -1,5 +1,6 @@
 import { getUserById, listWatchHistory } from '../repositories/userRepository.js';
-import { fetchListByType } from './catalogService.js';
+import { listCachedContents } from '../repositories/contentRepository.js';
+import { refreshContentType } from './ingestionService.js';
 
 function uniqueById(list = []) {
   const seen = new Set();
@@ -57,8 +58,15 @@ async function loadCandidatePool(type, limit, candidateLoader) {
   }
 
   const size = Math.min(30, Math.max(10, limit * 2));
-  const primary = await fetchListByType({ type, page: 1, limit: size, sort: 'hot' });
-  const latest = await fetchListByType({ type, page: 1, limit: size, sort: 'latest' }).catch(() => ({ list: [] }));
+  let primary = listCachedContents({ type, page: 1, limit: size, sort: 'hot', stale: false });
+  let latest = listCachedContents({ type, page: 1, limit: size, sort: 'latest', stale: false });
+
+  if ((primary.list || []).length === 0 && (latest.list || []).length === 0) {
+    await refreshContentType(type).catch(() => null);
+    primary = listCachedContents({ type, page: 1, limit: size, sort: 'hot', stale: false });
+    latest = listCachedContents({ type, page: 1, limit: size, sort: 'latest', stale: false });
+  }
+
   return uniqueById([...(primary.list || []), ...(latest.list || [])]);
 }
 

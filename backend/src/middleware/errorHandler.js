@@ -12,12 +12,31 @@ export function asyncHandler(fn) {
   };
 }
 
-export function errorHandler(err, _req, res, _next) {
+function statusToPublicCode(statusCode) {
+  if (statusCode === 404) return 'not_found';
+  if (statusCode === 401) return 'unauthorized';
+  if (statusCode >= 500) return 'internal_error';
+  return 'invalid_request';
+}
+
+export function errorHandler(err, req, res, _next) {
   const statusCode = err.statusCode || 500;
   const code = err.code || 2001;
-  const error = err.publicCode || (statusCode === 500 ? 'internal_error' : 'invalid_request');
+  const error = err.publicCode || statusToPublicCode(statusCode);
   const message = statusCode === 500 && process.env.NODE_ENV === 'production'
     ? 'Internal Server Error'
     : (err.message || 'Internal Server Error');
-  res.status(statusCode).json({ code, error, message });
+
+  const requestId = req?.requestId || '';
+  const payload = {
+    requestId,
+    statusCode,
+    code,
+    error,
+    message,
+    stack: statusCode >= 500 ? String(err?.stack || '') : undefined,
+  };
+  console.error(`[error] ${JSON.stringify(payload)}`);
+
+  res.status(statusCode).json({ code, error, message, requestId });
 }

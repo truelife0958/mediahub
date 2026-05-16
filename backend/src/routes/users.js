@@ -1,5 +1,5 @@
 import express from 'express';
-import { asyncHandler, AppError } from '../middleware/errorHandler.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 import {
   markWatched,
   getWatchHistory,
@@ -9,6 +9,8 @@ import {
   getUserProfile,
 } from '../services/userService.js';
 import { getCookie } from '../utils/cookies.js';
+import { shapeContentResponse } from '../services/contentResponseService.js';
+import { createApiError } from '../utils/apiErrors.js';
 
 const router = express.Router();
 const SESSION_COOKIE = 'mediahub_session';
@@ -20,13 +22,13 @@ function getSessionUserId(req) {
 
 function requireSessionUserId(req) {
   const userId = getSessionUserId(req);
-  if (!userId) throw new AppError('Unauthorized', 401, 1004);
+  if (!userId) throw createApiError('unauthorized', 'Unauthorized');
   return userId;
 }
 
 router.post('/register', asyncHandler(async (req, res) => {
   const { username } = req.body;
-  if (!username) throw new AppError('Missing username', 400, 1001);
+  if (!username) throw createApiError('invalid_request', 'Missing username');
   const data = registerUser(username);
   res.cookie(SESSION_COOKIE, data.id, {
     httpOnly: true,
@@ -73,13 +75,13 @@ router.post('/favorite', asyncHandler(async (req, res) => {
 router.get('/history', asyncHandler(async (req, res) => {
   const userId = requireSessionUserId(req);
   const data = getWatchHistory(userId);
-  res.json({ code: 0, data });
+  res.json({ code: 0, data: shapeContentResponse(data) });
 }));
 
 router.get('/favorites', asyncHandler(async (req, res) => {
   const userId = requireSessionUserId(req);
   const data = getFavorites(userId);
-  res.json({ code: 0, data });
+  res.json({ code: 0, data: shapeContentResponse(data) });
 }));
 
 export default router;
