@@ -85,6 +85,97 @@ test('AI discovery uses OpenAI chat completions payload instead of Responses API
   assert.equal(calls.length, 1);
 }));
 
+test('AI discovery preserves undisclosed playback or reading volume as zero', withAiEnv(async () => {
+  global.fetch = async () => chatResponse({
+    items: [
+      {
+        title: '未披露阅读量小说',
+        summary: '公开资料未披露全网阅读量。',
+        tags: ['小说'],
+        actors: ['作者A'],
+        author: '作者A',
+        ipName: '未披露阅读量小说',
+        status: 'completed',
+        hotScore: 0,
+        sourceUrl: 'https://example.com/undisclosed',
+      },
+    ],
+  });
+
+  const result = await searchTrendingContentsWithAi({ type: 'novel', limit: 1 });
+
+  assert.equal(result.list[0].hotScore, 0);
+}));
+
+test('AI discovery prompt requires China volume metrics instead of heat scores', withAiEnv(async () => {
+  global.fetch = async (_url, options = {}) => {
+    const body = JSON.parse(String(options.body || '{}'));
+    const prompt = body.messages.map(message => message.content).join('\n');
+    assert.match(prompt, /中国大陆公开发行或中国原创内容/);
+    assert.match(prompt, /全网播放量\/阅读量的“万次”数值/);
+    assert.match(prompt, /未知时填 0/);
+    assert.match(prompt, /检索扩展词/);
+    assert.match(prompt, /别名参考/);
+    return chatResponse({
+      items: [
+        {
+          title: '短剧样例',
+          summary: '中国短剧样例。',
+          tags: ['短剧'],
+          actors: [],
+          author: '平台',
+          ipName: '短剧样例',
+          status: 'completed',
+          hotScore: 10000,
+          sourceUrl: 'https://example.com/short',
+        },
+      ],
+    });
+  };
+
+  await searchTrendingContentsWithAi({
+    type: 'drama',
+    limit: 1,
+    keyword: '盛夏芬德拉',
+    searchTerms: ['盛夏芬德拉', '家里家外'],
+    aliasHints: '家里家外 / 盛夏芬德拉',
+  });
+}));
+
+test('AI discovery filters out long-drama items for drama type', withAiEnv(async () => {
+  global.fetch = async () => chatResponse({
+    items: [
+      {
+        title: '某某都市长剧',
+        summary: '高热度电视剧作品。',
+        tags: ['电视剧', '都市'],
+        actors: ['演员甲'],
+        author: '平台',
+        ipName: '某某都市长剧',
+        status: 'ongoing',
+        hotScore: 123456,
+        sourceUrl: 'https://example.com/long-drama',
+      },
+      {
+        title: '某某都市短剧',
+        summary: '竖屏短剧热播中。',
+        tags: ['短剧', '都市'],
+        actors: ['演员乙'],
+        author: '平台',
+        ipName: '某某都市短剧',
+        status: 'ongoing',
+        hotScore: 654321,
+        sourceUrl: 'https://example.com/short-drama',
+      },
+    ],
+  });
+
+  const result = await searchTrendingContentsWithAi({ type: 'drama', limit: 10 });
+
+  assert.equal(result.list.length, 1);
+  assert.equal(result.list[0].title, '某某都市短剧');
+}));
+
 test('AI ranking reads JSON from chat completion message content', async () => {
   const pool = [
     { id: 'a', title: 'A', hotScore: 100 },

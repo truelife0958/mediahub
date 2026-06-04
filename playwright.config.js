@@ -1,6 +1,6 @@
 // @ts-check
 const { defineConfig } = require('playwright/test');
-const { mkdirSync } = require('node:fs');
+const { existsSync, mkdirSync } = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
@@ -10,6 +10,12 @@ const BASE_URL = `http://127.0.0.1:${FRONTEND_PORT}`;
 const TEST_DB_DIR = path.join(os.tmpdir(), `mediahub-playwright-${BACKEND_PORT}-${FRONTEND_PORT}`);
 const TEST_DB_PATH = path.join(TEST_DB_DIR, 'mediahub.sqlite');
 const TEST_ENV_PATH = path.join(TEST_DB_DIR, 'mediahub.env');
+const CHROME_EXECUTABLE_CANDIDATES = [
+  process.env.PLAYWRIGHT_CHROME_EXECUTABLE,
+  '/usr/bin/google-chrome',
+  '/usr/bin/google-chrome-stable',
+];
+const CHROME_EXECUTABLE_PATH = CHROME_EXECUTABLE_CANDIDATES.find(candidate => candidate && existsSync(candidate));
 
 mkdirSync(TEST_DB_DIR, { recursive: true });
 process.env.MEDIAHUB_DB_PATH = process.env.MEDIAHUB_DB_PATH || TEST_DB_PATH;
@@ -31,10 +37,16 @@ module.exports = defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'off',
+    launchOptions: CHROME_EXECUTABLE_PATH
+      ? {
+          executablePath: CHROME_EXECUTABLE_PATH,
+          args: ['--no-sandbox'],
+        }
+      : undefined,
   },
   webServer: [
     {
-      command: `cd "/root/MediaHub" && PORT=${BACKEND_PORT} MEDIAHUB_DB_PATH="${process.env.MEDIAHUB_DB_PATH}" MEDIAHUB_ENV_FILE_PATH="${process.env.MEDIAHUB_ENV_FILE_PATH}" MEDIAHUB_AUTO_REFRESH_ENABLED=false MEDIAHUB_AUTO_REFRESH_ON_STARTUP=false MEDIAHUB_PLATFORM_SOURCE_ENABLED=false npm run dev --workspace=backend`,
+      command: `cd "/root/MediaHub" && PORT=${BACKEND_PORT} MEDIAHUB_DB_PATH="${process.env.MEDIAHUB_DB_PATH}" MEDIAHUB_ENV_FILE_PATH="${process.env.MEDIAHUB_ENV_FILE_PATH}" MEDIAHUB_AUTO_REFRESH_ENABLED=false MEDIAHUB_AUTO_REFRESH_ON_STARTUP=false MEDIAHUB_PLATFORM_SOURCE_ENABLED=false MEDIAHUB_INCLUDE_TEST_FIXTURES=true npm run dev --workspace=backend`,
       url: `http://127.0.0.1:${BACKEND_PORT}/api/health`,
       reuseExistingServer: false,
       timeout: 120_000,

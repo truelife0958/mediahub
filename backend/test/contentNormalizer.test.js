@@ -21,6 +21,7 @@ test('normalizeContent preserves real source metadata and required fields', () =
       provider: 'ai-search',
       label: 'AI Discovery',
       url: 'https://example.com/ai-search/1',
+      region: 'CN',
     },
   });
 
@@ -28,5 +29,15 @@ test('normalizeContent preserves real source metadata and required fields', () =
   assert.equal(result.source.provider, 'ai-search');
   assert.equal(result.source.label, 'AI Discovery');
   assert.equal(result.source.url, 'https://example.com/ai-search/1');
+  assert.equal(result.source.region, 'CN');
   assert.deepEqual(result.tags, ['Action']);
+  assert.equal(result.heatMetric, 'playback');
+});
+
+test('normalizeContent maps heatMetric by content type when omitted', () => {
+  const drama = normalizeContent({ id: 'drama:ai-search:1', type: 'drama', title: '短剧样本' });
+  const novel = normalizeContent({ id: 'novel:ai-search:1', type: 'novel', title: '小说样本' });
+
+  assert.equal(drama.heatMetric, 'playback');
+  assert.equal(novel.heatMetric, 'reading');
 });

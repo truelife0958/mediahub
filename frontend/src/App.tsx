@@ -6,6 +6,9 @@ import ApiState from './components/ApiState';
 const Home = lazy(() => import('./pages/Home'));
 const Detail = lazy(() => import('./pages/Detail'));
 const Admin = lazy(() => import('./pages/Admin'));
+const Leaderboards = lazy(() => import('./pages/Leaderboards'));
+const Topics = lazy(() => import('./pages/Topics'));
+const Me = lazy(() => import('./pages/Me'));
 
 class ErrorBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: ReactNode; fallback?: ReactNode }) {
@@ -64,6 +67,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/detail/:id" element={<Detail />} />
+            <Route path="/leaderboards/:type" element={<Leaderboards />} />
+            <Route path="/topics/:field/:value" element={<Topics />} />
+            <Route path="/me" element={<Me />} />
             <Route path="/admin" element={<Admin />} />
             <Route
               path="*"

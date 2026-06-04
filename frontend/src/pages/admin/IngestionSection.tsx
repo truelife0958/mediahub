@@ -53,7 +53,10 @@ export default function IngestionSection({
               <p className="text-xs text-[var(--text-muted)]" data-testid={`admin-source-provider-${testIdByType[item.id]}`}>
                 来源：{status?.source || '-'}
               </p>
-              <p className="text-xs text-[var(--text-muted)]">
+              <p
+                className="text-xs text-[var(--text-muted)]"
+                data-testid={`admin-source-updated-${testIdByType[item.id]}`}
+              >
                 更新时间：{status?.finishedAt ? new Date(status.finishedAt).toLocaleString('zh-CN') : '-'}
               </p>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
@@ -62,7 +65,10 @@ export default function IngestionSection({
                   style={{ width: refreshing[item.id] ? '62%' : ingestStage?.[item.id] === '完成' ? '100%' : '12%' }}
                 />
               </div>
-              <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+              <p
+                className="mt-1 text-[11px] text-[var(--text-muted)]"
+                data-testid={`admin-source-stage-${testIdByType[item.id]}`}
+              >
                 阶段：{ingestStage?.[item.id] || (refreshing[item.id] ? '请求中' : '待执行')}
               </p>
               {status?.error && (

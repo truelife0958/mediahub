@@ -62,6 +62,30 @@ test('admin service lists and updates cached content safely', () => {
   assert.equal(updated.status, 'ongoing');
 });
 
+test('admin service stores all-network volume metrics above legacy heat caps', () => {
+  resetDatabaseForTest(':memory:');
+  upsertContents([sample]);
+
+  const updated = updateAdminContent(sample.id, {
+    hotScore: 5_380_000,
+  });
+
+  assert.equal(updated.hotScore, 5_380_000);
+});
+
+test('admin service creates manual content with all-network volume metrics intact', async () => {
+  resetDatabaseForTest(':memory:');
+  const { createAdminContent } = await import('../src/services/adminService.js');
+
+  const created = createAdminContent({
+    type: 'anime',
+    title: '大体量动漫样本',
+    hotScore: 17_000_000,
+  });
+
+  assert.equal(created.hotScore, 17_000_000);
+});
+
 test('admin quality and logs expose duplicate candidates and error categories', () => {
   resetDatabaseForTest(':memory:');
   upsertContents([

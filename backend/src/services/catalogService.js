@@ -2,12 +2,17 @@ import { createApiError } from '../utils/apiErrors.js';
 import {
   upsertContents,
   listCachedContents,
+  listCachedContentsByTopic,
+  discoverCachedContents,
   getCachedContentById,
   countCachedContentsByType,
 } from '../repositories/contentRepository.js';
+import { listSnapshotsByContentId } from '../repositories/leaderboardRepository.js';
 import { getAiConfigPrivate } from './aiConfigService.js';
 import { rankContentsWithAi } from './aiRankingService.js';
 import { searchTrendingContentsWithAi } from './aiDiscoveryService.js';
+import { isCuratedRealSeedEnabled, seedCuratedRealContents } from './curatedRealContentService.js';
+import { formatSearchAliasHints, resolveSearchAliasContext } from './searchAliasService.js';
 import {
   resolveSourceChainByType,
   rankSourceChainByHealth,
@@ -70,6 +75,11 @@ function ensureType(type) {
   }
 }
 
+function normalizeSearchMode(value) {
+  const mode = String(value || '').trim().toLowerCase();
+  return mode === 'local' ? 'local' : 'hybrid';
+}
+
 function sortContents(list, sort = 'hot') {
   const data = [...list];
   data.sort((a, b) => {
@@ -94,6 +104,8 @@ async function fetchBySourceToken({
   source,
   type,
   keyword,
+  searchTerms,
+  aliasHints,
   page,
   limit,
   sort,
@@ -102,6 +114,8 @@ async function fetchBySourceToken({
     return searchTrendingContentsWithAi({
       type,
       keyword,
+      searchTerms,
+      aliasHints,
       page,
       limit,
       sort,
@@ -114,6 +128,8 @@ async function fetchBySourceToken({
 async function fetchListByType({
   type,
   keyword = '',
+  searchTerms = [],
+  aliasHints = '',
   page = 1,
   limit = 20,
   sort = 'hot',
@@ -126,12 +142,22 @@ async function fetchListByType({
   const pageNum = Math.max(1, Number(page) || 1);
   const limitNum = Math.min(50, Math.max(1, Number(limit) || 20));
   const normalizedKeyword = String(keyword || '').trim().slice(0, 80);
+  const searchContext = normalizedKeyword
+    ? resolveSearchAliasContext(normalizedKeyword, { type })
+    : { searchTerms: [], matchedGroups: [] };
+  const effectiveSearchTerms = normalizedKeyword
+    ? (Array.isArray(searchTerms) && searchTerms.length > 0 ? searchTerms : searchContext.searchTerms)
+    : [];
+  const effectiveAliasHints = normalizedKeyword
+    ? String(aliasHints || formatSearchAliasHints(searchContext)).trim()
+    : '';
   const configuredSourceChain = Array.isArray(sourceChain) && sourceChain.length > 0
     ? sourceChain
     : resolveSourceChainByType(type);
   const cacheKey = buildCacheKey('list', {
     type,
     keyword: normalizedKeyword,
+    searchTerms: effectiveSearchTerms,
     page: pageNum,
     limit: limitNum,
     sort,
@@ -156,6 +182,8 @@ async function fetchListByType({
           source,
           type,
           keyword: normalizedKeyword,
+          searchTerms: effectiveSearchTerms,
+          aliasHints: effectiveAliasHints,
           page: pageNum,
           limit: limitNum,
           sort,
@@ -228,14 +256,26 @@ async function ensureContentTypeSeeded({ type, __skipLiveFetchForTest = false })
   const cachedCount = countCachedContentsByType(type);
   if (cachedCount > 0) return { seeded: false, cachedCount };
 
-  await fetchListByType({
-    type,
-    page: 1,
-    limit: 30,
-    sort: 'hot',
-    __skipLiveFetchForTest,
-    __bypassCacheFallback: true,
-  });
+  if (!__skipLiveFetchForTest && isCuratedRealSeedEnabled()) {
+    const seeded = seedCuratedRealContents(type);
+    if (seeded.count > 0) {
+      return { seeded: true, cachedCount: countCachedContentsByType(type) };
+    }
+  }
+
+  try {
+    await fetchListByType({
+      type,
+      page: 1,
+      limit: 30,
+      sort: 'hot',
+      __skipLiveFetchForTest,
+      __bypassCacheFallback: true,
+    });
+  } catch (error) {
+    if (__skipLiveFetchForTest || !isCuratedRealSeedEnabled()) throw error;
+    seedCuratedRealContents(type);
+  }
   return { seeded: true, cachedCount: countCachedContentsByType(type) };
 }
 
@@ -273,19 +313,55 @@ async function fetchDetailById(contentId) {
 
   const relatedContents = relatedListResult.list.filter(item => item.id !== content.id).slice(0, 5);
   const similarContents = similarListResult.list.filter(item => item.id !== content.id).slice(0, 5);
+  const leaderboardEvidence = listSnapshotsByContentId(content.id, { limit: 12 });
 
   return {
     ...enrichedContent,
+    leaderboardEvidence,
     relatedContents,
     similarContents,
   };
 }
 
-async function listContents({ type, page = 1, limit = 20, sort = 'hot', keyword = '', __skipLiveFetchForTest = false, __bypassCacheFallback = false }) {
+function parseTopicField(field) {
+  const normalized = String(field || '').trim().toLowerCase();
+  if (normalized === 'actor' || normalized === 'author' || normalized === 'ip') return normalized;
+  throw createApiError('invalid_request', 'Invalid topic field');
+}
+
+function parseOptionalType(type) {
+  const normalized = String(type || '').trim().toLowerCase();
+  if (!normalized) return '';
+  ensureType(normalized);
+  return normalized;
+}
+
+function parseMinHotScore(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return Math.max(0, Math.floor(parsed));
+}
+
+async function listContents({
+  type,
+  page = 1,
+  limit = 20,
+  sort = 'hot',
+  keyword = '',
+  searchMode = 'hybrid',
+  __skipLiveFetchForTest = false,
+  __bypassCacheFallback = false,
+}) {
   ensureType(type);
   const pageNum = Math.max(1, Number(page) || 1);
   const limitNum = Math.min(50, Math.max(1, Number(limit) || 20));
   const normalizedKeyword = String(keyword || '').trim();
+  const normalizedSearchMode = normalizeSearchMode(searchMode);
+  const searchContext = normalizedKeyword
+    ? resolveSearchAliasContext(normalizedKeyword, { type })
+    : { searchTerms: [], matchedGroups: [] };
+  const effectiveSearchTerms = searchContext.searchTerms;
+  const effectiveAliasHints = formatSearchAliasHints(searchContext);
 
   try {
     await ensureContentTypeSeeded({ type, __skipLiveFetchForTest });
@@ -304,9 +380,44 @@ async function listContents({ type, page = 1, limit = 20, sort = 'hot', keyword 
     limit,
     sort,
     keyword,
+    searchTerms: effectiveSearchTerms,
     stale: false,
   });
-  if (cached.list.length > 0) return cached;
+  if (!normalizedKeyword && cached.list.length > 0) return cached;
+
+  if (normalizedKeyword && normalizedSearchMode === 'hybrid') {
+    try {
+      await fetchListByType({
+        type,
+        page: 1,
+        limit: Math.max(30, limitNum),
+        sort: 'hot',
+        keyword: normalizedKeyword,
+        searchTerms: effectiveSearchTerms,
+        aliasHints: effectiveAliasHints,
+        __skipLiveFetchForTest,
+        __bypassCacheFallback: true,
+      });
+    } catch (error) {
+      if (error?.publicCode && !String(error.publicCode).startsWith('upstream_')) {
+        throw error;
+      }
+    }
+
+    const merged = listCachedContents({
+      type,
+      page,
+      limit,
+      sort,
+      keyword,
+      searchTerms: effectiveSearchTerms,
+      stale: false,
+    });
+    if (merged.list.length > 0) return merged;
+    if (cached.list.length > 0) return cached;
+  } else if (cached.list.length > 0) {
+    return cached;
+  }
 
   // 已有该分类缓存但本次关键词无命中：返回空列表而不是上游不可用错误。
   if (normalizedKeyword) {
@@ -358,7 +469,12 @@ async function listContents({ type, page = 1, limit = 20, sort = 'hot', keyword 
 async function getContentById(contentId) {
   const cached = getCachedContentById(contentId, { stale: false });
   if (cached) {
-    return { ...cached, relatedContents: [], similarContents: [] };
+    return {
+      ...cached,
+      leaderboardEvidence: listSnapshotsByContentId(contentId, { limit: 12 }),
+      relatedContents: [],
+      similarContents: [],
+    };
   }
 
   try {
@@ -369,4 +485,91 @@ async function getContentById(contentId) {
   }
 }
 
-export { listContents, getContentById, fetchListByType, parseContentId, resetCatalogRuntimeState, invalidateCatalogCacheByType };
+async function discoverContents({
+  keyword = '',
+  page = 1,
+  limit = 8,
+  sort = 'hot',
+  minHotScore = 0,
+  searchMode = 'hybrid',
+  __skipLiveFetchForTest = false,
+}) {
+  const normalizedKeyword = String(keyword || '').trim().slice(0, 80);
+  if (!normalizedKeyword) {
+    return {
+      keyword: '',
+      sort: sort === 'latest' ? 'latest' : 'hot',
+      minHotScore: parseMinHotScore(minHotScore),
+      total: 0,
+      counts: { drama: 0, novel: 0, comic: 0, anime: 0 },
+      groups: { drama: [], novel: [], comic: [], anime: [] },
+      stale: false,
+    };
+  }
+
+  const normalizedSearchMode = normalizeSearchMode(searchMode);
+  const types = ['drama', 'novel', 'comic', 'anime'];
+  const searchTermsByType = Object.fromEntries(
+    types.map(type => [type, resolveSearchAliasContext(normalizedKeyword, { type }).searchTerms]),
+  );
+  if (normalizedSearchMode === 'hybrid') {
+    await Promise.allSettled(
+      types.map(type => listContents({
+        type,
+        page: 1,
+        limit: Math.max(30, Math.min(50, Number(limit) * 3 || 24)),
+        sort,
+        keyword: normalizedKeyword,
+        searchMode: 'hybrid',
+        __skipLiveFetchForTest,
+      })),
+    );
+  }
+
+  return discoverCachedContents({
+    keyword: normalizedKeyword,
+    page: Math.max(1, Number(page) || 1),
+    limit: Math.min(20, Math.max(1, Number(limit) || 8)),
+    sort: sort === 'latest' ? 'latest' : 'hot',
+    minHotScore: parseMinHotScore(minHotScore),
+    searchTermsByType,
+    stale: false,
+  });
+}
+
+function listTopicContents({
+  field,
+  value,
+  type = '',
+  page = 1,
+  limit = 20,
+  sort = 'hot',
+  minHotScore = 0,
+}) {
+  const normalizedValue = String(value || '').trim().slice(0, 80);
+  if (!normalizedValue) {
+    throw createApiError('invalid_request', 'Topic value is required');
+  }
+
+  return listCachedContentsByTopic({
+    field: parseTopicField(field),
+    value: normalizedValue,
+    type: parseOptionalType(type),
+    page: Math.max(1, Number(page) || 1),
+    limit: Math.min(50, Math.max(1, Number(limit) || 20)),
+    sort: sort === 'latest' ? 'latest' : 'hot',
+    minHotScore: parseMinHotScore(minHotScore),
+    stale: false,
+  });
+}
+
+export {
+  listContents,
+  getContentById,
+  discoverContents,
+  listTopicContents,
+  fetchListByType,
+  parseContentId,
+  resetCatalogRuntimeState,
+  invalidateCatalogCacheByType,
+};

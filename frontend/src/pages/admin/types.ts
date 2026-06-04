@@ -1,4 +1,5 @@
 export type ContentType = 'drama' | 'novel' | 'comic' | 'anime';
+export type ReferenceSection = 'prompt' | 'keywords' | 'rules' | 'aliases';
 
 export interface AiFormState {
   enabled: boolean;
@@ -14,3 +15,10 @@ export const TYPE_OPTIONS: Array<{ id: ContentType; label: string }> = [
   { id: 'comic', label: '漫画' },
   { id: 'anime', label: '动漫' },
 ];
+
+export const TYPE_LABEL: Record<ContentType, string> = {
+  drama: '短剧',
+  novel: '小说',
+  comic: '漫画',
+  anime: '动漫',
+};

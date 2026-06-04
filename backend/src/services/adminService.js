@@ -12,6 +12,7 @@ import { getAiConfigPublic } from './aiConfigService.js';
 import { enrichPublicContent } from './aiEnrichmentService.js';
 import { getSourceHealthSnapshot, getSourceRoutingSettingsSnapshot } from './sourceStrategyService.js';
 import { invalidateCatalogCacheByType } from './catalogService.js';
+import { recordAuditEntry, recordContentRevisionEntry } from './leaderboardService.js';
 
 const CONTENT_TYPES = ['drama', 'novel', 'comic', 'anime'];
 const TYPE_LABELS = {
@@ -38,6 +39,10 @@ function normalizeStringArray(value, max = 12) {
     .map(item => item.trim())
     .filter(Boolean)
     .slice(0, max);
+}
+
+function normalizeHotScore(value) {
+  return Math.max(0, Math.round(Number(value) || 0));
 }
 
 function classifyRun(run) {
@@ -114,7 +119,7 @@ function buildManualContent(payload = {}) {
     author: String(payload.author || '').trim(),
     ipName: String(payload.ipName || '').trim(),
     status: payload.status === 'ongoing' ? 'ongoing' : 'completed',
-    hotScore: Math.max(0, Math.min(10000, Number(payload.hotScore) || 0)),
+    hotScore: normalizeHotScore(payload.hotScore),
     createdAt: String(payload.createdAt || now),
     updatedAt: String(payload.updatedAt || now),
     source: {
@@ -131,6 +136,22 @@ function createAdminContent(payload = {}) {
   invalidateCatalogCacheByType(content.type);
   const created = getCachedContentById(content.id, { stale: false });
   if (!created) throw createApiError('upstream_unavailable', 'Content create failed');
+
+  recordContentRevisionEntry({
+    contentId: created.id,
+    action: 'create',
+    actor: 'admin',
+    before: {},
+    patch: content,
+    after: created,
+  });
+  recordAuditEntry({
+    action: 'content.create',
+    entityType: 'content',
+    entityId: created.id,
+    actor: 'admin',
+    details: { type: created.type, title: created.title, hotScore: created.hotScore },
+  });
   return created;
 }
 
@@ -146,13 +167,29 @@ function updateAdminContent(contentId, payload = {}) {
   if ('author' in payload) patch.author = String(payload.author || '').trim();
   if ('ipName' in payload) patch.ipName = String(payload.ipName || '').trim();
   if ('status' in payload) patch.status = payload.status === 'ongoing' ? 'ongoing' : 'completed';
-  if ('hotScore' in payload) patch.hotScore = Math.max(0, Math.min(10000, Number(payload.hotScore) || 0));
+  if ('hotScore' in payload) patch.hotScore = normalizeHotScore(payload.hotScore);
   if ('tags' in payload) patch.tags = normalizeStringArray(payload.tags, 12);
   if ('actors' in payload) patch.actors = normalizeStringArray(payload.actors, 12);
 
   const updated = updateCachedContent(contentId, patch);
   if (!updated) throw createApiError('not_found', 'Content not found');
   invalidateCatalogCacheByType(updated.type);
+
+  recordContentRevisionEntry({
+    contentId: updated.id,
+    action: 'update',
+    actor: 'admin',
+    before: current,
+    patch,
+    after: updated,
+  });
+  recordAuditEntry({
+    action: 'content.update',
+    entityType: 'content',
+    entityId: updated.id,
+    actor: 'admin',
+    details: { patchKeys: Object.keys(patch), type: updated.type, title: updated.title },
+  });
   return updated;
 }
 
@@ -194,6 +231,22 @@ async function fillMissingAdminContentWithAi(contentId) {
   const updated = updateCachedContent(contentId, patch);
   if (!updated) throw createApiError('not_found', 'Content not found');
   invalidateCatalogCacheByType(updated.type);
+
+  recordContentRevisionEntry({
+    contentId: updated.id,
+    action: 'fill-missing',
+    actor: 'admin',
+    before: current,
+    patch,
+    after: updated,
+  });
+  recordAuditEntry({
+    action: 'content.fill-missing',
+    entityType: 'content',
+    entityId: updated.id,
+    actor: 'admin',
+    details: { patchKeys: Object.keys(patch), type: updated.type, title: updated.title },
+  });
   return updated;
 }
 

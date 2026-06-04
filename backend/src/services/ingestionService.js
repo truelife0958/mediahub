@@ -4,6 +4,7 @@ import { recordSourceRun } from '../repositories/sourceRepository.js';
 import { createApiError } from '../utils/apiErrors.js';
 import { getIngestionCursor, saveIngestionCursor } from '../utils/ingestionCursor.js';
 import { parsePositiveInt } from '../utils/retryTools.js';
+import { captureLeaderboardForType } from './leaderboardService.js';
 
 const SOURCE_BY_TYPE = {
   drama: 'ai_search',
@@ -317,6 +318,18 @@ async function refreshContentType(
       error: partialErrorMessage,
     });
 
+    let leaderboard = null;
+    let leaderboardWarning = null;
+    try {
+      leaderboard = await captureLeaderboardForType({
+        type,
+        actor: 'system',
+        layers: ['overall', 'new', 'rising', 'completed'],
+      });
+    } catch (error) {
+      leaderboardWarning = error?.message || 'leaderboard capture failed';
+    }
+
     return {
       type,
       source: resolvedSource,
@@ -335,6 +348,8 @@ async function refreshContentType(
         cursor: nextCursor.cursor,
         updatedAt: nextCursor.updatedAt,
       },
+      leaderboard,
+      leaderboardWarning,
     };
   } catch (error) {
     if (!error?.sourceRunRecorded) {

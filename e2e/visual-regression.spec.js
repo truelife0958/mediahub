@@ -59,6 +59,9 @@ async function hideNonDeterministicNodes(page) {
     content: `
       [data-testid="toast"],
       .api-state-icon,
+      [data-testid^="admin-source-updated-"],
+      [data-testid^="admin-source-stage-"],
+      [data-testid^="admin-source-error-"],
       * {
         animation: none !important;
         transition: none !important;

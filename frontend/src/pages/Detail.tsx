@@ -1,20 +1,76 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useContentDetail } from '../api';
+import { addWatchHistory, getCurrentUser, toggleFavorite, getUserFavorites, useContentDetail } from '../api';
 import RelatedCard from '../components/RelatedCard';
 import ApiState from '../components/ApiState';
 import { CATEGORY_COLORS, CATEGORY_TEXT, CATEGORY_ICONS } from '../constants';
-import { IconBack } from '../components/Icons';
+import { IconBack, IconHeart, IconHistory } from '../components/Icons';
+import { formatHotScore } from '../utils/hotScore';
+import type { UserProfile } from '../types';
 
 export default function Detail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [retryKey, setRetryKey] = useState(0);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [watched, setWatched] = useState(false);
+  const [actionBusy, setActionBusy] = useState<'favorite' | 'history' | ''>('');
   const contentId = id || '';
   const invalidContentId = !/^[a-z]+:[a-z0-9-]+:[\w-]+$/i.test(contentId);
   const { content, loading, error } = useContentDetail(contentId, retryKey);
 
   const handleGoBack = useCallback(() => navigate(-1), [navigate]);
+
+  useEffect(() => {
+    getCurrentUser()
+      .then(setUser)
+      .catch(() => setUser(null));
+  }, [contentId]);
+
+  useEffect(() => {
+    if (!contentId || !content) return;
+    let cancelled = false;
+
+    if (user) {
+      getUserFavorites()
+        .then((items) => {
+          if (!cancelled) {
+            setIsFavorite(items.some(item => item.id === contentId));
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setIsFavorite(false);
+        });
+    } else {
+      setIsFavorite(false);
+    }
+
+    addWatchHistory(contentId)
+      .then(() => {
+        if (!cancelled) setWatched(true);
+      })
+      .catch(() => {
+        if (!cancelled) setWatched(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [content, contentId, user]);
+
+  const evidenceList = useMemo(() => content?.leaderboardEvidence || [], [content?.leaderboardEvidence]);
+
+  const handleToggleFavorite = useCallback(async () => {
+    if (!contentId) return;
+    setActionBusy('favorite');
+    try {
+      const result = await toggleFavorite(contentId);
+      setIsFavorite(result.isFavorite);
+    } finally {
+      setActionBusy('');
+    }
+  }, [contentId]);
 
   if (loading) {
     return (
@@ -88,13 +144,44 @@ export default function Detail() {
                 {content.actors && content.actors.length > 0 && (
                   <div className="flex items-start gap-2 min-w-0">
                     <span className="text-[var(--text-muted)] text-[13px] font-medium min-w-[40px] shrink-0">演员</span>
-                    <span className="text-[var(--text-secondary)] text-sm min-w-0 break-words">{content.actors.join(' / ')}</span>
+                    <div className="min-w-0 break-words">
+                      {content.actors.map((actor, index) => (
+                        <span key={actor}>
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/topics/actor/${encodeURIComponent(actor)}`)}
+                            className="cursor-pointer border-0 bg-transparent p-0 text-left text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)]"
+                          >
+                            {actor}
+                          </button>
+                          {index < content.actors.length - 1 ? ' / ' : ''}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {content.author && (
                   <div className="flex items-start gap-2 min-w-0">
                     <span className="text-[var(--text-muted)] text-[13px] font-medium min-w-[40px] shrink-0">作者</span>
-                    <span className="text-[var(--text-secondary)] text-sm min-w-0 break-words">{content.author}</span>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/topics/author/${encodeURIComponent(content.author)}`)}
+                      className="cursor-pointer border-0 bg-transparent p-0 text-left text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)]"
+                    >
+                      {content.author}
+                    </button>
+                  </div>
+                )}
+                {content.ipName && (
+                  <div className="flex items-start gap-2 min-w-0">
+                    <span className="text-[var(--text-muted)] text-[13px] font-medium min-w-[40px] shrink-0">IP</span>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/topics/ip/${encodeURIComponent(content.ipName)}`)}
+                      className="cursor-pointer border-0 bg-transparent p-0 text-left text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)]"
+                    >
+                      {content.ipName}
+                    </button>
                   </div>
                 )}
               </div>
@@ -109,11 +196,25 @@ export default function Detail() {
 
               <div className="detail-actions">
                 <div className="detail-hot-score">
-                  热度 {content.hotScore.toLocaleString()}
+                  {formatHotScore(content.hotScore, content.heatMetric)}
                 </div>
-                <span className="rounded-lg border border-[var(--border)] bg-[rgba(255,255,255,0.03)] px-3 py-1.5 text-xs font-semibold text-[var(--text-muted)]">
-                  仅浏览展示
-                </span>
+                <button
+                  type="button"
+                  className={`detail-action-primary ${watched ? 'watched' : ''}`}
+                  disabled={actionBusy === 'history'}
+                >
+                  <IconHistory size={15} />
+                  {watched ? '已记录浏览' : '浏览中'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleToggleFavorite}
+                  disabled={!user || actionBusy === 'favorite'}
+                  className={`detail-action-secondary ${isFavorite ? 'favorite' : ''}`}
+                >
+                  <IconHeart size={15} filled={isFavorite} />
+                  {isFavorite ? '已收藏' : user ? '加入收藏' : '登录后收藏'}
+                </button>
               </div>
 
               {content.source && (
@@ -129,6 +230,51 @@ export default function Detail() {
               )}
           </div>
         </div>
+
+        <section className="mb-6 animate-fade-in-up">
+          <div className="flex items-center gap-3 mb-4">
+            <h3 className="text-lg font-semibold">热度证据</h3>
+            <div className="flex-1 h-px bg-gradient-to-r from-[var(--border)] to-transparent" />
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-[var(--shadow-card)]">
+            <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-3">
+                <p className="text-xs text-[var(--text-muted)]">热度口径</p>
+                <p className="mt-1 text-sm font-semibold">{content.heatMetric === 'reading' ? '阅读量' : '播放量'}</p>
+              </div>
+              <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-3">
+                <p className="text-xs text-[var(--text-muted)]">当前热度</p>
+                <p className="mt-1 text-sm font-semibold">{formatHotScore(content.hotScore, content.heatMetric)}</p>
+              </div>
+              <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-3">
+                <p className="text-xs text-[var(--text-muted)]">最近更新</p>
+                <p className="mt-1 text-sm font-semibold">{new Date(content.updatedAt).toLocaleString('zh-CN')}</p>
+              </div>
+            </div>
+            {evidenceList.length > 0 ? (
+              <div className="space-y-2">
+                {evidenceList.slice(0, 8).map(item => (
+                  <div key={`${item.captureId}-${item.rank}`} className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-3">
+                    <div className="flex flex-wrap items-center gap-2 text-sm">
+                      <span className="gold-surface rounded-md px-2 py-1 text-[11px] font-bold text-[#111]">#{item.rank}</span>
+                      <span className="font-semibold">
+                        {item.layer === 'overall' ? '总榜' : item.layer === 'new' ? '新作榜' : item.layer === 'rising' ? '飙升榜' : '完结榜'}
+                      </span>
+                      <span className="text-[var(--text-muted)]">{new Date(item.capturedAt).toLocaleString('zh-CN')}</span>
+                    </div>
+                    <p className="mt-2 text-xs text-[var(--text-muted)]">
+                      来源：{item.evidence?.sourceLabel ? String(item.evidence.sourceLabel) : content.source?.label || '-'}
+                      {' · '}
+                      热度：{formatHotScore(item.hotScore, item.heatMetric)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ApiState title="暂无榜单证据" description="该内容还未进入已抓取的榜单快照，可稍后等待自动刷新后再看。" />
+            )}
+          </div>
+        </section>
 
         {content.relatedContents && content.relatedContents.length > 0 && (
           <section className="mb-6 animate-fade-in-up">

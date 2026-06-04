@@ -14,6 +14,7 @@ interface ContentGridProps {
   emptyDesc: string;
   emptyIcon?: string;
   onRetry?: () => void;
+  onItemClick?: (content: Content) => void;
 }
 
 export default function ContentGrid({
@@ -27,6 +28,7 @@ export default function ContentGrid({
   emptyDesc,
   emptyIcon = '·',
   onRetry,
+  onItemClick,
 }: ContentGridProps) {
   if (loading && page === 1) {
     return (
@@ -50,7 +52,7 @@ export default function ContentGrid({
   return (
     <div className="content-grid">
       {items.map(item => (
-        <ContentCard key={item.id} content={item} size={cardSize} showReason={showReason} />
+        <ContentCard key={item.id} content={item} size={cardSize} showReason={showReason} onClick={onItemClick} />
       ))}
     </div>
   );

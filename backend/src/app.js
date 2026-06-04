@@ -9,6 +9,7 @@ import categoryRoutes from './routes/categories.js';
 import sourceRoutes from './routes/sources.js';
 import ingestionRoutes from './routes/ingestion.js';
 import systemRoutes from './routes/system.js';
+import leaderboardRoutes from './routes/leaderboards.js';
 import { initializeDatabase } from './db/database.js';
 import { ensureRequestId, createRequestLogger } from './utils/requestContext.js';
 import { createApiError } from './utils/apiErrors.js';
@@ -44,6 +45,7 @@ export function createApp() {
   app.use('/api/sources', requireAdmin, sourceRoutes);
   app.use('/api/ingestion', requireAdmin, ingestionRoutes);
   app.use('/api/system', requireAdmin, systemRoutes);
+  app.use('/api/leaderboards', leaderboardRoutes);
 
   app.get('/', (_req, res) => {
     res.json({

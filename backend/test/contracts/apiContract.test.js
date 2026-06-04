@@ -189,9 +189,23 @@ test('API contract: GET /api/system/settings envelope shape', async () => {
   assert.equal(response.status, 200);
   assertSuccessEnvelope(response.data, 'system/settings');
   assert.equal(typeof response.data.data.autoRefresh.enabled, 'boolean');
+  assert.equal(typeof response.data.data.autoRefresh.failureBackoffEnabled, 'boolean');
+  assert.equal(typeof response.data.data.autoRefresh.failureBackoffMultiplier, 'number');
+  assert.equal(typeof response.data.data.autoRefresh.failureBackoffMaxMinutes, 'number');
   assert.equal(typeof response.data.data.ingestBackfill.pages, 'number');
   assert.ok(Array.isArray(response.data.data.ingestBackfill.sorts));
   assert.equal(typeof response.data.data.cache.ttlMs, 'number');
+  assert.equal(typeof response.data.data.notifications.webhookEnabled, 'boolean');
+  assert.equal(typeof response.data.data.notifications.webhookTimeoutMs, 'number');
   assert.equal(typeof response.data.data.sourceRouting, 'object');
   assert.ok(Array.isArray(response.data.data.sourceRouting.effective.drama));
+});
+
+test('API contract: GET /api/system/search-aliases envelope shape', async () => {
+  const client = createTestClient();
+  const response = await adminRequest(client, { pathname: '/api/system/search-aliases' });
+
+  assert.equal(response.status, 200);
+  assertSuccessEnvelope(response.data, 'system/search-aliases');
+  assert.ok(Array.isArray(response.data.data));
 });

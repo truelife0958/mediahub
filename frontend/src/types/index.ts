@@ -10,6 +10,7 @@ export interface Content {
   ipName: string;
   status: 'ongoing' | 'completed';
   hotScore: number;
+  heatMetric?: 'playback' | 'reading';
   createdAt: string;
   updatedAt: string;
   cachedAt?: string;
@@ -19,9 +20,20 @@ export interface Content {
     label: string;
     url?: string;
   };
+  leaderboardEvidence?: LeaderboardSnapshotItem[];
   relatedContents?: Content[];
   similarContents?: Content[];
   reason?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  username: string;
+}
+
+export interface WatchHistoryEntry {
+  content: Content;
+  watchedAt: string;
 }
 
 export interface Category {
@@ -56,6 +68,25 @@ export interface SourceStatus {
   error: string | null;
   startedAt: string;
   finishedAt: string;
+}
+
+export type TopicField = 'actor' | 'author' | 'ip';
+
+export interface DiscoveryResponse {
+  keyword: string;
+  sort: 'hot' | 'latest';
+  minHotScore: number;
+  total: number;
+  counts: Record<Content['type'], number>;
+  groups: Record<Content['type'], Content[]>;
+  stale: boolean;
+}
+
+export interface TopicContentsResponse extends PaginatedResponse<Content> {
+  field: TopicField;
+  value: string;
+  typeFilter: '' | Content['type'];
+  minHotScore: number;
 }
 
 export interface SourceHealth {
@@ -99,6 +130,11 @@ export interface AiConfig {
 export interface SystemSettings {
   autoRefresh: {
     enabled: boolean;
+    mode: 'daily' | 'interval';
+    intervalMinutes: number;
+    failureBackoffEnabled: boolean;
+    failureBackoffMultiplier: number;
+    failureBackoffMaxMinutes: number;
     hour: number;
     minute: number;
     runOnStartup: boolean;
@@ -118,6 +154,12 @@ export interface SystemSettings {
     rateLimitPerSecond: number;
     rateLimitBurst: number;
   };
+  notifications?: {
+    webhookEnabled: boolean;
+    webhookTimeoutMs: number;
+    webhookRetryMaxAttempts?: number;
+    webhookRetryBaseDelayMs?: number;
+  };
   sourceRouting?: SourceRoutingSettings;
 }
 
@@ -134,6 +176,17 @@ export interface ReferenceSettings {
   promptTemplates: ReferencePromptTemplate[];
   keywordPresets: string[];
   recommendationRules: string[];
+}
+
+export interface SearchAliasGroup {
+  id: number;
+  canonicalKeyword: string;
+  aliases: string[];
+  type: '' | Content['type'];
+  enabled: boolean;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ContentQualityStats {
@@ -191,4 +244,157 @@ export interface AdminSummary {
 export interface AdminLogs {
   runs: SourceRunLog[];
   errorSummary: Record<string, number>;
+}
+
+export interface LeaderboardLayerOption {
+  id: 'overall' | 'new' | 'rising' | 'completed';
+  name: string;
+}
+
+export interface LeaderboardLayerConfig {
+  layers: LeaderboardLayerOption[];
+  types: Array<Content['type']>;
+}
+
+export interface LeaderboardSnapshotItem {
+  captureId: string;
+  type: Content['type'];
+  layer: LeaderboardLayerOption['id'];
+  rank: number;
+  contentId: string;
+  title: string;
+  hotScore: number;
+  heatMetric: 'playback' | 'reading';
+  status: Content['status'];
+  tags: string[];
+  sourceUrl: string;
+  evidence: Record<string, unknown>;
+  capturedAt: string;
+}
+
+export interface LeaderboardResponse {
+  type: Content['type'];
+  layer: LeaderboardLayerOption['id'];
+  captureId: string | null;
+  list: LeaderboardSnapshotItem[];
+  total: number;
+  stale: boolean;
+}
+
+export interface LeaderboardEvent {
+  id: number;
+  type: Content['type'];
+  layer: LeaderboardLayerOption['id'];
+  eventType: string;
+  contentId: string;
+  title: string;
+  prevRank: number | null;
+  newRank: number | null;
+  rankDelta: number | null;
+  prevHotScore: number | null;
+  newHotScore: number | null;
+  message: string;
+  details: Record<string, unknown>;
+  capturedAt: string;
+}
+
+export interface LeaderboardAlertsResponse {
+  events: LeaderboardEvent[];
+}
+
+export interface LeaderboardAnomaly {
+  code: string;
+  severity: 'low' | 'medium' | 'high';
+  type: Content['type'];
+  layer: '' | LeaderboardLayerOption['id'];
+  source: string;
+  message: string;
+  detail: Record<string, unknown>;
+  detectedAt: string;
+}
+
+export interface LeaderboardAnomaliesResponse {
+  staleThresholdMs: number;
+  list: LeaderboardAnomaly[];
+}
+
+export interface LeaderboardDiffResponse {
+  type: Content['type'];
+  layer: LeaderboardLayerOption['id'];
+  baseCaptureId: string | null;
+  compareCaptureId: string | null;
+  added: Array<{ contentId: string; title: string; rank: number; hotScore: number }>;
+  dropped: Array<{ contentId: string; title: string; rank: number; hotScore: number }>;
+  moved: Array<{
+    contentId: string;
+    title: string;
+    prevRank: number;
+    newRank: number;
+    rankDelta: number;
+    prevHotScore: number;
+    newHotScore: number;
+    hotScoreDelta: number;
+  }>;
+}
+
+export interface LeaderboardTrendResponse {
+  type: Content['type'];
+  layer: LeaderboardLayerOption['id'];
+  timeline: Array<{
+    captureId: string;
+    capturedAt: string;
+    top: {
+      contentId: string;
+      title: string;
+      hotScore: number;
+      heatMetric: 'playback' | 'reading';
+    } | null;
+    listSize: number;
+  } | LeaderboardSnapshotItem>;
+}
+
+export interface KeywordSubscription {
+  id: number;
+  keyword: string;
+  type: '' | Content['type'];
+  channel: string;
+  target: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KeywordSubscriptionHit {
+  id: number;
+  subscriptionId: number;
+  captureId: string;
+  keyword: string;
+  type: Content['type'];
+  contentId: string;
+  title: string;
+  matchedField: string;
+  details: Record<string, unknown>;
+  capturedAt: string;
+}
+
+export interface AuditLogRecord {
+  id: number;
+  action: string;
+  entityType: string;
+  entityId: string;
+  actor: string;
+  requestId: string;
+  details: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface ContentRevisionRecord {
+  id: number;
+  contentId: string;
+  action: string;
+  actor: string;
+  before: Record<string, unknown>;
+  patch: Record<string, unknown>;
+  after: Record<string, unknown>;
+  createdAt: string;
 }

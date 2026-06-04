@@ -42,3 +42,30 @@ export function IconGear({ size = 18 }: { size?: number }) {
     </svg>
   );
 }
+
+export function IconHeart({ size = 18, filled = false }: { size?: number; filled?: boolean }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+      <path d="M19.5 5.5a5 5 0 0 0-7.07 0L12 5.93l-.43-.43a5 5 0 0 0-7.07 7.07l.43.43L12 20l7.07-6.93.43-.43a5 5 0 0 0 0-7.07Z" />
+    </svg>
+  );
+}
+
+export function IconHistory({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 12a9 9 0 1 0 3-6.71" />
+      <path d="M3 3v6h6" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
+export function IconUser({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M20 21a8 8 0 1 0-16 0" />
+      <circle cx="12" cy="8" r="4" />
+    </svg>
+  );
+}

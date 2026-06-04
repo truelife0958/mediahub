@@ -1,6 +1,12 @@
 const DEFAULT_COVER = 'https://placehold.co/300x400/111827/ffffff?text=MediaHub';
 const VALID_TYPES = new Set(['drama', 'novel', 'comic', 'anime']);
 const VALID_STATUS = new Set(['ongoing', 'completed']);
+const HEAT_METRIC_BY_TYPE = {
+  drama: 'playback',
+  anime: 'playback',
+  novel: 'reading',
+  comic: 'reading',
+};
 
 function cleanText(value, fallback = '') {
   return String(value || fallback).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -33,7 +39,14 @@ function normalizeSource(source = {}) {
     provider,
     label: cleanText(source.label, provider),
     url: cleanText(source.url),
+    region: cleanText(source.region),
   };
+}
+
+function normalizeHeatMetric(metric, type = 'drama') {
+  const value = cleanText(metric).toLowerCase();
+  if (value === 'playback' || value === 'reading') return value;
+  return HEAT_METRIC_BY_TYPE[type] || 'playback';
 }
 
 function normalizeContent(content) {
@@ -52,6 +65,7 @@ function normalizeContent(content) {
     ipName: cleanText(content?.ipName, title),
     status: normalizeStatus(content?.status),
     hotScore: Math.max(0, Math.round(Number(content?.hotScore) || 0)),
+    heatMetric: normalizeHeatMetric(content?.heatMetric, type),
     createdAt: toIsoDate(content?.createdAt),
     updatedAt: toIsoDate(content?.updatedAt),
     source: normalizeSource(content?.source),
@@ -61,6 +75,7 @@ function normalizeContent(content) {
 export {
   DEFAULT_COVER,
   cleanText,
+  normalizeHeatMetric,
   normalizeStatus,
   toIsoDate,
   normalizeContent,

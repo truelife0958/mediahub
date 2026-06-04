@@ -58,7 +58,7 @@ function SearchBar({ value, onChange }: SearchBarProps) {
         maxLength={MAX_SEARCH_LENGTH}
         aria-label="搜索内容、演员、作者、IP"
         onChange={e => setInput(e.target.value.slice(0, MAX_SEARCH_LENGTH))}
-        placeholder="搜索内容、演员、作者、IP..."
+        placeholder="本地 + AI 搜索：短剧名、演员、作者、IP..."
         className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[var(--radius-xl)] py-3.5 pl-12 pr-24 text-[var(--text-primary)] text-[15px] transition-all duration-200 font-[inherit] outline-none focus:border-[var(--accent-primary)] focus:shadow-[0_0_0_3px_rgba(232,168,56,0.08)] placeholder:text-[var(--text-muted)]"
       />
       <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">

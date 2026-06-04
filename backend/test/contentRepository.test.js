@@ -41,6 +41,109 @@ test('upsertContents stores and lists stale-capable cached content', () => {
   assert.deepEqual(detail.tags, sample.tags);
 });
 
+test('listCachedContents excludes non-real test fixtures by default', () => {
+  resetDatabaseForTest(':memory:');
+
+  upsertContents([
+    sample,
+    {
+      ...sample,
+      id: 'anime:regression:1',
+      title: 'ANIME 回归样本 1',
+      hotScore: 99_999,
+      source: { provider: 'regression', label: 'Regression Source', url: 'https://example.com' },
+    },
+    {
+      ...sample,
+      id: 'anime:smoke:e2e-1',
+      title: 'E2E 冒烟动漫 A',
+      hotScore: 99_998,
+      source: { provider: 'smoke', label: 'Smoke Source', url: 'https://example.com' },
+    },
+    {
+      ...sample,
+      id: 'anime:visual:1',
+      title: 'ANIME 视觉基线 1',
+      hotScore: 99_997,
+      source: { provider: 'visual', label: 'Visual Baseline', url: 'https://example.com' },
+    },
+  ]);
+
+  const result = listCachedContents({ type: 'anime', page: 1, limit: 10, sort: 'hot' });
+
+  assert.equal(result.pagination.total, 1);
+  assert.deepEqual(result.list.map(item => item.id), [sample.id]);
+});
+
+test('listCachedContents excludes legacy overseas cached providers by default', () => {
+  resetDatabaseForTest(':memory:');
+
+  const cnCurated = {
+    ...sample,
+    id: 'anime:curated-cn:1',
+    title: '凡人修仙传',
+    hotScore: 100,
+    source: { provider: 'curated-cn', label: '中国真实内容精选', region: 'CN', url: 'https://www.bilibili.com/bangumi/' },
+  };
+
+  upsertContents([
+    cnCurated,
+    {
+      ...sample,
+      id: 'anime:curated-real:old-1',
+      title: 'Frieren: Beyond Journey’s End',
+      hotScore: 99_999,
+      source: { provider: 'curated-real', label: 'Curated Real Dataset', url: 'https://frieren-anime.jp/' },
+    },
+    {
+      ...sample,
+      id: 'drama:tvmaze:old-1',
+      title: 'The Sopranos',
+      type: 'drama',
+      hotScore: 99_998,
+      source: { provider: 'tvmaze', label: 'TVMaze', url: 'https://api.tvmaze.com/shows/527' },
+    },
+  ]);
+
+  const anime = listCachedContents({ type: 'anime', page: 1, limit: 10, sort: 'hot' });
+  const drama = listCachedContents({ type: 'drama', page: 1, limit: 10, sort: 'hot' });
+
+  assert.equal(anime.pagination.total, 1);
+  assert.deepEqual(anime.list.map(item => item.title), ['凡人修仙传']);
+  assert.equal(drama.pagination.total, 0);
+});
+
+test('listCachedContents still includes test fixtures when explicitly enabled', () => {
+  resetDatabaseForTest(':memory:');
+  const previous = process.env.MEDIAHUB_INCLUDE_TEST_FIXTURES;
+  process.env.MEDIAHUB_INCLUDE_TEST_FIXTURES = 'true';
+
+  try {
+    upsertContents([
+      {
+        ...sample,
+        id: 'anime:regression:include-1',
+        title: 'ANIME 回归样本 1',
+        source: { provider: 'regression', label: 'Regression Source', url: 'https://example.com' },
+      },
+      {
+        ...sample,
+        id: 'anime:curated-real:include-1',
+        title: 'Frieren: Beyond Journey’s End',
+        hotScore: 99_999,
+        source: { provider: 'curated-real', label: 'Curated Real Dataset', url: 'https://frieren-anime.jp/' },
+      },
+    ]);
+
+    const result = listCachedContents({ type: 'anime', page: 1, limit: 10, sort: 'hot' });
+
+    assert.equal(result.pagination.total, 2);
+  } finally {
+    if (previous === undefined) delete process.env.MEDIAHUB_INCLUDE_TEST_FIXTURES;
+    else process.env.MEDIAHUB_INCLUDE_TEST_FIXTURES = previous;
+  }
+});
+
 test('FTS search matches multi-token keyword and keeps deterministic pagination', () => {
   resetDatabaseForTest(':memory:');
 
@@ -79,6 +182,34 @@ test('FTS search matches multi-token keyword and keeps deterministic pagination'
   assert.equal(page1.list[0].id, 'anime:ai-search:100');
   assert.equal(page2.list.length, 1);
   assert.equal(page2.list[0].id, 'anime:ai-search:101');
+});
+
+test('listCachedContents supports expanded search terms for alias recall', () => {
+  resetDatabaseForTest(':memory:');
+
+  upsertContents([
+    {
+      ...sample,
+      id: 'drama:ai-search:alias-1',
+      type: 'drama',
+      title: '家里家外',
+      summary: '短剧爆款样本',
+      ipName: '家里家外',
+      hotScore: 3500,
+    },
+  ]);
+
+  const result = listCachedContents({
+    type: 'drama',
+    page: 1,
+    limit: 10,
+    sort: 'hot',
+    keyword: '盛夏芬德拉',
+    searchTerms: ['盛夏芬德拉', '家里家外'],
+  });
+
+  assert.equal(result.pagination.total, 1);
+  assert.equal(result.list[0].title, '家里家外');
 });
 
 test('upsertContents dedupes by normalized title + source + ipName', () => {

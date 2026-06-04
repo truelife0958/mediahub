@@ -53,6 +53,9 @@ function ensureContentColumns(db) {
   if (!hasColumn(db, 'contents', 'dedupe_hash')) {
     db.exec('ALTER TABLE contents ADD COLUMN dedupe_hash TEXT');
   }
+  if (!hasColumn(db, 'contents', 'heat_metric')) {
+    db.exec("ALTER TABLE contents ADD COLUMN heat_metric TEXT NOT NULL DEFAULT 'playback'");
+  }
 }
 
 function ensureContentIndexes(db) {
@@ -147,6 +150,133 @@ function ensureAdminReferenceSettings(db) {
   `);
 }
 
+function ensureLeaderboardInsightsSchema(db) {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS leaderboard_snapshots (
+      capture_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      layer TEXT NOT NULL,
+      rank INTEGER NOT NULL,
+      content_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      hot_score INTEGER NOT NULL DEFAULT 0,
+      heat_metric TEXT NOT NULL DEFAULT 'playback',
+      status TEXT,
+      tags_json TEXT NOT NULL DEFAULT '[]',
+      source_url TEXT,
+      evidence_json TEXT NOT NULL DEFAULT '{}',
+      captured_at TEXT NOT NULL,
+      PRIMARY KEY (capture_id, rank)
+    )
+  `);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_leaderboard_snapshots_type_layer_captured ON leaderboard_snapshots(type, layer, captured_at DESC)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_leaderboard_snapshots_content_id ON leaderboard_snapshots(content_id, captured_at DESC)');
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS leaderboard_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL,
+      layer TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      content_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      prev_rank INTEGER,
+      new_rank INTEGER,
+      rank_delta INTEGER,
+      prev_hot_score INTEGER,
+      new_hot_score INTEGER,
+      message TEXT NOT NULL,
+      details_json TEXT NOT NULL DEFAULT '{}',
+      captured_at TEXT NOT NULL
+    )
+  `);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_leaderboard_events_type_layer_captured ON leaderboard_events(type, layer, captured_at DESC)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_leaderboard_events_event_type ON leaderboard_events(event_type, captured_at DESC)');
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS keyword_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      keyword TEXT NOT NULL,
+      type TEXT,
+      channel TEXT NOT NULL DEFAULT 'internal',
+      target TEXT,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_keyword_subscriptions_keyword ON keyword_subscriptions(keyword)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_keyword_subscriptions_enabled ON keyword_subscriptions(enabled)');
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS keyword_subscription_hits (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      subscription_id INTEGER NOT NULL,
+      capture_id TEXT NOT NULL DEFAULT '',
+      type TEXT NOT NULL,
+      content_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      matched_field TEXT NOT NULL,
+      details_json TEXT NOT NULL DEFAULT '{}',
+      captured_at TEXT NOT NULL,
+      FOREIGN KEY (subscription_id) REFERENCES keyword_subscriptions(id) ON DELETE CASCADE
+    )
+  `);
+  if (!hasColumn(db, 'keyword_subscription_hits', 'capture_id')) {
+    db.exec("ALTER TABLE keyword_subscription_hits ADD COLUMN capture_id TEXT NOT NULL DEFAULT ''");
+  }
+  db.exec('CREATE INDEX IF NOT EXISTS idx_keyword_subscription_hits_subscription ON keyword_subscription_hits(subscription_id, captured_at DESC)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_keyword_subscription_hits_type ON keyword_subscription_hits(type, captured_at DESC)');
+  db.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_keyword_subscription_hits_dedupe
+    ON keyword_subscription_hits(subscription_id, type, content_id, matched_field, capture_id)
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS content_revisions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      content_id TEXT NOT NULL,
+      action TEXT NOT NULL,
+      actor TEXT NOT NULL DEFAULT 'admin',
+      before_json TEXT NOT NULL DEFAULT '{}',
+      patch_json TEXT NOT NULL DEFAULT '{}',
+      after_json TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL
+    )
+  `);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_content_revisions_content_id ON content_revisions(content_id, created_at DESC)');
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      action TEXT NOT NULL,
+      entity_type TEXT NOT NULL,
+      entity_id TEXT,
+      actor TEXT NOT NULL DEFAULT 'admin',
+      request_id TEXT,
+      details_json TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL
+    )
+  `);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_audit_logs_action_created ON audit_logs(action, created_at DESC)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_created ON audit_logs(entity_type, created_at DESC)');
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS search_alias_groups (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      canonical_keyword TEXT NOT NULL,
+      aliases_json TEXT NOT NULL DEFAULT '[]',
+      type TEXT,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_search_alias_groups_type_enabled ON search_alias_groups(type, enabled, updated_at DESC)');
+  db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_search_alias_groups_canonical_type ON search_alias_groups(canonical_keyword, COALESCE(type, ''))");
+}
+
 function initializeSchema(db) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS contents (
@@ -218,6 +348,7 @@ function initializeSchema(db) {
   ensureContentFts(db);
   ensureIngestionCursors(db);
   ensureAdminReferenceSettings(db);
+  ensureLeaderboardInsightsSchema(db);
 }
 
 function getDatabase() {

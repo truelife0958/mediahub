@@ -12,6 +12,7 @@ import { recordSourceRun } from '../src/repositories/sourceRepository.js';
 import { resetHttpServiceRuntimeState } from '../src/services/httpService.js';
 import { resetCatalogRuntimeState } from '../src/services/catalogService.js';
 import { resetSourceHealthRuntimeState, resetSourceRoutingRuntimeState } from '../src/services/sourceStrategyService.js';
+import { createSearchAliasGroup } from '../src/services/searchAliasService.js';
 
 const cachedAnime = {
   id: 'anime:ai-search:1',
@@ -209,6 +210,33 @@ test('GET /api/health returns ok payload', async () => {
   assert.equal(response.status, 200);
   assert.equal(response.data.status, 'ok');
   assert.equal(typeof response.data.timestamp, 'string');
+});
+
+test('admin routes expose search aliases and leaderboard anomalies', async () => {
+  const client = createTestClient();
+  upsertContents([{
+    ...cachedAnime,
+    id: 'drama:ai-search:home-1',
+    type: 'drama',
+    title: '家里家外',
+    ipName: '家里家外',
+    hotScore: 0,
+  }]);
+  createSearchAliasGroup({
+    canonicalKeyword: '家里家外',
+    aliases: ['盛夏芬德拉'],
+    type: 'drama',
+    enabled: true,
+  });
+
+  const aliases = await adminRequest(client, { pathname: '/api/system/search-aliases' });
+  assert.equal(aliases.status, 200);
+  assert.equal(Array.isArray(aliases.data.data), true);
+  assert.equal(aliases.data.data[0].canonicalKeyword, '家里家外');
+
+  const anomalies = await adminRequest(client, { pathname: '/api/system/leaderboard-anomalies?type=drama&layer=overall' });
+  assert.equal(anomalies.status, 200);
+  assert.equal(Array.isArray(anomalies.data.data.list), true);
 });
 
 test('every response includes x-request-id header', async () => {
@@ -671,6 +699,11 @@ test('PUT /api/system/ai-config rejects invalid payload types', async () => {
 test('GET /api/system/settings returns runtime system settings snapshot', async () => {
   const previous = {
     MEDIAHUB_AUTO_REFRESH_ENABLED: process.env.MEDIAHUB_AUTO_REFRESH_ENABLED,
+    MEDIAHUB_AUTO_REFRESH_MODE: process.env.MEDIAHUB_AUTO_REFRESH_MODE,
+    MEDIAHUB_AUTO_REFRESH_INTERVAL_MINUTES: process.env.MEDIAHUB_AUTO_REFRESH_INTERVAL_MINUTES,
+    MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_ENABLED: process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_ENABLED,
+    MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MULTIPLIER: process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MULTIPLIER,
+    MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MAX_MINUTES: process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MAX_MINUTES,
     MEDIAHUB_AUTO_REFRESH_HOUR: process.env.MEDIAHUB_AUTO_REFRESH_HOUR,
     MEDIAHUB_AUTO_REFRESH_MINUTE: process.env.MEDIAHUB_AUTO_REFRESH_MINUTE,
     MEDIAHUB_AUTO_REFRESH_ON_STARTUP: process.env.MEDIAHUB_AUTO_REFRESH_ON_STARTUP,
@@ -685,9 +718,16 @@ test('GET /api/system/settings returns runtime system settings snapshot', async 
     UPSTREAM_CIRCUIT_BREAKER_OPEN_MS: process.env.UPSTREAM_CIRCUIT_BREAKER_OPEN_MS,
     UPSTREAM_RATE_LIMIT_PER_SECOND: process.env.UPSTREAM_RATE_LIMIT_PER_SECOND,
     UPSTREAM_RATE_LIMIT_BURST: process.env.UPSTREAM_RATE_LIMIT_BURST,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_ENABLED: process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_ENABLED,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_TIMEOUT_MS: process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_TIMEOUT_MS,
   };
 
   process.env.MEDIAHUB_AUTO_REFRESH_ENABLED = 'true';
+  process.env.MEDIAHUB_AUTO_REFRESH_MODE = 'interval';
+  process.env.MEDIAHUB_AUTO_REFRESH_INTERVAL_MINUTES = '7';
+  process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_ENABLED = 'true';
+  process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MULTIPLIER = '3';
+  process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MAX_MINUTES = '40';
   process.env.MEDIAHUB_AUTO_REFRESH_HOUR = '4';
   process.env.MEDIAHUB_AUTO_REFRESH_MINUTE = '30';
   process.env.MEDIAHUB_AUTO_REFRESH_ON_STARTUP = 'false';
@@ -698,6 +738,8 @@ test('GET /api/system/settings returns runtime system settings snapshot', async 
   process.env.UPSTREAM_TIMEOUT_MS = '15000';
   process.env.UPSTREAM_RETRY_MAX_ATTEMPTS = '3';
   process.env.UPSTREAM_RETRY_BASE_DELAY_MS = '400';
+  process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_ENABLED = 'true';
+  process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_TIMEOUT_MS = '6500';
 
   try {
     const client = createTestClient();
@@ -706,6 +748,11 @@ test('GET /api/system/settings returns runtime system settings snapshot', async 
     assert.equal(response.status, 200);
     assert.equal(response.data.code, 0);
     assert.equal(response.data.data.autoRefresh.enabled, true);
+    assert.equal(response.data.data.autoRefresh.mode, 'interval');
+    assert.equal(response.data.data.autoRefresh.intervalMinutes, 7);
+    assert.equal(response.data.data.autoRefresh.failureBackoffEnabled, true);
+    assert.equal(response.data.data.autoRefresh.failureBackoffMultiplier, 3);
+    assert.equal(response.data.data.autoRefresh.failureBackoffMaxMinutes, 40);
     assert.equal(response.data.data.autoRefresh.hour, 4);
     assert.equal(response.data.data.autoRefresh.minute, 30);
     assert.equal(response.data.data.autoRefresh.runOnStartup, false);
@@ -716,6 +763,8 @@ test('GET /api/system/settings returns runtime system settings snapshot', async 
     assert.equal(response.data.data.cache.timeoutMs, 15000);
     assert.equal(response.data.data.cache.retryMaxAttempts, 3);
     assert.equal(response.data.data.cache.retryBaseDelayMs, 400);
+    assert.equal(response.data.data.notifications.webhookEnabled, true);
+    assert.equal(response.data.data.notifications.webhookTimeoutMs, 6500);
   } finally {
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) {
@@ -753,6 +802,11 @@ test('PUT /api/system/settings updates every editable runtime setting', async ()
   const previous = {
     MEDIAHUB_ENV_FILE_PATH: process.env.MEDIAHUB_ENV_FILE_PATH,
     MEDIAHUB_AUTO_REFRESH_ENABLED: process.env.MEDIAHUB_AUTO_REFRESH_ENABLED,
+    MEDIAHUB_AUTO_REFRESH_MODE: process.env.MEDIAHUB_AUTO_REFRESH_MODE,
+    MEDIAHUB_AUTO_REFRESH_INTERVAL_MINUTES: process.env.MEDIAHUB_AUTO_REFRESH_INTERVAL_MINUTES,
+    MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_ENABLED: process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_ENABLED,
+    MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MULTIPLIER: process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MULTIPLIER,
+    MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MAX_MINUTES: process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MAX_MINUTES,
     MEDIAHUB_AUTO_REFRESH_HOUR: process.env.MEDIAHUB_AUTO_REFRESH_HOUR,
     MEDIAHUB_AUTO_REFRESH_MINUTE: process.env.MEDIAHUB_AUTO_REFRESH_MINUTE,
     MEDIAHUB_AUTO_REFRESH_ON_STARTUP: process.env.MEDIAHUB_AUTO_REFRESH_ON_STARTUP,
@@ -763,6 +817,8 @@ test('PUT /api/system/settings updates every editable runtime setting', async ()
     UPSTREAM_TIMEOUT_MS: process.env.UPSTREAM_TIMEOUT_MS,
     UPSTREAM_RETRY_MAX_ATTEMPTS: process.env.UPSTREAM_RETRY_MAX_ATTEMPTS,
     UPSTREAM_RETRY_BASE_DELAY_MS: process.env.UPSTREAM_RETRY_BASE_DELAY_MS,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_ENABLED: process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_ENABLED,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_TIMEOUT_MS: process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_TIMEOUT_MS,
   };
   process.env.MEDIAHUB_ENV_FILE_PATH = envPath;
 
@@ -774,6 +830,11 @@ test('PUT /api/system/settings updates every editable runtime setting', async ()
       body: {
         autoRefresh: {
           enabled: false,
+          mode: 'interval',
+          intervalMinutes: 9,
+          failureBackoffEnabled: true,
+          failureBackoffMultiplier: 4,
+          failureBackoffMaxMinutes: 90,
           hour: 6,
           minute: 45,
           runOnStartup: true,
@@ -793,12 +854,21 @@ test('PUT /api/system/settings updates every editable runtime setting', async ()
           rateLimitPerSecond: 12,
           rateLimitBurst: 24,
         },
+        notifications: {
+          webhookEnabled: true,
+          webhookTimeoutMs: 8200,
+        },
       },
     });
 
     assert.equal(updateResponse.status, 200);
     assert.equal(updateResponse.data.code, 0);
     assert.equal(updateResponse.data.data.autoRefresh.enabled, false);
+    assert.equal(updateResponse.data.data.autoRefresh.mode, 'interval');
+    assert.equal(updateResponse.data.data.autoRefresh.intervalMinutes, 9);
+    assert.equal(updateResponse.data.data.autoRefresh.failureBackoffEnabled, true);
+    assert.equal(updateResponse.data.data.autoRefresh.failureBackoffMultiplier, 4);
+    assert.equal(updateResponse.data.data.autoRefresh.failureBackoffMaxMinutes, 90);
     assert.equal(updateResponse.data.data.autoRefresh.hour, 6);
     assert.equal(updateResponse.data.data.autoRefresh.minute, 45);
     assert.equal(updateResponse.data.data.autoRefresh.runOnStartup, true);
@@ -813,6 +883,8 @@ test('PUT /api/system/settings updates every editable runtime setting', async ()
     assert.equal(updateResponse.data.data.cache.circuitBreakerOpenMs, 45000);
     assert.equal(updateResponse.data.data.cache.rateLimitPerSecond, 12);
     assert.equal(updateResponse.data.data.cache.rateLimitBurst, 24);
+    assert.equal(updateResponse.data.data.notifications.webhookEnabled, true);
+    assert.equal(updateResponse.data.data.notifications.webhookTimeoutMs, 8200);
 
     const readResponse = await adminRequest(client, { pathname: '/api/system/settings' });
     assert.equal(readResponse.status, 200);
@@ -820,6 +892,17 @@ test('PUT /api/system/settings updates every editable runtime setting', async ()
     assert.equal(readResponse.data.data.cache.retryBaseDelayMs, 650);
     assert.equal(readResponse.data.data.cache.circuitBreakerFailureThreshold, 8);
     assert.equal(readResponse.data.data.cache.rateLimitBurst, 24);
+    assert.equal(readResponse.data.data.notifications.webhookEnabled, true);
+    assert.equal(readResponse.data.data.notifications.webhookTimeoutMs, 8200);
+
+    const envText = await readFile(envPath, 'utf8');
+    assert.match(envText, /MEDIAHUB_AUTO_REFRESH_MODE="interval"/);
+    assert.match(envText, /MEDIAHUB_AUTO_REFRESH_INTERVAL_MINUTES="9"/);
+    assert.match(envText, /MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_ENABLED="true"/);
+    assert.match(envText, /MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MULTIPLIER="4"/);
+    assert.match(envText, /MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MAX_MINUTES="90"/);
+    assert.match(envText, /MEDIAHUB_WEBHOOK_NOTIFICATIONS_ENABLED="true"/);
+    assert.match(envText, /MEDIAHUB_WEBHOOK_NOTIFICATIONS_TIMEOUT_MS="8200"/);
   } finally {
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) delete process.env[key];
@@ -836,6 +919,20 @@ test('PUT /api/system/settings rejects invalid runtime setting values', async ()
     pathname: '/api/system/settings',
     body: {
       autoRefresh: { hour: 25 },
+    },
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.data.error, 'invalid_request');
+});
+
+test('PUT /api/system/settings rejects invalid auto refresh mode', async () => {
+  const client = createTestClient();
+  const response = await adminRequest(client, {
+    method: 'PUT',
+    pathname: '/api/system/settings',
+    body: {
+      autoRefresh: { mode: 'hourly' },
     },
   });
 
@@ -890,6 +987,95 @@ test('PUT /api/system/reference-settings rejects empty editable reference lists'
 
   assert.equal(response.status, 400);
   assert.equal(response.data.error, 'invalid_request');
+});
+
+test('leaderboard subscriptions support webhook channel and deliver notifications on capture', async () => {
+  const previous = {
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_ENABLED: process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_ENABLED,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_TIMEOUT_MS: process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_TIMEOUT_MS,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_SECRET: process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_SECRET,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_RETRY_MAX_ATTEMPTS: process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_RETRY_MAX_ATTEMPTS,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_RETRY_BASE_DELAY_MS: process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_RETRY_BASE_DELAY_MS,
+  };
+  process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_ENABLED = 'true';
+  process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_TIMEOUT_MS = '4000';
+  process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_SECRET = 'mediahub-test-secret';
+  process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_RETRY_MAX_ATTEMPTS = '2';
+  process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_RETRY_BASE_DELAY_MS = '0';
+
+  const originalFetch = global.fetch;
+  const calls = [];
+  let webhookFailures = 0;
+  global.fetch = async (url, options = {}) => {
+    calls.push({ url: String(url), method: String(options.method || 'GET'), body: String(options.body || '') });
+    if (String(url) === 'https://example.com/webhook/mediahub' && webhookFailures === 0) {
+      webhookFailures += 1;
+      return new Response(JSON.stringify({ ok: false }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+
+  try {
+    const client = createTestClient();
+    upsertContents([{
+      id: 'drama:ai-search:notify-1',
+      title: '盛夏芬德拉',
+      cover: 'https://example.com/notify.jpg',
+      summary: '榜单命中测试',
+      type: 'drama',
+      tags: ['都市', '盛夏芬德拉'],
+      actors: ['演员A'],
+      author: 'AI Discovery',
+      ipName: '盛夏芬德拉',
+      status: 'ongoing',
+      hotScore: 9800,
+      createdAt: '2026-06-01T00:00:00.000Z',
+      updatedAt: '2026-06-02T00:00:00.000Z',
+      source: { provider: 'ai-search', label: 'AI Trending Search', url: 'https://example.com/notify-drama' },
+    }]);
+
+    const createResponse = await adminRequest(client, {
+      method: 'POST',
+      pathname: '/api/system/subscriptions',
+      body: {
+        keyword: '盛夏芬德拉',
+        type: 'drama',
+        channel: 'webhook',
+        target: 'https://example.com/webhook/mediahub',
+      },
+    });
+
+    assert.equal(createResponse.status, 200);
+    assert.equal(createResponse.data.data.channel, 'webhook');
+    assert.equal(createResponse.data.data.target, 'https://example.com/webhook/mediahub');
+
+    const captureResponse = await adminRequest(client, {
+      method: 'POST',
+      pathname: '/api/system/leaderboards/capture',
+      body: {},
+    });
+
+    assert.equal(captureResponse.status, 200);
+    assert.equal(captureResponse.data.code, 0);
+
+    const webhookCall = calls.find(item => item.url === 'https://example.com/webhook/mediahub' && item.method === 'POST');
+    assert.ok(webhookCall);
+    assert.match(webhookCall.body, /leaderboard_subscription_hit/);
+    assert.match(webhookCall.body, /盛夏芬德拉/);
+    assert.ok(calls.filter(item => item.url === 'https://example.com/webhook/mediahub').length >= 2);
+  } finally {
+    global.fetch = originalFetch;
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
 });
 
 test('GET /api/contents omits cover when MEDIAHUB_HIDE_COVER=true', async () => {

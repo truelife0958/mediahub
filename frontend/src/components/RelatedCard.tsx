@@ -2,6 +2,7 @@ import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CATEGORY_TEXT } from '../constants';
 import type { Content } from '../types';
+import { formatHotScore } from '../utils/hotScore';
 
 interface RelatedCardProps {
   content: Content;
@@ -34,7 +35,7 @@ const RelatedCard = memo(function RelatedCard({ content }: RelatedCardProps) {
         </p>
       </div>
       <div className="flex items-center gap-1 text-[#fb923c] font-semibold text-xs">
-        {content.hotScore.toLocaleString()}
+        {formatHotScore(content.hotScore, content.heatMetric)}
       </div>
     </button>
   );

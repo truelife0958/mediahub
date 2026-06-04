@@ -27,10 +27,22 @@ function parseBackfillSortModes(value) {
   return unique.length > 0 ? unique : ['hot'];
 }
 
+function parseAutoRefreshMode(value, fallback = 'daily') {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (normalized === 'interval' || normalized === 'realtime') return 'interval';
+  if (normalized === 'daily') return 'daily';
+  return fallback;
+}
+
 function getSystemSettingsSnapshot() {
   return {
     autoRefresh: {
       enabled: parseBoolean(process.env.MEDIAHUB_AUTO_REFRESH_ENABLED, true),
+      mode: parseAutoRefreshMode(process.env.MEDIAHUB_AUTO_REFRESH_MODE, 'daily'),
+      intervalMinutes: parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_INTERVAL_MINUTES, 10, 1, 1440),
+      failureBackoffEnabled: parseBoolean(process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_ENABLED, true),
+      failureBackoffMultiplier: parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MULTIPLIER, 2, 2, 8),
+      failureBackoffMaxMinutes: parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MAX_MINUTES, 60, 1, 1440),
       hour: parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_HOUR, 3, 0, 23),
       minute: parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_MINUTE, 0, 0, 59),
       runOnStartup: parseBoolean(process.env.MEDIAHUB_AUTO_REFRESH_ON_STARTUP, true),
@@ -49,6 +61,12 @@ function getSystemSettingsSnapshot() {
       circuitBreakerOpenMs: parseBoundedInteger(process.env.UPSTREAM_CIRCUIT_BREAKER_OPEN_MS, 30_000, 1_000, 300_000),
       rateLimitPerSecond: parseBoundedInteger(process.env.UPSTREAM_RATE_LIMIT_PER_SECOND, 6, 1, 100),
       rateLimitBurst: parseBoundedInteger(process.env.UPSTREAM_RATE_LIMIT_BURST, 6, 1, 200),
+    },
+    notifications: {
+      webhookEnabled: parseBoolean(process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_ENABLED, false),
+      webhookTimeoutMs: parseBoundedInteger(process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_TIMEOUT_MS, 5_000, 1_000, 30_000),
+      webhookRetryMaxAttempts: parseBoundedInteger(process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_RETRY_MAX_ATTEMPTS, 3, 1, 6),
+      webhookRetryBaseDelayMs: parseBoundedInteger(process.env.MEDIAHUB_WEBHOOK_NOTIFICATIONS_RETRY_BASE_DELAY_MS, 500, 0, 10_000),
     },
     sourceRouting: getSourceRoutingSettingsSnapshot(),
   };
@@ -73,6 +91,12 @@ function normalizeInteger(value, field, min, max) {
   return parsed;
 }
 
+function normalizeAutoRefreshMode(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (normalized === 'daily' || normalized === 'interval') return normalized;
+  throw createApiError('invalid_request', 'autoRefresh.mode must be daily or interval');
+}
+
 function normalizeSortModes(value) {
   if (!Array.isArray(value)) {
     throw createApiError('invalid_request', 'ingestBackfill.sorts must be array');
@@ -95,6 +119,7 @@ function updateSystemSettings(input) {
     autoRefresh: { ...current.autoRefresh },
     ingestBackfill: { ...current.ingestBackfill },
     cache: { ...current.cache },
+    notifications: { ...current.notifications },
   };
 
   if (hasOwn(input, 'autoRefresh')) {
@@ -102,6 +127,29 @@ function updateSystemSettings(input) {
       throw createApiError('invalid_request', 'autoRefresh must be object');
     }
     if (hasOwn(input.autoRefresh, 'enabled')) next.autoRefresh.enabled = normalizeBoolean(input.autoRefresh.enabled, 'autoRefresh.enabled');
+    if (hasOwn(input.autoRefresh, 'mode')) next.autoRefresh.mode = normalizeAutoRefreshMode(input.autoRefresh.mode);
+    if (hasOwn(input.autoRefresh, 'intervalMinutes')) {
+      next.autoRefresh.intervalMinutes = normalizeInteger(input.autoRefresh.intervalMinutes, 'autoRefresh.intervalMinutes', 1, 1440);
+    }
+    if (hasOwn(input.autoRefresh, 'failureBackoffEnabled')) {
+      next.autoRefresh.failureBackoffEnabled = normalizeBoolean(input.autoRefresh.failureBackoffEnabled, 'autoRefresh.failureBackoffEnabled');
+    }
+    if (hasOwn(input.autoRefresh, 'failureBackoffMultiplier')) {
+      next.autoRefresh.failureBackoffMultiplier = normalizeInteger(
+        input.autoRefresh.failureBackoffMultiplier,
+        'autoRefresh.failureBackoffMultiplier',
+        2,
+        8,
+      );
+    }
+    if (hasOwn(input.autoRefresh, 'failureBackoffMaxMinutes')) {
+      next.autoRefresh.failureBackoffMaxMinutes = normalizeInteger(
+        input.autoRefresh.failureBackoffMaxMinutes,
+        'autoRefresh.failureBackoffMaxMinutes',
+        1,
+        1440,
+      );
+    }
     if (hasOwn(input.autoRefresh, 'hour')) next.autoRefresh.hour = normalizeInteger(input.autoRefresh.hour, 'autoRefresh.hour', 0, 23);
     if (hasOwn(input.autoRefresh, 'minute')) next.autoRefresh.minute = normalizeInteger(input.autoRefresh.minute, 'autoRefresh.minute', 0, 59);
     if (hasOwn(input.autoRefresh, 'runOnStartup')) next.autoRefresh.runOnStartup = normalizeBoolean(input.autoRefresh.runOnStartup, 'autoRefresh.runOnStartup');
@@ -130,8 +178,31 @@ function updateSystemSettings(input) {
     if (hasOwn(input.cache, 'rateLimitBurst')) next.cache.rateLimitBurst = normalizeInteger(input.cache.rateLimitBurst, 'cache.rateLimitBurst', 1, 200);
   }
 
+  if (hasOwn(input, 'notifications')) {
+    if (!input.notifications || typeof input.notifications !== 'object' || Array.isArray(input.notifications)) {
+      throw createApiError('invalid_request', 'notifications must be object');
+    }
+    if (hasOwn(input.notifications, 'webhookEnabled')) {
+      next.notifications.webhookEnabled = normalizeBoolean(input.notifications.webhookEnabled, 'notifications.webhookEnabled');
+    }
+    if (hasOwn(input.notifications, 'webhookTimeoutMs')) {
+      next.notifications.webhookTimeoutMs = normalizeInteger(input.notifications.webhookTimeoutMs, 'notifications.webhookTimeoutMs', 1_000, 30_000);
+    }
+    if (hasOwn(input.notifications, 'webhookRetryMaxAttempts')) {
+      next.notifications.webhookRetryMaxAttempts = normalizeInteger(input.notifications.webhookRetryMaxAttempts, 'notifications.webhookRetryMaxAttempts', 1, 6);
+    }
+    if (hasOwn(input.notifications, 'webhookRetryBaseDelayMs')) {
+      next.notifications.webhookRetryBaseDelayMs = normalizeInteger(input.notifications.webhookRetryBaseDelayMs, 'notifications.webhookRetryBaseDelayMs', 0, 10_000);
+    }
+  }
+
   writeEnvValues({
     MEDIAHUB_AUTO_REFRESH_ENABLED: next.autoRefresh.enabled,
+    MEDIAHUB_AUTO_REFRESH_MODE: next.autoRefresh.mode,
+    MEDIAHUB_AUTO_REFRESH_INTERVAL_MINUTES: next.autoRefresh.intervalMinutes,
+    MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_ENABLED: next.autoRefresh.failureBackoffEnabled,
+    MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MULTIPLIER: next.autoRefresh.failureBackoffMultiplier,
+    MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MAX_MINUTES: next.autoRefresh.failureBackoffMaxMinutes,
     MEDIAHUB_AUTO_REFRESH_HOUR: next.autoRefresh.hour,
     MEDIAHUB_AUTO_REFRESH_MINUTE: next.autoRefresh.minute,
     MEDIAHUB_AUTO_REFRESH_ON_STARTUP: next.autoRefresh.runOnStartup,
@@ -146,6 +217,10 @@ function updateSystemSettings(input) {
     UPSTREAM_CIRCUIT_BREAKER_OPEN_MS: next.cache.circuitBreakerOpenMs,
     UPSTREAM_RATE_LIMIT_PER_SECOND: next.cache.rateLimitPerSecond,
     UPSTREAM_RATE_LIMIT_BURST: next.cache.rateLimitBurst,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_ENABLED: next.notifications.webhookEnabled,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_TIMEOUT_MS: next.notifications.webhookTimeoutMs,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_RETRY_MAX_ATTEMPTS: next.notifications.webhookRetryMaxAttempts,
+    MEDIAHUB_WEBHOOK_NOTIFICATIONS_RETRY_BASE_DELAY_MS: next.notifications.webhookRetryBaseDelayMs,
   });
 
   return getSystemSettingsSnapshot();

@@ -2,7 +2,9 @@ import { refreshContentType } from './ingestionService.js';
 
 const CONTENT_TYPES = ['drama', 'novel', 'comic', 'anime'];
 const DAY_MS = 24 * 60 * 60 * 1000;
+const MINUTE_MS = 60 * 1000;
 const MIN_DELAY_MS = 1_000;
+const MAX_INTERVAL_MINUTES = 24 * 60;
 
 function parseBoolean(value, defaultValue) {
   if (value === undefined || value === null || value === '') return defaultValue;
@@ -25,6 +27,32 @@ function parseSortModes(value, fallback = ['hot']) {
     .map(item => item.trim())
     .filter(item => item === 'hot' || item === 'latest');
   return normalized.length > 0 ? [...new Set(normalized)] : fallback;
+}
+
+function parseAutoRefreshMode(value, fallback = 'daily') {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (normalized === 'interval' || normalized === 'realtime') return 'interval';
+  if (normalized === 'daily') return 'daily';
+  return fallback;
+}
+
+function computeBackoffIntervalMinutes({
+  baseIntervalMinutes,
+  failureCount,
+  failureBackoffEnabled,
+  failureBackoffMultiplier,
+  failureBackoffMaxMinutes,
+}) {
+  const base = parseBoundedInteger(baseIntervalMinutes, 10, 1, MAX_INTERVAL_MINUTES);
+  if (!failureBackoffEnabled) return base;
+
+  const consecutiveFailures = Math.max(0, Number(failureCount) || 0);
+  if (consecutiveFailures <= 0) return base;
+
+  const multiplier = parseBoundedInteger(failureBackoffMultiplier, 2, 2, 8);
+  const maxMinutes = parseBoundedInteger(failureBackoffMaxMinutes, 60, 1, MAX_INTERVAL_MINUTES);
+  const scaled = Math.round(base * (multiplier ** consecutiveFailures));
+  return Math.max(base, Math.min(maxMinutes, scaled));
 }
 
 function computeNextRunAt(now, hour, minute) {
@@ -73,6 +101,11 @@ async function refreshAllTypes({
 function startDailyAutoRefresh({
   enabled = parseBoolean(process.env.MEDIAHUB_AUTO_REFRESH_ENABLED, true),
   runOnStartup = parseBoolean(process.env.MEDIAHUB_AUTO_REFRESH_ON_STARTUP, true),
+  mode = parseAutoRefreshMode(process.env.MEDIAHUB_AUTO_REFRESH_MODE, 'daily'),
+  intervalMinutes = parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_INTERVAL_MINUTES, 10, 1, MAX_INTERVAL_MINUTES),
+  failureBackoffEnabled = parseBoolean(process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_ENABLED, true),
+  failureBackoffMultiplier = parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MULTIPLIER, 2, 2, 8),
+  failureBackoffMaxMinutes = parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MAX_MINUTES, 60, 1, MAX_INTERVAL_MINUTES),
   hour = parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_HOUR, 3, 0, 23),
   minute = parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_MINUTE, 0, 0, 59),
   backfillPageCount = parseBoundedInteger(process.env.MEDIAHUB_INGEST_BACKFILL_PAGES, 3, 1, 10),
@@ -89,9 +122,13 @@ function startDailyAutoRefresh({
     return () => {};
   }
 
+  const refreshMode = parseAutoRefreshMode(mode, 'daily');
+  const resolvedIntervalMinutes = parseBoundedInteger(intervalMinutes, 10, 1, MAX_INTERVAL_MINUTES);
+
   let timerId = null;
   let stopped = false;
   let running = false;
+  let consecutiveFailureRuns = 0;
 
   const executeRefresh = async () => {
     if (running) return;
@@ -107,8 +144,10 @@ function startDailyAutoRefresh({
       });
       const successCount = results.filter(item => item.status === 'success').length;
       const failureCount = results.length - successCount;
+      consecutiveFailureRuns = failureCount > 0 ? consecutiveFailureRuns + 1 : 0;
       logger?.info?.(`[auto-refresh] run finished success=${successCount} failed=${failureCount}`);
     } catch (error) {
+      consecutiveFailureRuns += 1;
       logger?.error?.(`[auto-refresh] run failed: ${error?.message || 'unknown error'}`);
     } finally {
       running = false;
@@ -119,12 +158,27 @@ function startDailyAutoRefresh({
   const scheduleNext = () => {
     if (stopped) return;
     const now = nowProvider();
-    const nextRunAt = computeNextRunAt(now, hour, minute);
+    const effectiveIntervalMinutes = refreshMode === 'interval'
+      ? computeBackoffIntervalMinutes({
+        baseIntervalMinutes: resolvedIntervalMinutes,
+        failureCount: consecutiveFailureRuns,
+        failureBackoffEnabled,
+        failureBackoffMultiplier,
+        failureBackoffMaxMinutes,
+      })
+      : resolvedIntervalMinutes;
+    const nextRunAt = refreshMode === 'interval'
+      ? new Date(now.getTime() + effectiveIntervalMinutes * MINUTE_MS)
+      : computeNextRunAt(now, hour, minute);
     const delayMs = Math.max(MIN_DELAY_MS, nextRunAt.getTime() - now.getTime());
 
     timerId = setTimeoutFn(executeRefresh, delayMs);
 
-    logger?.info?.(`[auto-refresh] next run at ${nextRunAt.toISOString()}`);
+    logger?.info?.(
+      refreshMode === 'interval'
+        ? `[auto-refresh] next interval run at ${nextRunAt.toISOString()} (every ${effectiveIntervalMinutes}m, failures=${consecutiveFailureRuns})`
+        : `[auto-refresh] next daily run at ${nextRunAt.toISOString()}`
+    );
   };
 
   if (runOnStartup) {
@@ -142,4 +196,12 @@ function startDailyAutoRefresh({
   };
 }
 
-export { CONTENT_TYPES, DAY_MS, computeNextRunAt, refreshAllTypes, startDailyAutoRefresh };
+export {
+  CONTENT_TYPES,
+  DAY_MS,
+  computeBackoffIntervalMinutes,
+  computeNextRunAt,
+  refreshAllTypes,
+  startDailyAutoRefresh,
+  parseAutoRefreshMode,
+};

@@ -2,11 +2,13 @@ import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CATEGORY_COLORS, CATEGORY_TEXT } from '../constants';
 import type { Content } from '../types';
+import { formatHotScore } from '../utils/hotScore';
 
 interface ContentCardProps {
   content: Content;
   size?: 'large' | 'medium' | 'small';
   showReason?: boolean;
+  onClick?: (content: Content) => void;
 }
 
 const HEIGHTS: Record<string, string> = {
@@ -15,10 +17,16 @@ const HEIGHTS: Record<string, string> = {
   small: 'min-h-[150px]',
 };
 
-const ContentCard = memo(function ContentCard({ content, size = 'medium', showReason }: ContentCardProps) {
+const ContentCard = memo(function ContentCard({ content, size = 'medium', showReason, onClick }: ContentCardProps) {
   const navigate = useNavigate();
 
-  const handleClick = useCallback(() => navigate(`/detail/${content.id}`), [content.id, navigate]);
+  const handleClick = useCallback(() => {
+    if (onClick) {
+      onClick(content);
+      return;
+    }
+    navigate(`/detail/${content.id}`);
+  }, [content, navigate, onClick]);
 
   const statusText = content.status === 'ongoing' ? '连载中' : '已完结';
   const displayAuthor = content.actors?.length > 0 ? content.actors.slice(0, 2).join(' / ') : content.author;
@@ -57,7 +65,7 @@ const ContentCard = memo(function ContentCard({ content, size = 'medium', showRe
         )}
 
         <div className="card-meta-bottom mt-auto">
-          <span className="hot-score">热度 {content.hotScore.toLocaleString()}</span>
+          <span className="hot-score">{formatHotScore(content.hotScore, content.heatMetric)}</span>
         </div>
       </div>
     </button>

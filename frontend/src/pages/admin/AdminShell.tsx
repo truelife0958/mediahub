@@ -75,7 +75,7 @@ export default function AdminShell({
           <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div>
               <p className="text-xs text-[var(--text-muted)]">当前模块</p>
-              <h2 className="text-2xl font-black tracking-[-0.03em]">{current.icon} {current.label}</h2>
+              <h2 className="text-2xl font-black tracking-[-0.03em]">{current.label}</h2>
               <p className="mt-1 text-sm text-[var(--text-muted)]">{current.subtitle}</p>
             </div>
             <div className="flex flex-col items-stretch gap-2 md:items-end">
@@ -108,7 +108,7 @@ export default function AdminShell({
             </div>
           </div>
 
-          <div className="mb-5 flex gap-2 overflow-x-auto pb-1" data-testid="admin-right-tabs">
+          <div className="mb-5 flex flex-wrap gap-2 pb-1 md:flex-nowrap md:overflow-x-auto" data-testid="admin-right-tabs">
             {current.tabs.map(tab => (
               <button
                 key={tab.id}
