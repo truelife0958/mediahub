@@ -70,6 +70,7 @@ async function extractStructuredWithAi({ title, text, type, sourceUrl }) {
       prompt: buildAiPrompt({ title, text, type, sourceUrl }),
       systemPrompt: '你是 MediaHub 的内容结构化助手。只返回可解析 JSON，不要 markdown，不要解释。',
       temperature: 0.1,
+      timeoutMs: 60_000,
     });
     if (!response.ok) return null;
     const outputText = extractAiOutputText(payload);

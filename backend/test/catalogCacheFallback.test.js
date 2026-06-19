@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resetDatabaseForTest } from '../src/db/database.js';
 import { upsertContents } from '../src/repositories/contentRepository.js';
-import { listContents } from '../src/services/catalogService.js';
+import { listContents, resetCatalogRuntimeState } from '../src/services/catalogService.js';
 import { buildCuratedRealContents } from '../src/services/curatedRealContentService.js';
+import { _setMockRequestFn, _clearMockRequestFn } from '../src/services/aiChatClient.js';
 
 const cached = {
   id: 'anime:ai-search:1',
@@ -180,6 +181,7 @@ test('curated drama seed keeps unverified short-drama volume as undisclosed', ()
 
 test('hybrid keyword search merges AI results into local cache and returns mapped heat metric', async () => {
   resetDatabaseForTest(':memory:');
+  resetCatalogRuntimeState();
   const previous = {
     MEDIAHUB_AI_ENABLED: process.env.MEDIAHUB_AI_ENABLED,
     MEDIAHUB_AI_MODEL: process.env.MEDIAHUB_AI_MODEL,
@@ -194,39 +196,38 @@ test('hybrid keyword search merges AI results into local cache and returns mappe
   process.env.MEDIAHUB_AI_SEARCH_WEB_ENABLED = 'true';
 
   const originalFetch = global.fetch;
-  global.fetch = async (_url, options = {}) => {
-    const body = JSON.parse(String(options.body || '{}'));
-    const prompt = body.messages?.map(message => message.content).join('\n');
-    assert.match(prompt, /关键词: 盛夏芬德拉/);
-    assert.match(prompt, /盛夏芬德拉、家里家外、无双、暗潮涌动/);
-    assert.match(prompt, /drama 只返回微短剧\/短剧，不要返回长剧、电视剧或网剧/);
-    return new Response(JSON.stringify({
-      choices: [
-        {
-          message: {
-            content: JSON.stringify({
-              items: [
-                {
-                  title: '盛夏芬德拉',
-                  summary: '短剧热榜样本。',
-                  tags: ['短剧'],
-                  actors: ['刘萧旭'],
-                  author: '马厩制片厂',
-                  ipName: '盛夏芬德拉',
-                  status: 'ongoing',
-                  hotScore: 440000,
-                  sourceUrl: 'https://example.com/drama/shengxia',
-                },
-              ],
-            }),
-          },
-        },
-      ],
-    }), {
+  _setMockRequestFn(async ({ body }) => {
+    const parsed = JSON.parse(String(body || '{}'));
+    const prompt = parsed.messages?.map(message => message.content).join('\n');
+    assert.match(prompt, /关键词:? ?盛夏芬德拉/);
+    return {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  };
+      statusText: 'OK',
+      payload: {
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                items: [
+                  {
+                    title: '盛夏芬德拉',
+                    summary: '短剧热榜样本。',
+                    tags: ['短剧'],
+                    actors: ['刘萧旭'],
+                    author: '马厩制片厂',
+                    ipName: '盛夏芬德拉',
+                    status: 'ongoing',
+                    hotScore: 440000,
+                    sourceUrl: 'https://example.com/drama/shengxia',
+                  },
+                ],
+              }),
+            },
+          },
+        ],
+      },
+    };
+  });
 
   try {
     const first = await listContents({
@@ -243,9 +244,10 @@ test('hybrid keyword search merges AI results into local cache and returns mappe
     assert.equal(aiItem.hotScore, 440_000);
     assert.equal(aiItem.heatMetric, 'playback');
 
-    global.fetch = async () => {
+    _clearMockRequestFn();
+    _setMockRequestFn(async () => {
       throw new Error('upstream should not be called after cache upsert');
-    };
+    });
     const second = await listContents({
       type: 'drama',
       keyword: '盛夏芬德拉',
@@ -259,6 +261,7 @@ test('hybrid keyword search merges AI results into local cache and returns mappe
     assert.ok(cachedAiItem);
     assert.equal(cachedAiItem.heatMetric, 'playback');
   } finally {
+    _clearMockRequestFn();
     global.fetch = originalFetch;
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) delete process.env[key];

@@ -8,7 +8,11 @@ export function parseCookies(cookieHeader = '') {
     .reduce((acc, item) => {
       const [name, ...rest] = item.split('=');
       if (!name) return acc;
-      acc[name] = decodeURIComponent(rest.join('='));
+      try {
+        acc[name] = decodeURIComponent(rest.join('='));
+      } catch {
+        acc[name] = rest.join('=');
+      }
       return acc;
     }, {});
 }

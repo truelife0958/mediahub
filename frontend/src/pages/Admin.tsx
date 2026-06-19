@@ -21,6 +21,7 @@ import {
   getSearchAliasGroups,
   getAdminSummary,
   getAiConfig,
+  getAutoRefreshStatus,
   getSourceHealth,
   getSourceStatuses,
   getSystemSettings,
@@ -30,8 +31,10 @@ import {
   listSubscriptionHits,
   loginAdmin,
   logoutAdmin,
+  refreshAllContentTypes,
   refreshContentType,
   triggerLeaderboardCapture,
+  testAiConfig,
   updateAdminContent,
   updateAiConfig,
   updateKeywordSubscription,
@@ -44,6 +47,7 @@ import type {
   AdminSummary,
   AuditLogRecord,
   AiConfig,
+  AutoRefreshRuntimeStatus,
   Content,
   ContentRevisionRecord,
   ContentQualityStats,
@@ -95,6 +99,7 @@ export default function Admin() {
   const [sources, setSources] = useState<SourceStatus[]>([]);
   const [sourceHealth, setSourceHealth] = useState<SourceHealth[]>([]);
   const [aiConfig, setAiConfig] = useState<AiConfig | null>(null);
+  const [autoRefreshStatus, setAutoRefreshStatus] = useState<AutoRefreshRuntimeStatus | null>(null);
   const [summary, setSummary] = useState<AdminSummary | null>(null);
   const [quality, setQuality] = useState<ContentQualityStats | null>(null);
   const [logs, setLogs] = useState<AdminLogs | null>(null);
@@ -126,6 +131,7 @@ export default function Admin() {
   const [loadingContents, setLoadingContents] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<Record<ContentType, boolean>>(INITIAL_REFRESHING_STATE);
+  const [refreshingAll, setRefreshingAll] = useState(false);
   const [savingAi, setSavingAi] = useState(false);
   const [savingSystemSettings, setSavingSystemSettings] = useState(false);
   const [savingReference, setSavingReference] = useState<ReferenceSection | null>(null);
@@ -173,30 +179,35 @@ export default function Admin() {
     }
   }, [contentKeyword]);
 
-  const loadAll = useCallback(async () => {
+  const loadAll = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     setError(null);
     try {
-      const [settingsData, sourceData, aiData, healthData, referenceData, aliasData] = await Promise.all([
-        getSystemSettings(),
-        getSourceStatuses(),
-        getAiConfig(),
-        getSourceHealth(),
-        getReferenceSettings(),
-        getSearchAliasGroups(),
+      const init = signal ? { signal } : undefined;
+      const [settingsData, sourceData, aiData, healthData, referenceData, aliasData, autoRefreshData] = await Promise.all([
+        getSystemSettings(init),
+        getSourceStatuses(init),
+        getAiConfig(init),
+        getSourceHealth(undefined, init),
+        getReferenceSettings(init),
+        getSearchAliasGroups(undefined, init),
+        getAutoRefreshStatus(init),
       ]);
+      if (signal?.aborted) return;
       setSettings(settingsData);
       setSources(sourceData);
       setSourceHealth(healthData);
       setAiConfig(aiData);
+      setAutoRefreshStatus(autoRefreshData);
       setReferenceSettings(referenceData);
       setAliasGroups(aliasData);
       setAiForm({ enabled: aiData.enabled, model: aiData.model, baseUrl: aiData.baseUrl, apiKey: '', persistTarget: 'runtime' });
       await Promise.all([refreshAdminSnapshots(), loadContents('anime', '')]);
     } catch (err) {
+      if (signal?.aborted) return;
       setError(classifyAdminError(err));
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, [loadContents, refreshAdminSnapshots]);
 
@@ -206,9 +217,11 @@ export default function Admin() {
       layer?: 'overall' | 'new' | 'rising' | 'completed';
       contentId?: string;
     } = {},
+    signal?: AbortSignal,
   ) => {
     setLoadingInsights(true);
     try {
+      const init = signal ? { signal } : undefined;
       const [
         layerConfigData,
         leaderboardData,
@@ -221,18 +234,19 @@ export default function Admin() {
         auditData,
         revisionsData,
       ] = await Promise.all([
-        getLeaderboardLayerConfig(),
-        getLeaderboard({ type, layer }),
-        getLeaderboardTrend({ type, layer, limit: 30 }),
-        getLeaderboardDiff({ type, layer }),
-        getLeaderboardAlerts({ type, layer, limit: 80 }),
-        getLeaderboardAnomalies({ type, layer }),
-        listKeywordSubscriptions(),
-        listSubscriptionHits({ type, limit: 80 }),
-        listAuditLogs({ limit: 80 }),
-        contentId ? listContentRevisions(contentId, 50) : Promise.resolve({ list: [] }),
+        getLeaderboardLayerConfig(init),
+        getLeaderboard({ type, layer }, init),
+        getLeaderboardTrend({ type, layer, limit: 30 }, init),
+        getLeaderboardDiff({ type, layer }, init),
+        getLeaderboardAlerts({ type, layer, limit: 80 }, init),
+        getLeaderboardAnomalies({ type, layer }, init),
+        listKeywordSubscriptions(undefined, init),
+        listSubscriptionHits({ type, limit: 80 }, init),
+        listAuditLogs({ limit: 80 }, init),
+        contentId ? listContentRevisions(contentId, 50, init) : Promise.resolve({ list: [] }),
       ]);
 
+      if (signal?.aborted) return;
       setLeaderboardLayerConfig(layerConfigData);
       setLeaderboard(leaderboardData);
       setLeaderboardTrend(trendData);
@@ -244,9 +258,10 @@ export default function Admin() {
       setAuditLogs(auditData.list);
       setContentRevisions(revisionsData.list);
     } catch (err) {
+      if (signal?.aborted) return;
       setMessage(classifyAdminError(err));
     } finally {
-      setLoadingInsights(false);
+      if (!signal?.aborted) setLoadingInsights(false);
     }
   }, [insightLayer, insightType, selectedContentId]);
 
@@ -275,13 +290,17 @@ export default function Admin() {
 
   useEffect(() => {
     if (!adminAuthenticated) return;
-    loadAll();
+    const controller = new AbortController();
+    loadAll(controller.signal);
+    return () => { controller.abort(); };
   }, [adminAuthenticated, loadAll]);
 
   useEffect(() => {
     if (!adminAuthenticated) return;
     if (activeModule !== 'monitor' || activeTab !== 'insights') return;
-    loadInsights({ type: insightType, layer: insightLayer, contentId: selectedContentId });
+    const controller = new AbortController();
+    loadInsights({ type: insightType, layer: insightLayer, contentId: selectedContentId }, controller.signal);
+    return () => { controller.abort(); };
   }, [activeModule, activeTab, adminAuthenticated, insightLayer, insightType, loadInsights, selectedContentId]);
 
   useEffect(() => {
@@ -313,7 +332,8 @@ export default function Admin() {
         setAdminLoginError('管理员密码错误');
       }
     } catch (err) {
-      setAdminLoginError(classifyAdminError(err).includes('Admin password is incorrect') ? '管理员密码错误' : classifyAdminError(err));
+      const loginErr = classifyAdminError(err);
+      setAdminLoginError(!loginErr ? '请求已取消' : loginErr.includes('Admin password is incorrect') ? '管理员密码错误' : loginErr);
     } finally {
       setAdminLoggingIn(false);
     }
@@ -362,19 +382,64 @@ export default function Admin() {
       }, 250);
       const result = await refreshContentType(type);
       setIngestStage(prev => ({ ...prev, [type]: '入库中' }));
+      const [sourceData, healthData, autoRefreshData] = await Promise.all([getSourceStatuses(), getSourceHealth(), getAutoRefreshStatus()]);
+      setSources(sourceData);
+      setSourceHealth(healthData);
+      setAutoRefreshStatus(autoRefreshData);
+      await Promise.all([refreshAdminSnapshots(), loadContents(contentType)]);
+      setIngestStage(prev => ({ ...prev, [type]: '完成' }));
       const base = `${TYPE_LABEL[type]} AI 刷新完成，入库 ${result.count} 条`;
       const suffix = result.partial ? `（部分分页失败 ${result.failedPages ?? 0}/${result.attemptedPages ?? 0}，可稍后重试）` : '';
       setMessage(`${base}${suffix}`);
-      const [sourceData, healthData] = await Promise.all([getSourceStatuses(), getSourceHealth()]);
-      setSources(sourceData);
-      setSourceHealth(healthData);
-      await Promise.all([refreshAdminSnapshots(), loadContents(contentType)]);
-      setIngestStage(prev => ({ ...prev, [type]: '完成' }));
     } catch (err) {
       setMessage(classifyAdminError(err));
       setIngestStage(prev => ({ ...prev, [type]: '失败' }));
     } finally {
       setRefreshing(prev => ({ ...prev, [type]: false }));
+    }
+  }, [contentType, loadContents, refreshAdminSnapshots]);
+
+  const runRefreshAll = useCallback(async () => {
+    setRefreshingAll(true);
+    setRefreshing({ drama: true, novel: true, comic: true, anime: true });
+    setIngestStage({ drama: '请求中', novel: '请求中', comic: '请求中', anime: '请求中' });
+    setMessage('');
+    window.setTimeout(() => {
+      setIngestStage(prev => ({
+        drama: prev.drama === '请求中' ? '解析中' : prev.drama,
+        novel: prev.novel === '请求中' ? '解析中' : prev.novel,
+        comic: prev.comic === '请求中' ? '解析中' : prev.comic,
+        anime: prev.anime === '请求中' ? '解析中' : prev.anime,
+      }));
+    }, 250);
+
+    try {
+      const data = await refreshAllContentTypes();
+      setAutoRefreshStatus(data.status);
+      const nextStage = { drama: '完成', novel: '完成', comic: '完成', anime: '完成' };
+      for (const item of data.results) {
+        nextStage[item.type] = item.status === 'success' ? '完成' : '失败';
+      }
+      setIngestStage(nextStage);
+
+      const successCount = data.results.filter(item => item.status === 'success').length;
+      const totalCount = data.results.reduce((sum, item) => sum + (item.status === 'success' ? Number(item.count) || 0 : 0), 0);
+      const failed = data.results.filter(item => item.status === 'failed');
+      setMessage(failed.length > 0
+        ? `四类 AI 更新完成 ${successCount}/4，入库 ${totalCount} 条；${failed.map(item => TYPE_LABEL[item.type]).join('、')} 失败，请检查 AI Key 或稍后重试`
+        : `四类 AI 更新完成，入库 ${totalCount} 条`);
+
+      const [sourceData, healthData, latestRuntime] = await Promise.all([getSourceStatuses(), getSourceHealth(), getAutoRefreshStatus()]);
+      setSources(sourceData);
+      setSourceHealth(healthData);
+      setAutoRefreshStatus(latestRuntime);
+      await Promise.all([refreshAdminSnapshots(), loadContents(contentType)]);
+    } catch (err) {
+      setMessage(classifyAdminError(err));
+      setIngestStage({ drama: '失败', novel: '失败', comic: '失败', anime: '失败' });
+    } finally {
+      setRefreshing(INITIAL_REFRESHING_STATE);
+      setRefreshingAll(false);
     }
   }, [contentType, loadContents, refreshAdminSnapshots]);
 
@@ -481,15 +546,21 @@ export default function Admin() {
   const testAiConnection = useCallback(async () => {
     setTestingAi(true);
     try {
-      const data = await getAiConfig();
-      const missing = data.enabled && !data.hasApiKey;
-      setMessage(missing ? 'AI 已启用，但缺少 API Key，连接测试未通过' : `AI 配置可读取：${data.model} · ${data.baseUrl}`);
+      const data = await testAiConfig({
+        enabled: aiForm.enabled,
+        model: aiForm.model,
+        baseUrl: aiForm.baseUrl,
+        ...(aiForm.apiKey ? { apiKey: aiForm.apiKey } : {}),
+      });
+      setMessage(data.ok
+        ? `${data.message} 延迟 ${data.latencyMs}ms`
+        : `AI 连接测试未通过：${data.message}`);
     } catch (err) {
       setMessage(classifyAdminError(err));
     } finally {
       setTestingAi(false);
     }
-  }, []);
+  }, [aiForm]);
 
   const saveSystemSettings = useCallback(async (payload: EditableSystemSettings) => {
     setSavingSystemSettings(true);
@@ -497,13 +568,33 @@ export default function Admin() {
     try {
       const next = await updateSystemSettings(payload);
       setSettings(next);
-      setMessage('系统设置已保存');
+      const runtime = await getAutoRefreshStatus();
+      setAutoRefreshStatus(runtime);
+      setMessage(runtime.enabled ? '系统设置已保存，自动 AI 更新已接管' : '系统设置已保存，自动 AI 更新已关闭');
     } catch (err) {
       setMessage(classifyAdminError(err));
     } finally {
       setSavingSystemSettings(false);
     }
   }, []);
+
+  const enableAutoRefresh = useCallback(async () => {
+    if (!settings) {
+      setMessage('系统设置尚未加载完成');
+      return;
+    }
+    await saveSystemSettings({
+      autoRefresh: {
+        ...settings.autoRefresh,
+        enabled: true,
+        mode: settings.autoRefresh.mode || 'interval',
+        intervalMinutes: Math.max(1, settings.autoRefresh.intervalMinutes || 10),
+      },
+      ingestBackfill: settings.ingestBackfill,
+      cache: settings.cache,
+      ...(settings.notifications ? { notifications: settings.notifications } : {}),
+    });
+  }, [saveSystemSettings, settings]);
 
   const persistReferenceSettings = useCallback(async (
     section: ReferenceSection,
@@ -780,7 +871,21 @@ export default function Admin() {
 
   const renderActivePanel = () => {
     if (activeModule === 'operate') {
-      if (activeTab === 'ingest') return <IngestionSection sourceMap={sourceMap} refreshing={refreshing} ingestStage={ingestStage} onRefresh={runRefresh} />;
+      if (activeTab === 'ingest') {
+        return (
+          <IngestionSection
+            sourceMap={sourceMap}
+            refreshing={refreshing}
+            refreshingAll={refreshingAll}
+            savingAutoRefresh={savingSystemSettings}
+            ingestStage={ingestStage}
+            autoRefreshStatus={autoRefreshStatus}
+            onRefresh={runRefresh}
+            onRefreshAll={runRefreshAll}
+            onEnableAutoRefresh={enableAutoRefresh}
+          />
+        );
+      }
       if (activeTab === 'ai') return renderAiSettings();
       return renderContentLibrary();
     }

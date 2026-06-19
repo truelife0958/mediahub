@@ -14,8 +14,10 @@ import { initializeDatabase } from './db/database.js';
 import { ensureRequestId, createRequestLogger } from './utils/requestContext.js';
 import { createApiError } from './utils/apiErrors.js';
 import { requireAdmin } from './middleware/adminAuth.js';
+import { assertProductionConfig } from './utils/productionConfig.js';
 
 export function createApp() {
+  assertProductionConfig();
   initializeDatabase();
 
   const app = express();
@@ -32,7 +34,7 @@ export function createApp() {
   app.use(createRequestLogger());
 
   app.use(cors({
-    origin: true,
+    origin: frontendBaseUrl,
     credentials: true,
   }));
   app.use(express.json({ limit: '1mb' }));
@@ -65,8 +67,15 @@ export function createApp() {
   });
 
   app.get(['/admin', '/admin/*'], (req, res) => {
-    const target = new URL(req.originalUrl || '/admin', frontendBaseUrl).toString();
-    res.redirect(target);
+    try {
+      const target = new URL(req.originalUrl || '/admin', frontendBaseUrl);
+      if (target.origin !== new URL(frontendBaseUrl).origin) {
+        return res.redirect(frontendPublicUrl);
+      }
+      res.redirect(target.toString());
+    } catch {
+      res.redirect(frontendPublicUrl);
+    }
   });
 
   app.use((_req, _res, next) => {

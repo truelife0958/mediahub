@@ -4,11 +4,12 @@ import { IconSearch } from './Icons';
 interface SearchBarProps {
   value: string;
   onChange: (v: string) => void;
+  placeholder?: string;
 }
 
 const MAX_SEARCH_LENGTH = 80;
 
-function SearchBar({ value, onChange }: SearchBarProps) {
+function SearchBar({ value, onChange, placeholder = '本地 + AI 搜索：短剧名、主演、角色、作者、IP...' }: SearchBarProps) {
   const [input, setInput] = useState(value);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -32,11 +33,9 @@ function SearchBar({ value, onChange }: SearchBarProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    const form = e.currentTarget as HTMLFormElement;
-    const field = form.querySelector('input[type="text"]') as HTMLInputElement | null;
-    const latestValue = (field?.value ?? input).trim().slice(0, MAX_SEARCH_LENGTH);
-    setInput(latestValue);
-    onChange(latestValue);
+    const trimmed = input.trim().slice(0, MAX_SEARCH_LENGTH);
+    setInput(trimmed);
+    onChange(trimmed);
   };
 
   const handleClear = () => {
@@ -56,9 +55,9 @@ function SearchBar({ value, onChange }: SearchBarProps) {
         type="text"
         value={input}
         maxLength={MAX_SEARCH_LENGTH}
-        aria-label="搜索内容、演员、作者、IP"
+        aria-label="搜索内容、主演、角色、作者、IP"
         onChange={e => setInput(e.target.value.slice(0, MAX_SEARCH_LENGTH))}
-        placeholder="本地 + AI 搜索：短剧名、演员、作者、IP..."
+        placeholder={placeholder}
         className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[var(--radius-xl)] py-3.5 pl-12 pr-24 text-[var(--text-primary)] text-[15px] transition-all duration-200 font-[inherit] outline-none focus:border-[var(--accent-primary)] focus:shadow-[0_0_0_3px_rgba(232,168,56,0.08)] placeholder:text-[var(--text-muted)]"
       />
       <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">

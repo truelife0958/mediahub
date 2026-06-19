@@ -17,6 +17,7 @@ const sample = {
   type: 'anime',
   tags: ['Action', 'Sci-Fi'],
   actors: ['Sunrise'],
+  characters: ['Spike Spiegel'],
   author: 'Original',
   ipName: 'Cowboy Bebop',
   status: 'completed',
@@ -212,6 +213,30 @@ test('listCachedContents supports expanded search terms for alias recall', () =>
   assert.equal(result.list[0].title, '家里家外');
 });
 
+test('listCachedContents searches actors, characters, tags and ipName locally', () => {
+  resetDatabaseForTest(':memory:');
+
+  upsertContents([{
+    ...sample,
+    id: 'drama:ai-search:character-1',
+    title: '盛夏芬德拉',
+    type: 'drama',
+    tags: ['短剧', '治愈爱情'],
+    actors: ['刘萧旭', '郭宇欣'],
+    characters: ['周晟安', '白清枚'],
+    ipName: '盛夏芬德拉',
+    hotScore: 300000,
+  }]);
+
+  const byActor = listCachedContents({ type: 'drama', keyword: '郭宇欣', page: 1, limit: 10 });
+  const byCharacter = listCachedContents({ type: 'drama', keyword: '周晟安', page: 1, limit: 10 });
+
+  assert.equal(byActor.pagination.total, 1);
+  assert.equal(byActor.list[0].title, '盛夏芬德拉');
+  assert.equal(byCharacter.pagination.total, 1);
+  assert.deepEqual(byCharacter.list[0].characters, ['周晟安', '白清枚']);
+});
+
 test('upsertContents dedupes by normalized title + source + ipName', () => {
   resetDatabaseForTest(':memory:');
 
@@ -243,7 +268,7 @@ test('upsertContents dedupes by normalized title + source + ipName', () => {
 
 test('tokenizeKeywordForFts builds safe prefix query for FTS5', () => {
   const query = tokenizeKeywordForFts('dragon "king"');
-  assert.equal(query, '"dragon"* OR """king"""*');
+  assert.equal(query, '"dragon"* OR " king "*');
 });
 
 test('buildDedupeHash is stable for whitespace and punctuation variants', () => {

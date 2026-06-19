@@ -3,26 +3,21 @@
   "version": "1.0.0",
   "description": "MediaHub - 热门内容推荐平台",
   "private": true,
+  "engines": {
+    "node": ">=22 <26",
+    "npm": ">=10"
+  },
   "scripts": {
     "dev": "npx concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "MEDIAHUB_AUTO_REFRESH_MODE=interval MEDIAHUB_AUTO_REFRESH_INTERVAL_MINUTES=5 MEDIAHUB_INGEST_BACKFILL_PAGES=3 MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE=30 MEDIAHUB_INGEST_BACKFILL_SORTS=hot,latest UPSTREAM_TIMEOUT_MS=12000 UPSTREAM_RETRY_MAX_ATTEMPTS=3 UPSTREAM_RETRY_BASE_DELAY_MS=400 MEDIAHUB_PLATFORM_SOURCE_ENABLED=false npm run dev --workspace=backend",
-    "dev:frontend": "npm run dev --workspace=frontend --",
-    "dev:debug": "npx concurrently \"PORT=${PORT:-3103} npm run dev:backend\" \"VITE_API_TARGET=http://127.0.0.1:${PORT:-3103} npm run dev:frontend -- --host 127.0.0.1 --port ${FRONTEND_PORT:-5201} --strictPort\"",
-    "test:frontend": "npm run test --workspace=frontend",
-    "test:e2e": "npx playwright test --config=playwright.config.js",
-    "test:contract": "npm run test --workspace=backend -- test/contracts/apiContract.test.js",
-    "perf:lighthouse": "node ./scripts/lighthouse-budget.mjs",
+    "dev:backend": "node scripts/run-mediahub-command.mjs dev-backend",
+    "dev:frontend": "node scripts/run-mediahub-command.mjs dev-frontend",
     "build": "npm run build --workspace=frontend",
-    "start": "MEDIAHUB_AUTO_REFRESH_MODE=interval MEDIAHUB_AUTO_REFRESH_INTERVAL_MINUTES=5 MEDIAHUB_INGEST_BACKFILL_PAGES=3 MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE=30 MEDIAHUB_INGEST_BACKFILL_SORTS=hot,latest UPSTREAM_TIMEOUT_MS=12000 UPSTREAM_RETRY_MAX_ATTEMPTS=3 UPSTREAM_RETRY_BASE_DELAY_MS=400 MEDIAHUB_PLATFORM_SOURCE_ENABLED=false npm run start --workspace=backend",
-    "db:migrate:drop-platform-sources": "node ./scripts/migrate-drop-platform-sources.mjs",
-    "test:visual": "npx playwright test --config=playwright.config.js e2e/visual-regression.spec.js",
-    "test:visual:update": "npx playwright test --config=playwright.config.js e2e/visual-regression.spec.js --update-snapshots",
-    "visual:baseline": "node ./scripts/sync-visual-baseline.mjs"
+    "start": "node scripts/run-mediahub-command.mjs start-backend",
+    "test:backend": "npm run test --workspace=backend",
+    "test:frontend": "npm run test --workspace=frontend"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0",
-    "lighthouse": "^13.3.0",
-    "playwright": "^1.60.0"
+    "concurrently": "^9.1.0"
   },
   "workspaces": [
     "backend",

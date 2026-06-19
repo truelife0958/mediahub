@@ -23,6 +23,8 @@ export function QualityPanel({ quality }: { quality: ContentQualityStats | null 
         <AdminMetricCard label="重复候选" value={quality?.duplicateCandidates.length ?? 0} tone="purple" />
       </div>
       <QualityTable quality={quality} />
+      <BoundaryRiskPanel quality={quality} />
+      <ReviewQueuePanel quality={quality} />
       <DuplicatePanel quality={quality} />
     </div>
   );
@@ -94,6 +96,53 @@ function DuplicatePanel({ quality }: { quality: ContentQualityStats | null }) {
           </div>
         ))}
       </div>
+    </AdminSection>
+  );
+}
+
+function BoundaryRiskPanel({ quality }: { quality: ContentQualityStats | null }) {
+  const risks = quality?.boundaryRisks || [];
+  return (
+    <AdminSection title="模块边界校验" description="自动检查短剧/小说/漫画/动漫的分类边界和热度口径。">
+      {risks.length ? (
+        <div className="space-y-2">
+          {risks.map(item => (
+            <div key={`${item.id}-${item.reason}`} className="rounded-xl border border-[var(--border)] p-3 text-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <Pill tone="warn">{TYPE_LABEL[item.type]}</Pill>
+                <span className="font-semibold">{item.title}</span>
+                <span className="text-[var(--text-muted)]">{item.reason}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyHint>未发现模块边界风险。</EmptyHint>
+      )}
+    </AdminSection>
+  );
+}
+
+function ReviewQueuePanel({ quality }: { quality: ContentQualityStats | null }) {
+  const queue = quality?.reviewQueue || [];
+  return (
+    <AdminSection title="入库审核建议" description="对缺简介、缺标签、低热度等内容生成审核建议，适合配合 AI 补缺失信息。">
+      {queue.length ? (
+        <div className="space-y-2">
+          {queue.map(item => (
+            <div key={item.id} className="rounded-xl border border-[var(--border)] p-3 text-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <Pill>{TYPE_LABEL[item.type]}</Pill>
+                <span className="font-semibold">{item.title}</span>
+                <span className="text-[var(--text-muted)]">{item.issues.join(' / ')}</span>
+              </div>
+              <p className="mt-1 text-xs text-[var(--accent-primary)]">{item.suggestion}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyHint>暂无需要审核的内容。</EmptyHint>
+      )}
     </AdminSection>
   );
 }

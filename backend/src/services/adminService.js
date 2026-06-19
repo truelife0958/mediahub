@@ -116,6 +116,7 @@ function buildManualContent(payload = {}) {
     type,
     tags: normalizeStringArray(payload.tags || [], 12),
     actors: normalizeStringArray(payload.actors || [], 12),
+    characters: normalizeStringArray(payload.characters || [], 12),
     author: String(payload.author || '').trim(),
     ipName: String(payload.ipName || '').trim(),
     status: payload.status === 'ongoing' ? 'ongoing' : 'completed',
@@ -170,6 +171,7 @@ function updateAdminContent(contentId, payload = {}) {
   if ('hotScore' in payload) patch.hotScore = normalizeHotScore(payload.hotScore);
   if ('tags' in payload) patch.tags = normalizeStringArray(payload.tags, 12);
   if ('actors' in payload) patch.actors = normalizeStringArray(payload.actors, 12);
+  if ('characters' in payload) patch.characters = normalizeStringArray(payload.characters, 12);
 
   const updated = updateCachedContent(contentId, patch);
   if (!updated) throw createApiError('not_found', 'Content not found');

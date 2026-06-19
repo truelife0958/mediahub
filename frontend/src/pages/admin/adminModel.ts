@@ -68,7 +68,9 @@ export function resolveModuleTab(module: AdminModule, candidate: string | undefi
   return module.tabs.some(tab => tab.id === candidate) ? candidate || module.tabs[0].id : module.tabs[0].id;
 }
 
-export function classifyAdminError(error: unknown) {
+export function classifyAdminError(error: unknown): string {
+  // Silently skip cancelled requests (component unmount / dep change)
+  if (error instanceof DOMException && error.name === 'AbortError') return '';
   const text = error instanceof Error ? error.message : String(error || '未知错误');
   if (/超时|timeout|cancel/i.test(text)) return `网络超时：${text}`;
   if (/api key|401|403|鉴权|密钥/i.test(text)) return `模型鉴权：${text}`;

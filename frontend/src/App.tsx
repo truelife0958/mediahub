@@ -1,7 +1,8 @@
-import { Suspense, lazy, Component, type ReactNode, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { Suspense, lazy, Component, type ReactNode, useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ScrollToTopButton from './components/ScrollToTopButton';
 import ApiState from './components/ApiState';
+import { UserProvider } from './hooks/useSharedUser';
 
 const Home = lazy(() => import('./pages/Home'));
 const Detail = lazy(() => import('./pages/Detail'));
@@ -9,6 +10,7 @@ const Admin = lazy(() => import('./pages/Admin'));
 const Leaderboards = lazy(() => import('./pages/Leaderboards'));
 const Topics = lazy(() => import('./pages/Topics'));
 const Me = lazy(() => import('./pages/Me'));
+const Compare = lazy(() => import('./pages/Compare'));
 
 class ErrorBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: ReactNode; fallback?: ReactNode }) {
@@ -45,7 +47,14 @@ class ErrorBoundary extends Component<{ children: ReactNode; fallback?: ReactNod
 function PageLoader() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
-      <div className="w-10 h-10 border-2 border-[var(--border)] border-t-[var(--accent-primary)] rounded-full animate-spin" />
+      <div className="text-center">
+        <div className="gold-surface w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center animate-float">
+          <span className="text-sm font-black">MH</span>
+        </div>
+        <div className="w-32 h-1 rounded-full bg-[var(--border)] overflow-hidden mx-auto">
+          <div className="h-full rounded-full bg-[var(--accent-primary)] animate-loading-bar" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -58,35 +67,60 @@ function ScrollToTop() {
   return null;
 }
 
+function RouteLoadingBar() {
+  const { pathname } = useLocation();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
+  if (!loading) return null;
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[100] h-[2px]">
+      <div className="h-full bg-[var(--accent-primary)] animate-route-loading" />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <ScrollToTop />
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/detail/:id" element={<Detail />} />
-            <Route path="/leaderboards/:type" element={<Leaderboards />} />
-            <Route path="/topics/:field/:value" element={<Topics />} />
-            <Route path="/me" element={<Me />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route
-              path="*"
-              element={(
-                <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] px-4">
-                  <ApiState
-                    title="页面不存在"
-                    description="访问路径无效，请返回首页重新选择内容。"
-                    actionLabel="返回首页"
-                    onAction={() => { window.location.href = '/'; }}
-                  />
-                </div>
-              )}
-            />
-          </Routes>
-        </Suspense>
-        <ScrollToTopButton />
+        <UserProvider>
+          <RouteLoadingBar />
+          <ScrollToTop />
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/drama" replace />} />
+              <Route path="/detail/:id" element={<Detail />} />
+              <Route path="/leaderboards/:type" element={<Leaderboards />} />
+              <Route path="/topics/:field/:value" element={<Topics />} />
+              <Route path="/compare" element={<Compare />} />
+              <Route path="/me" element={<Me />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/:type" element={<Home />} />
+              <Route
+                path="*"
+                element={(
+                  <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[var(--bg-primary)] px-4">
+                    <div className="text-6xl mb-2 opacity-20">404</div>
+                    <ApiState
+                      title="页面不存在"
+                      description="访问路径无效，请返回首页重新选择内容。"
+                      actionLabel="返回首页"
+                      onAction={() => { window.location.href = '/'; }}
+                    />
+                  </div>
+                )}
+              />
+            </Routes>
+          </Suspense>
+          <ScrollToTopButton />
+        </UserProvider>
       </BrowserRouter>
     </ErrorBoundary>
   );

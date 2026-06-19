@@ -14,7 +14,7 @@ test('createApiError exposes stable http status and public code', () => {
 });
 
 import { parseContentId } from '../src/services/catalogService.js';
-import { listContents } from '../src/services/catalogService.js';
+import { fetchListByType, getCatalogCacheStats, listContents, listTopicContents } from '../src/services/catalogService.js';
 
 test('parseContentId rejects fallback provider ids', () => {
   assert.throws(
@@ -56,4 +56,50 @@ test('catalog service expands alias search terms for local recall', async () => 
 
   assert.equal(result.list.length, 1);
   assert.equal(result.list[0].title, '家里家外');
+});
+
+test('catalog service lists character topic contents', () => {
+  resetDatabaseForTest(':memory:');
+  upsertContents([{
+    id: 'drama:ai-search:character-topic-1',
+    title: '盛夏芬德拉',
+    cover: 'https://example.com/cover.jpg',
+    summary: '短剧内容样本',
+    type: 'drama',
+    tags: ['短剧'],
+    actors: ['刘萧旭'],
+    characters: ['周晟安', '白清枚'],
+    author: '平台',
+    ipName: '盛夏芬德拉',
+    status: 'completed',
+    hotScore: 300000,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-05-12T00:00:00.000Z',
+    source: { provider: 'ai-search', label: 'AI Discovery', url: 'https://example.com/drama/character' },
+  }]);
+
+  const result = listTopicContents({
+    field: 'character',
+    value: '周晟安',
+    type: 'drama',
+  });
+
+  assert.equal(result.pagination.total, 1);
+  assert.equal(result.list[0].title, '盛夏芬德拉');
+});
+
+test('catalog service cache is bounded under high-cardinality searches', async () => {
+  resetDatabaseForTest(':memory:');
+
+  for (let index = 0; index < 650; index += 1) {
+    await fetchListByType({
+      type: 'drama',
+      keyword: `cache-key-${index}`,
+      sourceChain: ['empty_source'],
+    });
+  }
+
+  const stats = getCatalogCacheStats();
+  assert.ok(stats.size <= stats.maxEntries);
+  assert.equal(stats.maxEntries, 500);
 });

@@ -51,7 +51,7 @@ test('fetchJson throws upstream_unavailable after exhausting timeout retries', a
 
   try {
     await assert.rejects(
-      () => fetchJson('https://example.com/timeout'),
+      () => fetchJson('https://example.com/timeout', { retryMaxAttempts: 2 }),
       (error) => {
         assert.equal(error.publicCode, 'upstream_unavailable');
         assert.match(error.message, /上游内容服务请求超时/);

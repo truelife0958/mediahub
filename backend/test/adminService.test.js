@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { resetDatabaseForTest } from '../src/db/database.js';
 import { upsertContents } from '../src/repositories/contentRepository.js';
 import { recordSourceRun } from '../src/repositories/sourceRepository.js';
+import { _setMockRequestFn, _clearMockRequestFn } from '../src/services/aiChatClient.js';
 import {
   buildAdminSummary,
   getAdminLogs,
@@ -127,27 +128,32 @@ test('admin service creates manual content and fills missing fields with AI with
     MEDIAHUB_AI_MODEL: process.env.MEDIAHUB_AI_MODEL,
     MEDIAHUB_AI_BASE_URL: process.env.MEDIAHUB_AI_BASE_URL,
   };
-  const originalFetch = global.fetch;
   process.env.MEDIAHUB_AI_ENABLED = 'true';
   process.env.MEDIAHUB_AI_API_KEY = 'sk-fill-missing';
   process.env.MEDIAHUB_AI_MODEL = 'gpt-5-mini';
   process.env.MEDIAHUB_AI_BASE_URL = 'https://example.com/v1';
-  global.fetch = async (url, options = {}) => {
+  const calls = [];
+  _setMockRequestFn(async ({ url, body, headers }) => {
+    const parsedBody = JSON.parse(String(body || '{}'));
+    calls.push({ url: String(url), body: parsedBody, headers });
     assert.match(String(url), /\/chat\/completions$/);
-    const body = JSON.parse(String(options.body || '{}'));
-    assert.ok(Array.isArray(body.messages));
-    return new Response(JSON.stringify({
-      choices: [{ message: { content: JSON.stringify({
-        summary: 'AI 补全后的简介，长度足够用于质量检测。',
-        tags: ['奇幻', '冒险'],
-        actors: ['角色A'],
-        author: 'AI 作者',
-        ipName: 'AI 补全 IP',
-        status: 'ongoing',
-        hotScore: 6543,
-      }) } }],
-    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  };
+    assert.ok(Array.isArray(parsedBody.messages));
+    return {
+      status: 200,
+      statusText: 'OK',
+      payload: {
+        choices: [{ message: { content: JSON.stringify({
+          summary: 'AI 补全后的简介，长度足够用于质量检测。',
+          tags: ['奇幻', '冒险'],
+          actors: ['角色A'],
+          author: 'AI 作者',
+          ipName: 'AI 补全 IP',
+          status: 'ongoing',
+          hotScore: 6543,
+        }) } }],
+      },
+    };
+  });
 
   try {
     const filled = await fillMissingAdminContentWithAi(created.id);
@@ -159,7 +165,7 @@ test('admin service creates manual content and fills missing fields with AI with
     assert.equal(filled.status, 'ongoing');
     assert.equal(filled.hotScore, 6543);
   } finally {
-    global.fetch = originalFetch;
+    _clearMockRequestFn();
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;

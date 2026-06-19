@@ -61,6 +61,7 @@ function normalizeContent(content) {
     type,
     tags: normalizeStringArray(content?.tags, 8),
     actors: normalizeStringArray(content?.actors, 8),
+    characters: normalizeStringArray(content?.characters, 12),
     author: cleanText(content?.author),
     ipName: cleanText(content?.ipName, title),
     status: normalizeStatus(content?.status),

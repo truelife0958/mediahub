@@ -21,42 +21,42 @@ export default function LeaderboardStrip({
   const list = useMemo(() => leaderboard?.list?.slice(0, 5) || [], [leaderboard]);
 
   return (
-    <section className="rounded-[24px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-4 shadow-[0_18px_60px_-34px_rgba(0,0,0,0.7)]">
+    <section className="rounded-2xl border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-4 shadow-[var(--shadow-card)]">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="mb-1 inline-flex items-center gap-2">
+          <div className="mb-1 flex items-center gap-2">
             <span
-              className="rounded-md px-2 py-1 text-[10px] font-black tracking-[0.08em] text-white"
+              className="rounded-md px-2 py-0.5 text-[10px] font-bold tracking-[0.04em] text-white"
               style={{ background: CATEGORY_COLORS[type] }}
             >
               {CATEGORY_TEXT[type]}
             </span>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">Hot Now</span>
+            <span className="text-[11px] font-medium text-[var(--text-muted)]">{layerLabel}</span>
           </div>
-          <h3 className="text-base font-bold tracking-[-0.02em]">{CATEGORY_TEXT[type]}热门榜</h3>
+          <h3 className="text-sm font-bold tracking-[-0.01em]">{CATEGORY_TEXT[type]}热门榜</h3>
         </div>
         <button
           type="button"
           onClick={() => navigate(`/leaderboards/${type}?layer=${layerId}`)}
-          className="text-[11px] font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
+          className="text-[11px] font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)] whitespace-nowrap"
         >
-          {layerLabel} · 查看更多
+          查看全部 →
         </button>
       </div>
 
       {list.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {list.map(item => (
             <button
               key={item.contentId}
               type="button"
               onClick={() => navigate(`/detail/${item.contentId}`)}
-              className="flex w-full items-start gap-3 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-3 py-3 text-left transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-[rgba(255,255,255,0.05)]"
             >
-              <span className="min-w-8 text-lg font-black leading-none text-[var(--accent-primary)]">#{item.rank}</span>
+              <span className="min-w-7 text-base font-black leading-none text-[var(--accent-primary)]">#{item.rank}</span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-[var(--text-primary)]">{item.title}</span>
-                <span className="mt-1 block text-xs text-[var(--text-muted)]">{formatHotScoreShort(item.hotScore, item.heatMetric)}</span>
+                <span className="block truncate text-sm font-medium text-[var(--text-primary)]">{item.title}</span>
+                <span className="block text-[11px] text-[var(--text-muted)] mt-0.5">{formatHotScoreShort(item.hotScore, item.heatMetric)}</span>
               </span>
             </button>
           ))}

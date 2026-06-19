@@ -4,6 +4,24 @@ import { searchTrendingContentsWithAi } from '../src/services/aiDiscoveryService
 import { rankContentsWithAi } from '../src/services/aiRankingService.js';
 import { enrichPublicContent } from '../src/services/aiEnrichmentService.js';
 import { resetDatabaseForTest } from '../src/db/database.js';
+import { _setMockRequestFn, _clearMockRequestFn } from '../src/services/aiChatClient.js';
+
+function chatResponse(content, init = {}) {
+  return {
+    status: init.status ?? 200,
+    statusText: init.statusText ?? 'OK',
+    payload: {
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: typeof content === 'string' ? content : JSON.stringify(content),
+          },
+        },
+      ],
+    },
+  };
+}
 
 function withAiEnv(fn) {
   return async () => {
@@ -23,11 +41,10 @@ function withAiEnv(fn) {
     process.env.MEDIAHUB_AI_API_KEY = 'sk-test';
     process.env.MEDIAHUB_AI_SEARCH_WEB_ENABLED = 'true';
 
-    const originalFetch = global.fetch;
     try {
-      await fn();
+      return await fn();
     } finally {
-      global.fetch = originalFetch;
+      _clearMockRequestFn();
       for (const [key, value] of Object.entries(previous)) {
         if (value === undefined) delete process.env[key];
         else process.env[key] = value;
@@ -36,27 +53,10 @@ function withAiEnv(fn) {
   };
 }
 
-function chatResponse(content, init = {}) {
-  return new Response(JSON.stringify({
-    choices: [
-      {
-        message: {
-          role: 'assistant',
-          content: typeof content === 'string' ? content : JSON.stringify(content),
-        },
-      },
-    ],
-  }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  });
-}
-
 test('AI discovery uses OpenAI chat completions payload instead of Responses API', withAiEnv(async () => {
   const calls = [];
-  global.fetch = async (url, options = {}) => {
-    calls.push({ url: String(url), body: JSON.parse(String(options.body || '{}')) });
+  _setMockRequestFn(async ({ url, body }) => {
+    calls.push({ url: String(url), body: JSON.parse(String(body || '{}')) });
     assert.match(String(url), /\/chat\/completions$/);
     assert.ok(Array.isArray(calls[0].body.messages));
     assert.equal('input' in calls[0].body, false);
@@ -76,7 +76,7 @@ test('AI discovery uses OpenAI chat completions payload instead of Responses API
         },
       ],
     });
-  };
+  });
 
   const result = await searchTrendingContentsWithAi({ type: 'drama', limit: 5 });
 
@@ -86,7 +86,7 @@ test('AI discovery uses OpenAI chat completions payload instead of Responses API
 }));
 
 test('AI discovery preserves undisclosed playback or reading volume as zero', withAiEnv(async () => {
-  global.fetch = async () => chatResponse({
+  _setMockRequestFn(async () => chatResponse({
     items: [
       {
         title: '未披露阅读量小说',
@@ -100,7 +100,7 @@ test('AI discovery preserves undisclosed playback or reading volume as zero', wi
         sourceUrl: 'https://example.com/undisclosed',
       },
     ],
-  });
+  }));
 
   const result = await searchTrendingContentsWithAi({ type: 'novel', limit: 1 });
 
@@ -108,14 +108,13 @@ test('AI discovery preserves undisclosed playback or reading volume as zero', wi
 }));
 
 test('AI discovery prompt requires China volume metrics instead of heat scores', withAiEnv(async () => {
-  global.fetch = async (_url, options = {}) => {
-    const body = JSON.parse(String(options.body || '{}'));
-    const prompt = body.messages.map(message => message.content).join('\n');
-    assert.match(prompt, /中国大陆公开发行或中国原创内容/);
-    assert.match(prompt, /全网播放量\/阅读量的“万次”数值/);
-    assert.match(prompt, /未知时填 0/);
-    assert.match(prompt, /检索扩展词/);
-    assert.match(prompt, /别名参考/);
+  _setMockRequestFn(async ({ body }) => {
+    const parsed = JSON.parse(String(body || '{}'));
+    const prompt = parsed.messages.map(message => message.content).join('\n');
+    assert.match(prompt, /中国大陆原创内容/);
+    assert.match(prompt, /hotScore/);
+    assert.match(prompt, /扩展词/);
+    assert.match(prompt, /别名/);
     return chatResponse({
       items: [
         {
@@ -131,7 +130,7 @@ test('AI discovery prompt requires China volume metrics instead of heat scores',
         },
       ],
     });
-  };
+  });
 
   await searchTrendingContentsWithAi({
     type: 'drama',
@@ -143,7 +142,7 @@ test('AI discovery prompt requires China volume metrics instead of heat scores',
 }));
 
 test('AI discovery filters out long-drama items for drama type', withAiEnv(async () => {
-  global.fetch = async () => chatResponse({
+  _setMockRequestFn(async () => chatResponse({
     items: [
       {
         title: '某某都市长剧',
@@ -168,7 +167,7 @@ test('AI discovery filters out long-drama items for drama type', withAiEnv(async
         sourceUrl: 'https://example.com/short-drama',
       },
     ],
-  });
+  }));
 
   const result = await searchTrendingContentsWithAi({ type: 'drama', limit: 10 });
 
@@ -177,21 +176,20 @@ test('AI discovery filters out long-drama items for drama type', withAiEnv(async
 }));
 
 test('AI ranking reads JSON from chat completion message content', async () => {
-  const pool = [
-    { id: 'a', title: 'A', hotScore: 100 },
-    { id: 'b', title: 'B', hotScore: 100 },
-  ];
   const calls = [];
-  const originalFetch = global.fetch;
-  global.fetch = async (url, options = {}) => {
-    calls.push({ url: String(url), body: JSON.parse(String(options.body || '{}')) });
+  _setMockRequestFn(async ({ url, body }) => {
+    calls.push({ url: String(url), body: JSON.parse(String(body || '{}')) });
     assert.match(String(url), /\/chat\/completions$/);
     assert.ok(Array.isArray(calls[0].body.messages));
     assert.equal('input' in calls[0].body, false);
     return chatResponse({ items: [{ id: 'b', reason: '更匹配', score: 91 }] });
-  };
+  });
 
   try {
+    const pool = [
+      { id: 'a', title: 'A', hotScore: 100 },
+      { id: 'b', title: 'B', hotScore: 100 },
+    ];
     const ranked = await rankContentsWithAi(pool, {
       enabled: true,
       apiKey: 'sk-test',
@@ -203,16 +201,16 @@ test('AI ranking reads JSON from chat completion message content', async () => {
     assert.equal(ranked[0].reason, '更匹配');
     assert.equal(ranked[0].hotScore, 9100);
   } finally {
-    global.fetch = originalFetch;
+    _clearMockRequestFn();
   }
 });
 
 test('AI enrichment uses chat completions and parses message content JSON', withAiEnv(async () => {
-  global.fetch = async (url, options = {}) => {
-    const body = JSON.parse(String(options.body || '{}'));
+  _setMockRequestFn(async ({ url, body }) => {
+    const parsed = JSON.parse(String(body || '{}'));
     assert.match(String(url), /\/chat\/completions$/);
-    assert.ok(Array.isArray(body.messages));
-    assert.equal('input' in body, false);
+    assert.ok(Array.isArray(parsed.messages));
+    assert.equal('input' in parsed, false);
     return chatResponse({
       summary: 'Chat 摘要',
       tags: ['科幻'],
@@ -222,7 +220,7 @@ test('AI enrichment uses chat completions and parses message content JSON', with
       status: 'completed',
       hotScore: 777,
     });
-  };
+  });
 
   const result = await enrichPublicContent({
     title: 'Chat IP',

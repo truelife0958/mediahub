@@ -1,8 +1,10 @@
 import express from 'express';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { refreshAllContentTypesNow } from '../services/autoRefreshRuntimeService.js';
 import { refreshContentType } from '../services/ingestionService.js';
 import { fetchListByType } from '../services/catalogService.js';
-import { createApiError } from '../utils/apiErrors.js';
+
+const BACKFILL_AI_TIMEOUT_MS = Math.max(5_000, Number(process.env.MEDIAHUB_BACKFILL_AI_TIMEOUT_MS || 20_000));
 
 const router = express.Router();
 
@@ -22,14 +24,16 @@ router.post('/refresh', asyncHandler(async (req, res) => {
         limit,
         sort,
         __bypassCacheFallback: true,
+        aiTimeoutMs: BACKFILL_AI_TIMEOUT_MS,
       })
       : undefined,
   });
   res.json({ code: 0, data });
 }));
 
-router.post('/crawl', asyncHandler(async (req, res) => {
-  throw createApiError('invalid_request', '平台采集链路已废弃，请使用 /api/ingestion/refresh');
+router.post('/refresh-all', asyncHandler(async (_req, res) => {
+  const data = await refreshAllContentTypesNow({ trigger: 'manual-all' });
+  res.json({ code: 0, data });
 }));
 
 export default router;

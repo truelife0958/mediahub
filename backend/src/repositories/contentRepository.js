@@ -1,4 +1,5 @@
 import { getDatabase } from '../db/database.js';
+import { createApiError } from '../utils/apiErrors.js';
 import { getCuratedChinaFilterPairs, isCurrentCuratedChinaTitle } from '../services/curatedRealContentService.js';
 
 function serialize(value) {
@@ -44,13 +45,17 @@ function buildDedupeHash(item) {
   return `${item.type}|${normalized}|${sourceProvider}|${ipName}`;
 }
 
+function jsonArraySearchExpression(jsonColumn, fieldAlias = 'item') {
+  return `EXISTS (SELECT 1 FROM json_each(${jsonColumn}) ${fieldAlias} WHERE lower(${fieldAlias}.value) LIKE lower(?) ESCAPE '\\')`;
+}
+
 function tokenizeKeywordForFts(keyword) {
   return String(keyword || '')
     .trim()
     .split(/\s+/)
     .map(token => token.trim())
     .filter(Boolean)
-    .map(token => `"${token.replace(/"/g, '""')}"*`)
+    .map(token => `"${token.replace(/["*^()+:]/g, ' ')}"*`)
     .join(' OR ');
 }
 
@@ -77,7 +82,7 @@ function tokenizeSearchTermsForFts(searchTerms = []) {
       .split(/\s+/)
       .map(token => token.trim())
       .filter(Boolean))
-    .map(token => `"${token.replace(/"/g, '""')}"*`)
+    .map(token => `"${token.replace(/["*^()+:]/g, ' ')}"*`)
     .join(' OR ');
 }
 
@@ -138,6 +143,7 @@ function rowToContent(row, stale = true) {
     type: row.type,
     tags: parseJson(row.tags_json, []),
     actors: parseJson(row.actors_json, []),
+    characters: parseJson(row.characters_json || '[]', []),
     author: row.author || '',
     ipName: row.ip_name || row.title,
     status: row.status || 'completed',
@@ -160,9 +166,9 @@ function upsertContents(contents = []) {
   const upsertStmt = db.prepare(`
     INSERT INTO contents (
       id, type, title, cover, summary, author, ip_name, status, hot_score, heat_metric,
-      tags_json, actors_json, source_json, created_at, updated_at, cached_at,
+      tags_json, actors_json, characters_json, source_json, created_at, updated_at, cached_at,
       normalized_title, dedupe_hash
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       type = excluded.type,
       title = excluded.title,
@@ -175,6 +181,7 @@ function upsertContents(contents = []) {
       heat_metric = excluded.heat_metric,
       tags_json = excluded.tags_json,
       actors_json = excluded.actors_json,
+      characters_json = excluded.characters_json,
       source_json = excluded.source_json,
       created_at = excluded.created_at,
       updated_at = excluded.updated_at,
@@ -205,6 +212,7 @@ function upsertContents(contents = []) {
         normalizeHeatMetric(item.heatMetric, item.type),
         serialize(item.tags || []),
         serialize(item.actors || []),
+        serialize(item.characters || []),
         JSON.stringify(item.source || {}),
         item.createdAt || now,
         item.updatedAt || now,
@@ -240,31 +248,64 @@ function listCachedContents({
   const normalizedKeyword = String(keyword || '').trim();
   const normalizedSearchTerms = normalizeSearchTerms(normalizedKeyword, searchTerms);
   const hotScoreFloor = Math.max(0, Number(minHotScore) || 0);
+  const likeTerms = normalizedSearchTerms.map(term => `%${escapeLike(term)}%`);
 
   if (normalizedSearchTerms.length > 0) {
     const ftsQuery = tokenizeSearchTermsForFts(normalizedSearchTerms);
     if (ftsQuery) {
-      const realSourceFilter = getRealSourceFilterClause('c');
-      const realSourceParams = getRealSourceFilterParams();
-      const countRow = db.prepare(`
-        SELECT COUNT(*) AS total
-        FROM contents_fts
-        JOIN contents c ON c.rowid = contents_fts.rowid
-        WHERE contents_fts MATCH ? AND c.type = ? AND c.hot_score >= ?${realSourceFilter}
-      `).get(ftsQuery, type, hotScoreFloor, ...realSourceParams);
+      try {
+        const realSourceFilter = getRealSourceFilterClause('c');
+        const realSourceParams = getRealSourceFilterParams();
+        const countRow = db.prepare(`
+          SELECT COUNT(*) AS total
+          FROM contents_fts
+          JOIN contents c ON c.rowid = contents_fts.rowid
+          WHERE contents_fts MATCH ? AND c.type = ? AND c.hot_score >= ?${realSourceFilter}
+        `).get(ftsQuery, type, hotScoreFloor, ...realSourceParams);
 
-      const rows = db.prepare(`
-        SELECT c.*
-        FROM contents_fts
-        JOIN contents c ON c.rowid = contents_fts.rowid
-        WHERE contents_fts MATCH ? AND c.type = ? AND c.hot_score >= ?${realSourceFilter}
-        ORDER BY ${orderBy}
-        LIMIT ? OFFSET ?
-      `).all(ftsQuery, type, hotScoreFloor, ...realSourceParams, limitNum, offset);
+        const rows = db.prepare(`
+          SELECT c.*
+          FROM contents_fts
+          JOIN contents c ON c.rowid = contents_fts.rowid
+          WHERE contents_fts MATCH ? AND c.type = ? AND c.hot_score >= ?${realSourceFilter}
+          ORDER BY ${orderBy}
+          LIMIT ? OFFSET ?
+        `).all(ftsQuery, type, hotScoreFloor, ...realSourceParams, limitNum, offset);
+
+        if (rows.length > 0 || Number(countRow?.total) > 0) {
+          return {
+            list: rows.map(row => rowToContent(row, stale)),
+            pagination: { page: pageNum, limit: limitNum, total: Number(countRow?.total) || 0 },
+            stale,
+          };
+        }
+      } catch (ftsError) {
+        // FTS query syntax error, fall through to LIKE search
+      }
+    }
+
+    if (likeTerms.length > 0) {
+      const realSourceFilter = getRealSourceFilterClause();
+      const realSourceParams = getRealSourceFilterParams();
+      const perTermClause = `(
+        lower(title) LIKE lower(?) ESCAPE '\\'
+        OR lower(summary) LIKE lower(?) ESCAPE '\\'
+        OR lower(author) LIKE lower(?) ESCAPE '\\'
+        OR lower(ip_name) LIKE lower(?) ESCAPE '\\'
+        OR ${jsonArraySearchExpression('contents.actors_json', 'actor')}
+        OR ${jsonArraySearchExpression('contents.characters_json', 'character')}
+        OR ${jsonArraySearchExpression('contents.tags_json', 'tag')}
+      )`;
+      const keywordWhere = likeTerms.map(() => perTermClause).join(' OR ');
+      const keywordParams = likeTerms.flatMap(term => [term, term, term, term, term, term, term]);
+      const where = `WHERE type = ? AND hot_score >= ? AND (${keywordWhere})${realSourceFilter}`;
+      const total = db.prepare(`SELECT COUNT(*) as total FROM contents ${where}`).get(type, hotScoreFloor, ...keywordParams, ...realSourceParams).total;
+      const rows = db.prepare(`SELECT * FROM contents ${where} ORDER BY ${orderBy} LIMIT ? OFFSET ?`)
+        .all(type, hotScoreFloor, ...keywordParams, ...realSourceParams, limitNum, offset);
 
       return {
         list: rows.map(row => rowToContent(row, stale)),
-        pagination: { page: pageNum, limit: limitNum, total: Number(countRow?.total) || 0 },
+        pagination: { page: pageNum, limit: limitNum, total: Number(total) || 0 },
         stale,
       };
     }
@@ -308,8 +349,8 @@ function listCachedContentsByTopic({
     };
   }
 
-  const validField = topicField === 'actor' || topicField === 'author' || topicField === 'ip';
-  if (!validField) throw new Error('invalid topic field');
+  const validField = topicField === 'actor' || topicField === 'character' || topicField === 'author' || topicField === 'ip';
+  if (!validField) throw createApiError('invalid_request', 'Invalid topic field. Must be actor, character, author, or ip');
 
   const pageNum = Math.max(1, Number(page) || 1);
   const limitNum = Math.min(50, Math.max(1, Number(limit) || 20));
@@ -326,13 +367,16 @@ function listCachedContentsByTopic({
   }
 
   if (topicField === 'author') {
-    where.push('lower(author) LIKE lower(?) ESCAPE \'\\\\\'');
+    where.push("lower(author) LIKE lower(?) ESCAPE '\\'");
     params.push(`%${escapeLike(topicValue)}%`);
   } else if (topicField === 'ip') {
-    where.push('lower(ip_name) LIKE lower(?) ESCAPE \'\\\\\'');
+    where.push("lower(ip_name) LIKE lower(?) ESCAPE '\\'");
+    params.push(`%${escapeLike(topicValue)}%`);
+  } else if (topicField === 'character') {
+    where.push("EXISTS (SELECT 1 FROM json_each(contents.characters_json) character WHERE lower(character.value) LIKE lower(?) ESCAPE '\\')");
     params.push(`%${escapeLike(topicValue)}%`);
   } else {
-    where.push('EXISTS (SELECT 1 FROM json_each(contents.actors_json) actor WHERE lower(actor.value) LIKE lower(?) ESCAPE \'\\\\\')');
+    where.push("EXISTS (SELECT 1 FROM json_each(contents.actors_json) actor WHERE lower(actor.value) LIKE lower(?) ESCAPE '\\')");
     params.push(`%${escapeLike(topicValue)}%`);
   }
 
@@ -357,6 +401,29 @@ function listCachedContentsByTopic({
     pagination: { page: pageNum, limit: limitNum, total: Number(total) || 0 },
     stale,
   };
+}
+
+function listAllCachedContentsByTopic({ field, value, type = '', limit = 80, minHotScore = 0 }) {
+  const result = listCachedContentsByTopic({
+    field,
+    value,
+    type,
+    page: 1,
+    limit: Math.min(100, Math.max(1, Number(limit) || 80)),
+    sort: 'hot',
+    minHotScore,
+    stale: false,
+  });
+  return result.list || [];
+}
+
+function listCachedContentsByIds(ids = []) {
+  const uniqueIds = [...new Set((Array.isArray(ids) ? ids : []).map(id => String(id || '').trim()).filter(Boolean))].slice(0, 8);
+  if (uniqueIds.length === 0) return [];
+  const placeholders = uniqueIds.map(() => '?').join(',');
+  const rows = getDatabase().prepare(`SELECT * FROM contents WHERE id IN (${placeholders})`).all(...uniqueIds);
+  const byId = new Map(rows.map(row => [row.id, rowToContent(row, false)]));
+  return uniqueIds.map(id => byId.get(id)).filter(Boolean);
 }
 
 function discoverCachedContents({
@@ -434,6 +501,7 @@ function updateCachedContent(contentId, patch = {}) {
     ...patch,
     tags: Array.isArray(patch.tags) ? patch.tags : current.tags,
     actors: Array.isArray(patch.actors) ? patch.actors : current.actors,
+    characters: Array.isArray(patch.characters) ? patch.characters : (current.characters || []),
     hotScore: patch.hotScore === undefined ? current.hotScore : Number(patch.hotScore) || 0,
     heatMetric: normalizeHeatMetric(patch.heatMetric, patch.type || current.type),
     updatedAt: new Date().toISOString(),
@@ -444,9 +512,11 @@ function updateCachedContent(contentId, patch = {}) {
 }
 
 function listContentQualityStats() {
-  const rows = getDatabase().prepare('SELECT * FROM contents').all();
+  const rows = getDatabase().prepare('SELECT * FROM contents ORDER BY updated_at DESC LIMIT 10000').all();
   const byType = new Map();
   const duplicateGroups = new Map();
+  const boundaryRisks = [];
+  const reviewQueue = [];
   const totals = {
     total: 0,
     missingCover: 0,
@@ -480,6 +550,35 @@ function listContentQualityStats() {
     if (lowHotScore) { totals.lowHotScore += 1; typeStats.lowHotScore += 1; }
     byType.set(item.type, typeStats);
 
+    const issueCodes = [
+      missingCover ? 'missing_cover' : '',
+      missingSummary ? 'missing_summary' : '',
+      missingTags ? 'missing_tags' : '',
+      lowHotScore ? 'low_hot_score' : '',
+    ].filter(Boolean);
+    if (issueCodes.length > 0) {
+      reviewQueue.push({
+        id: item.id,
+        title: item.title,
+        type: item.type,
+        issues: issueCodes,
+        suggestion: issueCodes.some(code => code === 'missing_summary' || code === 'missing_tags')
+          ? '建议使用 AI 补缺失信息后人工审核'
+          : '建议人工核验热度来源',
+      });
+    }
+
+    const text = `${item.title} ${item.summary} ${item.ipName} ${(item.tags || []).join(' ')}`.toLowerCase();
+    if (item.type === 'drama' && /(电视剧|长剧|卫视|集电视剧|连续剧)/.test(text)) {
+      boundaryRisks.push({ id: item.id, title: item.title, type: item.type, reason: '短剧模块疑似混入长剧/电视剧描述' });
+    }
+    if ((item.type === 'novel' || item.type === 'comic') && item.heatMetric !== 'reading') {
+      boundaryRisks.push({ id: item.id, title: item.title, type: item.type, reason: '小说/漫画应使用阅读量口径' });
+    }
+    if ((item.type === 'drama' || item.type === 'anime') && item.heatMetric !== 'playback') {
+      boundaryRisks.push({ id: item.id, title: item.title, type: item.type, reason: '短剧/动漫应使用播放量口径' });
+    }
+
     const duplicateKey = `${item.type}|${normalizeTitle(item.title)}|${normalizeText(item.ipName || '')}`;
     const duplicateList = duplicateGroups.get(duplicateKey) || [];
     duplicateList.push({ id: item.id, title: item.title, type: item.type, ipName: item.ipName, hotScore: item.hotScore });
@@ -498,6 +597,8 @@ function listContentQualityStats() {
     duplicateCandidates: [...duplicateGroups.values()]
       .filter(group => group.length > 1)
       .slice(0, 20),
+    boundaryRisks: boundaryRisks.slice(0, 30),
+    reviewQueue: reviewQueue.slice(0, 30),
   };
 }
 
@@ -505,6 +606,8 @@ export {
   upsertContents,
   listCachedContents,
   listCachedContentsByTopic,
+  listAllCachedContentsByTopic,
+  listCachedContentsByIds,
   discoverCachedContents,
   getCachedContentById,
   countCachedContentsByType,

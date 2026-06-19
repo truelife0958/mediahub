@@ -6,6 +6,7 @@ export interface Content {
   type: 'drama' | 'novel' | 'comic' | 'anime';
   tags: string[];
   actors: string[];
+  characters?: string[];
   author: string;
   ipName: string;
   status: 'ongoing' | 'completed';
@@ -29,11 +30,32 @@ export interface Content {
 export interface UserProfile {
   id: string;
   username: string;
+  recentlyWatchedIds?: string[];
+  followingIds?: string[];
+  subscriptions?: UserKeywordSubscription[];
 }
 
 export interface WatchHistoryEntry {
   content: Content;
   watchedAt: string;
+}
+
+export interface UserKeywordSubscription {
+  id: number;
+  keyword: string;
+  type: '' | Content['type'];
+  createdAt: string;
+  alreadyExists?: boolean;
+}
+
+export interface UserPreferenceProfile {
+  totalWatched: number;
+  byType: Array<{ type: Content['type']; count: number }>;
+  favoriteTags: Array<{ name: string; count: number }>;
+  favoriteActors: Array<{ name: string; count: number }>;
+  favoriteCharacters: Array<{ name: string; count: number }>;
+  favoriteIps: Array<{ name: string; count: number }>;
+  summary: string;
 }
 
 export interface Category {
@@ -70,7 +92,44 @@ export interface SourceStatus {
   finishedAt: string;
 }
 
-export type TopicField = 'actor' | 'author' | 'ip';
+export interface IngestionRefreshResult {
+  type: Content['type'];
+  status: 'success' | 'failed';
+  count: number;
+  durationMs?: number;
+  error?: string;
+}
+
+export interface AutoRefreshRuntimeStatus {
+  started: boolean;
+  enabled: boolean;
+  mode: 'daily' | 'interval';
+  intervalMinutes: number;
+  hour: number;
+  minute: number;
+  runOnStartup: boolean;
+  scheduled: boolean;
+  running: boolean;
+  nextRunAt: string | null;
+  lastRunAt: string | null;
+  lastFinishedAt: string | null;
+  lastTrigger: string;
+  lastError: string | null;
+  lastResults: IngestionRefreshResult[];
+  updatedAt: string | null;
+  backfill: {
+    pageCount: number;
+    pageSize: number;
+    sortModes: string[];
+  };
+}
+
+export interface RefreshAllContentTypesResponse {
+  results: IngestionRefreshResult[];
+  status: AutoRefreshRuntimeStatus;
+}
+
+export type TopicField = 'actor' | 'character' | 'author' | 'ip';
 
 export interface DiscoveryResponse {
   keyword: string;
@@ -87,6 +146,43 @@ export interface TopicContentsResponse extends PaginatedResponse<Content> {
   value: string;
   typeFilter: '' | Content['type'];
   minHotScore: number;
+}
+
+export interface IpUniverseResponse {
+  ipName: string;
+  total: number;
+  groups: Record<Content['type'], Content[]>;
+  top: Content[];
+}
+
+export interface EntityProfileResponse {
+  field: TopicField;
+  value: string;
+  total: number;
+  groups: Record<Content['type'], Content[]>;
+  top: Content[];
+  tags: Array<{ name: string; count: number }>;
+}
+
+export interface CompareResponse {
+  ids: string[];
+  list: Content[];
+  metrics: Array<{
+    id: string;
+    title: string;
+    type: Content['type'];
+    hotScore: number;
+    heatMetric?: 'playback' | 'reading';
+    status: Content['status'];
+    tagCount: number;
+    actorCount: number;
+  }>;
+}
+
+export interface SearchExplainResponse {
+  id: string;
+  keyword: string;
+  fields: string[];
 }
 
 export interface SourceHealth {
@@ -125,6 +221,18 @@ export interface AiConfig {
     baseUrl?: string;
     apiKey?: string;
   };
+}
+
+export interface AiConnectionTestResult {
+  ok: boolean;
+  status: 'success' | 'disabled' | 'missing_api_key' | 'invalid_config' | 'failed';
+  message: string;
+  model: string;
+  baseUrl: string;
+  latencyMs: number;
+  httpStatus?: number;
+  sample?: string;
+  config: AiConfig;
 }
 
 export interface SystemSettings {
@@ -211,6 +319,19 @@ export interface ContentQualityStats {
     ipName: string;
     hotScore: number;
   }>>;
+  boundaryRisks?: Array<{
+    id: string;
+    title: string;
+    type: Content['type'];
+    reason: string;
+  }>;
+  reviewQueue?: Array<{
+    id: string;
+    title: string;
+    type: Content['type'];
+    issues: string[];
+    suggestion: string;
+  }>;
 }
 
 export interface SourceRunLog extends SourceStatus {

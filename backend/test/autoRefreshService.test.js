@@ -131,6 +131,10 @@ test('startDailyAutoRefresh runs once on startup by default', async () => {
 
   const stop = startDailyAutoRefresh({
     enabled: true,
+    runOnStartup: true,
+    mode: 'daily',
+    hour: 3,
+    minute: 0,
     nowProvider: () => new Date(2026, 4, 13, 1, 0, 0, 0),
     setTimeoutFn() {
       scheduled += 1;
@@ -162,6 +166,7 @@ test('startDailyAutoRefresh schedules once and reschedules after run', async () 
   const stop = startDailyAutoRefresh({
     enabled: true,
     runOnStartup: false,
+    mode: 'daily',
     hour: 3,
     minute: 0,
     nowProvider: () => nowQueue.shift() || new Date(2026, 4, 13, 3, 0, 1, 0),

@@ -12,7 +12,10 @@ import { recordSourceRun } from '../src/repositories/sourceRepository.js';
 import { resetHttpServiceRuntimeState } from '../src/services/httpService.js';
 import { resetCatalogRuntimeState } from '../src/services/catalogService.js';
 import { resetSourceHealthRuntimeState, resetSourceRoutingRuntimeState } from '../src/services/sourceStrategyService.js';
+import { resetAutoRefreshRuntimeForTest } from '../src/services/autoRefreshRuntimeService.js';
 import { createSearchAliasGroup } from '../src/services/searchAliasService.js';
+import { resetLoginRateLimit } from '../src/routes/admin.js';
+import { _setMockRequestFn, _clearMockRequestFn } from '../src/services/aiChatClient.js';
 
 const cachedAnime = {
   id: 'anime:ai-search:1',
@@ -111,6 +114,8 @@ function createTestClient() {
   resetSourceHealthRuntimeState();
   resetSourceRoutingRuntimeState();
   resetHttpServiceRuntimeState();
+  resetAutoRefreshRuntimeForTest();
+  resetLoginRateLimit();
   const app = createApp();
 
   return {
@@ -202,6 +207,54 @@ function mockFailingFetch() {
       global.fetch = originalFetch;
     },
   };
+}
+
+/**
+ * Helper to create an httpsRequest-style mock response from a chat completion payload.
+ * The production code uses httpsRequest (node:https) which returns { status, statusText, payload }.
+ */
+function mockAiResponse(items, { status = 200, statusText = 'OK' } = {}) {
+  return {
+    status,
+    statusText,
+    payload: {
+      choices: [{
+        message: {
+          role: 'assistant',
+          content: JSON.stringify({ items }),
+        },
+      }],
+    },
+  };
+}
+
+/**
+ * Helper to create an httpsRequest-style mock that returns AI error responses.
+ */
+function mockAiErrorResponse({ status = 500, message = 'server error' } = {}) {
+  return {
+    status,
+    statusText: status >= 400 ? 'Error' : 'OK',
+    payload: { error: { message } },
+  };
+}
+
+/**
+ * Install an AI chat mock using _setMockRequestFn (bypasses httpsRequest).
+ * Returns a calls array for assertions.
+ */
+function installAiMock(responseFn) {
+  const calls = [];
+  _setMockRequestFn(async ({ url, body, headers }) => {
+    const parsedBody = JSON.parse(String(body || '{}'));
+    calls.push({ url: String(url), body: parsedBody, headers });
+    return responseFn({ url: String(url), body: parsedBody, headers });
+  });
+  return calls;
+}
+
+function restoreAiMock() {
+  _clearMockRequestFn();
 }
 
 test('GET /api/health returns ok payload', async () => {
@@ -296,6 +349,53 @@ test('GET / reflects MEDIAHUB_FRONTEND_URL in payload', async () => {
   }
 });
 
+test('production startup rejects unsafe default security config', async () => {
+  const previous = {
+    NODE_ENV: process.env.NODE_ENV,
+    MEDIAHUB_ADMIN_PASSWORD: process.env.MEDIAHUB_ADMIN_PASSWORD,
+    MEDIAHUB_COOKIE_SECURE: process.env.MEDIAHUB_COOKIE_SECURE,
+    MEDIAHUB_FRONTEND_URL: process.env.MEDIAHUB_FRONTEND_URL,
+  };
+
+  process.env.NODE_ENV = 'production';
+  delete process.env.MEDIAHUB_ADMIN_PASSWORD;
+  process.env.MEDIAHUB_COOKIE_SECURE = 'true';
+  process.env.MEDIAHUB_FRONTEND_URL = 'https://mediahub.example.com';
+
+  try {
+    assert.throws(() => createTestClient(), /MEDIAHUB_ADMIN_PASSWORD/);
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
+test('production startup accepts explicit secure config', async () => {
+  const previous = {
+    NODE_ENV: process.env.NODE_ENV,
+    MEDIAHUB_ADMIN_PASSWORD: process.env.MEDIAHUB_ADMIN_PASSWORD,
+    MEDIAHUB_COOKIE_SECURE: process.env.MEDIAHUB_COOKIE_SECURE,
+    MEDIAHUB_FRONTEND_URL: process.env.MEDIAHUB_FRONTEND_URL,
+  };
+
+  process.env.NODE_ENV = 'production';
+  process.env.MEDIAHUB_ADMIN_PASSWORD = 'MediaHub-Strong-Password-2026';
+  process.env.MEDIAHUB_COOKIE_SECURE = 'true';
+  process.env.MEDIAHUB_FRONTEND_URL = 'https://mediahub.example.com';
+
+  try {
+    const response = await requestJson('/api/health');
+    assert.equal(response.status, 200);
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
 test('GET /admin redirects to frontend admin route', async () => {
   const client = createTestClient();
   const response = await client.request({
@@ -315,6 +415,19 @@ test('GET /api/categories returns the four primary categories', async () => {
     response.data.data.map((item) => item.id),
     ['drama', 'novel', 'comic', 'anime'],
   );
+});
+
+test('GET /api/contents can seed and return all four primary categories', async () => {
+  const client = createTestClient();
+
+  for (const type of ['drama', 'novel', 'comic', 'anime']) {
+    const response = await client.request({
+      pathname: `/api/contents?type=${type}&page=1&limit=3`,
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.data.code, 0);
+    assert.ok(response.data.data.list.length > 0, `${type} should have seeded contents`);
+  }
 });
 
 test('GET /api/contents returns 400 when type is missing', async () => {
@@ -371,7 +484,12 @@ test('user register -> me -> logout uses the session cookie contract', async () 
   assert.equal(meResponse.status, 200);
   assert.deepEqual(meResponse.data, {
     code: 0,
-    data: registerResponse.data.data,
+    data: {
+      ...registerResponse.data.data,
+      recentlyWatchedIds: [],
+      followingIds: [],
+      subscriptions: [],
+    },
   });
 
   const logoutResponse = await client.request({
@@ -391,6 +509,79 @@ test('user register -> me -> logout uses the session cookie contract', async () 
 
   assert.equal(meAfterLogoutResponse.status, 200);
   assert.deepEqual(meAfterLogoutResponse.data, { code: 0, data: null });
+});
+
+test('user follows subscriptions and preference profile work with session cookie', async () => {
+  const client = createTestClient();
+  upsertContents([{
+    ...cachedAnime,
+    id: 'drama:ai-search:follow-1',
+    title: '盛夏芬德拉',
+    type: 'drama',
+    tags: ['都市', '重生'],
+    actors: ['刘萧旭'],
+    characters: ['周晟安'],
+    ipName: '盛夏芬德拉',
+    hotScore: 8800,
+  }]);
+
+  const registerResponse = await client.request({
+    method: 'POST',
+    pathname: '/api/users/register',
+    body: { username: 'bob' },
+  });
+  const cookie = cookiePair(firstCookieHeader(registerResponse));
+
+  const followResponse = await client.request({
+    method: 'POST',
+    pathname: '/api/users/follow',
+    headers: { cookie },
+    body: { contentId: 'drama:ai-search:follow-1' },
+  });
+  assert.equal(followResponse.status, 200);
+  assert.deepEqual(followResponse.data, { code: 0, data: { isFollowing: true } });
+
+  const subscriptionResponse = await client.request({
+    method: 'POST',
+    pathname: '/api/users/subscriptions',
+    headers: { cookie },
+    body: { keyword: '盛夏芬德拉', type: 'drama' },
+  });
+  assert.equal(subscriptionResponse.status, 200);
+  assert.equal(subscriptionResponse.data.data.keyword, '盛夏芬德拉');
+  assert.equal(subscriptionResponse.data.data.alreadyExists, false);
+
+  const duplicateSubscriptionResponse = await client.request({
+    method: 'POST',
+    pathname: '/api/users/subscriptions',
+    headers: { cookie },
+    body: { keyword: '盛夏芬德拉', type: 'drama' },
+  });
+  assert.equal(duplicateSubscriptionResponse.status, 200);
+  assert.equal(duplicateSubscriptionResponse.data.data.keyword, '盛夏芬德拉');
+  assert.equal(duplicateSubscriptionResponse.data.data.alreadyExists, true);
+
+  await client.request({
+    method: 'POST',
+    pathname: '/api/users/history',
+    headers: { cookie },
+    body: { contentId: 'drama:ai-search:follow-1' },
+  });
+
+  const profileResponse = await client.request({
+    pathname: '/api/users/profile',
+    headers: { cookie },
+  });
+  assert.equal(profileResponse.status, 200);
+  assert.equal(profileResponse.data.data.totalWatched, 1);
+  assert.ok(profileResponse.data.data.favoriteTags.some(item => item.name === '都市'));
+
+  const meResponse = await client.request({
+    pathname: '/api/users/me',
+    headers: { cookie },
+  });
+  assert.deepEqual(meResponse.data.data.followingIds, ['drama:ai-search:follow-1']);
+  assert.equal(meResponse.data.data.subscriptions.length, 1);
 });
 
 test('GET /api/users/history returns 401 without a session cookie', async () => {
@@ -501,38 +692,24 @@ test('GET /api/sources/health returns source routing runtime health snapshot', a
   process.env.MEDIAHUB_AI_BASE_URL = 'https://example.com/v1';
   process.env.MEDIAHUB_AI_SEARCH_WEB_ENABLED = 'false';
 
-  const originalFetch = global.fetch;
   resetHttpServiceRuntimeState();
   resetSourceHealthRuntimeState();
-  global.fetch = async (...args) => {
-    const [url] = args;
+  installAiMock(({ url }) => {
     if (String(url).includes('example.com/v1/chat/completions')) {
-      return new Response(JSON.stringify({
-        choices: [{ message: { content: JSON.stringify({
-          items: [
-            {
-              title: 'AI Routing Health Drama',
-              summary: 'health',
-              tags: ['drama'],
-              actors: ['actor-a'],
-              author: 'ai',
-              ipName: 'ai-health',
-              status: 'ongoing',
-              hotScore: 3200,
-              sourceUrl: 'https://example.com/ai-health',
-            },
-          ],
-        }) } }],
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return mockAiResponse([{
+        title: 'AI Routing Health Drama',
+        summary: 'health',
+        tags: ['drama'],
+        actors: ['actor-a'],
+        author: 'ai',
+        ipName: 'ai-health',
+        status: 'ongoing',
+        hotScore: 3200,
+        sourceUrl: 'https://example.com/ai-health',
+      }]);
     }
-    return new Response(JSON.stringify({}), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  };
+    return mockAiErrorResponse({ status: 500, message: 'not found' });
+  });
 
   try {
     const client = createTestClient();
@@ -549,7 +726,7 @@ test('GET /api/sources/health returns source routing runtime health snapshot', a
     assert.ok(Array.isArray(healthResponse.data.data));
     assert.ok(healthResponse.data.data.some(item => item.type === 'drama' && item.source === 'ai_search'));
   } finally {
-    global.fetch = originalFetch;
+    restoreAiMock();
     resetHttpServiceRuntimeState();
     resetSourceHealthRuntimeState();
     for (const [key, value] of Object.entries(previous)) {
@@ -682,6 +859,78 @@ test('PUT /api/system/ai-config persists env config to configured env file', asy
     }
     await rm(tempDir, { recursive: true, force: true });
   }
+});
+
+test('POST /api/system/ai-config/test reports missing API key without calling network', async () => {
+  await withIsolatedAiConfigEnv(async () => {
+    installAiMock(() => {
+      throw new Error('AI test must not call network without an API key');
+    });
+
+    try {
+      const client = createTestClient();
+      const response = await adminRequest(client, {
+        method: 'POST',
+        pathname: '/api/system/ai-config/test',
+        body: {
+          enabled: true,
+          model: 'gpt-5-mini',
+          baseUrl: 'https://example.com/v1',
+        },
+      });
+
+      assert.equal(response.status, 200);
+      assert.equal(response.data.code, 0);
+      assert.equal(response.data.data.ok, false);
+      assert.equal(response.data.data.status, 'missing_api_key');
+      assert.match(response.data.data.message, /API Key/);
+      assert.equal(response.data.data.config.hasApiKey, false);
+    } finally {
+      restoreAiMock();
+    }
+  });
+});
+
+test('POST /api/system/ai-config/test calls chat completions with transient form config', async () => {
+  await withIsolatedAiConfigEnv(async () => {
+    const calls = installAiMock(({ url, body, headers }) => {
+      return {
+        status: 200,
+        statusText: 'OK',
+        payload: {
+          choices: [{ message: { content: '{"ok":true,"service":"mediahub"}' } }],
+        },
+      };
+    });
+
+    try {
+      const client = createTestClient();
+      const response = await adminRequest(client, {
+        method: 'POST',
+        pathname: '/api/system/ai-config/test',
+        body: {
+          enabled: true,
+          model: 'gpt-5-mini',
+          baseUrl: 'https://example.com/v1/chat/completions',
+          apiKey: 'sk-transient-test',
+        },
+      });
+
+      assert.equal(response.status, 200);
+      assert.equal(response.data.code, 0);
+      assert.equal(response.data.data.ok, true);
+      assert.equal(response.data.data.status, 'success');
+      assert.match(response.data.data.message, /AI 连接正常/);
+      assert.equal(response.data.data.baseUrl, 'https://example.com/v1');
+      assert.equal(calls.length, 1);
+      assert.equal(calls[0].url, 'https://example.com/v1/chat/completions');
+      assert.equal(calls[0].headers?.Authorization || calls[0].headers?.authorization, 'Bearer sk-transient-test');
+      assert.equal(calls[0].body.model, 'gpt-5-mini');
+      assert.equal(Array.isArray(calls[0].body.messages), true);
+    } finally {
+      restoreAiMock();
+    }
+  });
 });
 
 test('PUT /api/system/ai-config rejects invalid payload types', async () => {
@@ -1117,6 +1366,68 @@ test('GET /api/system/settings no longer exposes platform source settings', asyn
   assert.equal('platformSource' in response.data.data, false);
 });
 
+test('GET /api/system/auto-refresh/status returns runtime scheduler state', async () => {
+  const client = createTestClient();
+  const response = await adminRequest(client, { pathname: '/api/system/auto-refresh/status' });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.data.code, 0);
+  assert.equal(typeof response.data.data.started, 'boolean');
+  assert.equal(typeof response.data.data.enabled, 'boolean');
+  assert.equal(typeof response.data.data.running, 'boolean');
+  assert.equal(Array.isArray(response.data.data.lastResults), true);
+  assert.ok(Array.isArray(response.data.data.backfill.sortModes));
+  assert.ok(response.data.data.backfill.sortModes.includes('hot'));
+});
+
+test('POST /api/ingestion/refresh-all updates four categories independently', async () => {
+  const previous = {
+    MEDIAHUB_AI_ENABLED: process.env.MEDIAHUB_AI_ENABLED,
+    MEDIAHUB_AI_API_KEY: process.env.MEDIAHUB_AI_API_KEY,
+    MEDIAHUB_AI_MODEL: process.env.MEDIAHUB_AI_MODEL,
+    MEDIAHUB_AI_BASE_URL: process.env.MEDIAHUB_AI_BASE_URL,
+  };
+  process.env.MEDIAHUB_AI_ENABLED = 'false';
+  delete process.env.MEDIAHUB_AI_API_KEY;
+  process.env.MEDIAHUB_AI_MODEL = 'gpt-5-mini';
+  process.env.MEDIAHUB_AI_BASE_URL = 'https://example.com/v1';
+
+  const originalFetch = global.fetch;
+  global.fetch = async () => {
+    throw new Error('refresh-all should not call network without AI credentials');
+  };
+  installAiMock(() => {
+    throw new Error('refresh-all should not call AI without credentials');
+  });
+
+  try {
+    const client = createTestClient();
+    const response = await adminRequest(client, {
+      method: 'POST',
+      pathname: '/api/ingestion/refresh-all',
+      headers: { 'content-length': '0' },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.data.code, 0);
+    assert.deepEqual(
+      response.data.data.results.map(item => item.type),
+      ['drama', 'novel', 'comic', 'anime'],
+    );
+    assert.ok(response.data.data.results.every(item => item.status === 'failed'));
+    assert.ok(response.data.data.results.every(item => /AI 搜索未启用|API Key/.test(item.error)));
+    assert.equal(response.data.data.status.lastTrigger, 'manual-all');
+    assert.equal(response.data.data.status.lastResults.length, 4);
+  } finally {
+    global.fetch = originalFetch;
+    restoreAiMock();
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
 test('platform source CRUD endpoints are offline and return 404', async () => {
   const client = createTestClient();
   const listResponse = await adminRequest(client, { pathname: '/api/system/platform-sources' });
@@ -1204,7 +1515,7 @@ test('system source routing only supports AI search and rejects platform API sou
   }
 });
 
-test('POST /api/ingestion/crawl is deprecated and returns 400', async () => {
+test('POST /api/ingestion/crawl is deprecated and returns 404', async () => {
   const client = createTestClient();
   const response = await adminRequest(client, {
     method: 'POST',
@@ -1212,10 +1523,7 @@ test('POST /api/ingestion/crawl is deprecated and returns 400', async () => {
     headers: { 'content-length': '0' },
   });
 
-  assert.equal(response.status, 400);
-  assert.equal(response.data.code, 1001);
-  assert.equal(response.data.error, 'invalid_request');
-  assert.match(response.data.message, /已废弃|refresh/);
+  assert.equal(response.status, 404);
 });
 
 test('POST /api/ingestion/refresh uses only AI search and never calls platform APIs', async () => {
@@ -1236,37 +1544,23 @@ test('POST /api/ingestion/refresh uses only AI search and never calls platform A
   process.env.MEDIAHUB_AI_BASE_URL = 'https://example.com/v1';
   process.env.MEDIAHUB_AI_SEARCH_WEB_ENABLED = 'false';
 
-  const originalFetch = global.fetch;
   const calls = [];
   resetHttpServiceRuntimeState();
   resetSourceHealthRuntimeState();
-  global.fetch = async (...args) => {
-    const [url] = args;
+  installAiMock(({ url }) => {
     calls.push(String(url));
-    if (String(url).includes('example.com/v1/chat/completions')) {
-      return new Response(JSON.stringify({
-        choices: [{ message: { content: JSON.stringify({
-          items: [
-            {
-              title: 'AI Only Drama',
-              summary: 'ai only',
-              tags: ['drama'],
-              actors: ['actor-a'],
-              author: 'ai',
-              ipName: 'ai-only',
-              status: 'ongoing',
-              hotScore: 5200,
-              sourceUrl: 'https://example.com/ai-only-drama',
-            },
-          ],
-        }) } }],
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-    throw new Error(`Unexpected platform API call: ${url}`);
-  };
+    return mockAiResponse([{
+      title: 'AI Only Drama',
+      summary: 'ai only',
+      tags: ['drama'],
+      actors: ['actor-a'],
+      author: 'ai',
+      ipName: 'ai-only',
+      status: 'ongoing',
+      hotScore: 5200,
+      sourceUrl: 'https://example.com/ai-only-drama',
+    }]);
+  });
 
   try {
     const client = createTestClient();
@@ -1282,7 +1576,7 @@ test('POST /api/ingestion/refresh uses only AI search and never calls platform A
     assert.equal(response.data.data.source, 'ai-search');
     assert.ok(calls.every(url => !/api\.tvmaze\.com|openlibrary\.org|api\.jikan\.moe/.test(url)));
   } finally {
-    global.fetch = originalFetch;
+    restoreAiMock();
     resetHttpServiceRuntimeState();
     resetSourceHealthRuntimeState();
     for (const [key, value] of Object.entries(previous)) {
@@ -1308,18 +1602,10 @@ test('POST /api/ingestion/refresh returns 502 when AI search is unavailable', as
   process.env.MEDIAHUB_AI_BASE_URL = 'https://example.com/v1';
   process.env.MEDIAHUB_AI_SEARCH_WEB_ENABLED = 'false';
 
-  const originalFetch = global.fetch;
   resetHttpServiceRuntimeState();
-  global.fetch = async (...args) => {
-    const [url] = args;
-    if (String(url).includes('example.com/v1/chat/completions')) {
-      return new Response(JSON.stringify({ error: { message: 'server error' } }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-    throw new Error(`Unexpected platform API call: ${url}`);
-  };
+  installAiMock(() => {
+    return mockAiErrorResponse({ status: 500, message: 'server error' });
+  });
 
   try {
     const client = createTestClient();
@@ -1332,9 +1618,9 @@ test('POST /api/ingestion/refresh returns 502 when AI search is unavailable', as
     assert.equal(response.status, 502);
     assert.equal(response.data.code, 2002);
     assert.equal(response.data.error, 'upstream_unavailable');
-    assert.match(response.data.message, /AI 搜索失败|server error/i);
+    assert.match(response.data.message, /AI|server error/i);
   } finally {
-    global.fetch = originalFetch;
+    restoreAiMock();
     resetHttpServiceRuntimeState();
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) delete process.env[key];
@@ -1369,22 +1655,25 @@ test('admin content APIs create manual records and AI fill missing fields', asyn
     MEDIAHUB_AI_MODEL: process.env.MEDIAHUB_AI_MODEL,
     MEDIAHUB_AI_BASE_URL: process.env.MEDIAHUB_AI_BASE_URL,
   };
-  const originalFetch = global.fetch;
   process.env.MEDIAHUB_AI_ENABLED = 'true';
   process.env.MEDIAHUB_AI_API_KEY = 'sk-route-fill';
   process.env.MEDIAHUB_AI_MODEL = 'gpt-5-mini';
   process.env.MEDIAHUB_AI_BASE_URL = 'https://example.com/v1';
-  global.fetch = async () => new Response(JSON.stringify({
-    choices: [{ message: { content: JSON.stringify({
-      summary: 'Route AI filled summary with enough length.',
-      tags: ['Urban'],
-      actors: ['Hero'],
-      author: 'Route Author',
-      ipName: 'Route IP',
-      status: 'completed',
-      hotScore: 4321,
-    }) } }],
-  }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  installAiMock(() => ({
+    status: 200,
+    statusText: 'OK',
+    payload: {
+      choices: [{ message: { content: JSON.stringify({
+        summary: 'Route AI filled summary with enough length.',
+        tags: ['Urban'],
+        actors: ['Hero'],
+        author: 'Route Author',
+        ipName: 'Route IP',
+        status: 'completed',
+        hotScore: 4321,
+      }) } }],
+    },
+  }));
 
   try {
     const fillResponse = await adminRequest(client, {
@@ -1397,7 +1686,7 @@ test('admin content APIs create manual records and AI fill missing fields', asyn
     assert.equal(fillResponse.data.data.summary, 'Route AI filled summary with enough length.');
     assert.deepEqual(fillResponse.data.data.tags, ['Urban']);
   } finally {
-    global.fetch = originalFetch;
+    restoreAiMock();
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;

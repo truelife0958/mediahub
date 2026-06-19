@@ -21,7 +21,19 @@ function openDatabase(filePath = databasePath) {
   return db;
 }
 
+const ALLOWED_PRAGMA_TABLES = new Set([
+  'contents', 'source_runs', 'ai_runtime_config', 'users',
+  'watch_history', 'favorites', 'user_follows', 'user_keyword_subscriptions',
+  'ingestion_cursors', 'admin_reference_settings',
+  'leaderboard_snapshots', 'leaderboard_events', 'keyword_subscriptions',
+  'keyword_subscription_hits', 'content_revisions', 'audit_logs',
+  'search_alias_groups',
+]);
+
 function hasColumn(db, tableName, columnName) {
+  if (!ALLOWED_PRAGMA_TABLES.has(tableName)) {
+    throw new Error(`PRAGMA table_info not allowed for table: ${tableName}`);
+  }
   const rows = db.prepare(`PRAGMA table_info(${tableName})`).all();
   return rows.some(row => row.name === columnName);
 }
@@ -55,6 +67,9 @@ function ensureContentColumns(db) {
   }
   if (!hasColumn(db, 'contents', 'heat_metric')) {
     db.exec("ALTER TABLE contents ADD COLUMN heat_metric TEXT NOT NULL DEFAULT 'playback'");
+  }
+  if (!hasColumn(db, 'contents', 'characters_json')) {
+    db.exec("ALTER TABLE contents ADD COLUMN characters_json TEXT NOT NULL DEFAULT '[]'");
   }
 }
 
@@ -110,13 +125,17 @@ function ensureContentFts(db) {
     END
   `);
 
-  // 增量迁移场景下，保证 FTS 与主表一致。
-  db.exec('DELETE FROM contents_fts');
-  db.exec(`
-    INSERT INTO contents_fts(rowid, id, title, summary, author, ip_name)
-    SELECT rowid, id, title, summary, author, ip_name
-    FROM contents
-  `);
+  // Rebuild FTS only if out of sync with the main table
+  const ftsCount = db.prepare('SELECT COUNT(*) as cnt FROM contents_fts').get()?.cnt || 0;
+  const contentCount = db.prepare('SELECT COUNT(*) as cnt FROM contents').get()?.cnt || 0;
+  if (ftsCount !== contentCount) {
+    db.exec('DELETE FROM contents_fts');
+    db.exec(`
+      INSERT INTO contents_fts(rowid, id, title, summary, author, ip_name)
+      SELECT rowid, id, title, summary, author, ip_name
+      FROM contents
+    `);
+  }
 }
 
 function ensureIngestionCursors(db) {
@@ -291,6 +310,7 @@ function initializeSchema(db) {
       hot_score INTEGER NOT NULL DEFAULT 0,
       tags_json TEXT NOT NULL,
       actors_json TEXT NOT NULL,
+      characters_json TEXT NOT NULL DEFAULT '[]',
       source_json TEXT NOT NULL,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
@@ -341,6 +361,36 @@ function initializeSchema(db) {
       PRIMARY KEY (user_id, content_id),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS user_follows (
+      user_id TEXT NOT NULL,
+      content_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (user_id, content_id),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS user_keyword_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      keyword TEXT NOT NULL,
+      type TEXT,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_user_keyword_subscriptions_user ON user_keyword_subscriptions(user_id, created_at DESC);
+  `);
+  db.exec(`
+    DELETE FROM user_keyword_subscriptions
+    WHERE id NOT IN (
+      SELECT MIN(id)
+      FROM user_keyword_subscriptions
+      GROUP BY user_id, lower(keyword), COALESCE(type, '')
+    )
+  `);
+  db.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_keyword_subscriptions_dedupe
+    ON user_keyword_subscriptions(user_id, lower(keyword), COALESCE(type, ''))
   `);
 
   ensureContentColumns(db);

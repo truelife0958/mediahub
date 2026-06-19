@@ -177,10 +177,10 @@ function ManualContentPanel({
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <select value={draft.type} onChange={e => onChange({ ...draft, type: e.target.value as ContentType })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm">
+            <select aria-label="补录类型" value={draft.type} onChange={e => onChange({ ...draft, type: e.target.value as ContentType })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm">
               {TYPE_OPTIONS.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
             </select>
-            <select value={draft.status} onChange={e => onChange({ ...draft, status: e.target.value as ManualContentDraft['status'] })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm">
+            <select aria-label="补录状态" value={draft.status} onChange={e => onChange({ ...draft, status: e.target.value as ManualContentDraft['status'] })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm">
               <option value="ongoing">连载中</option>
               <option value="completed">已完结</option>
             </select>
@@ -194,7 +194,15 @@ function ManualContentPanel({
             <input value={draft.ipName} onChange={e => onChange({ ...draft, ipName: e.target.value })} placeholder="IP 名" className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm" />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <input type="number" value={draft.hotScore} onChange={e => onChange({ ...draft, hotScore: e.target.value })} placeholder="播放量/阅读量(万次)" className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm" />
+            <input
+              type="number"
+              value={draft.hotScore}
+              aria-label="热度，播放量或阅读量，单位万次"
+              title="热度，播放量或阅读量，单位万次"
+              onChange={e => onChange({ ...draft, hotScore: e.target.value })}
+              placeholder="播放量/阅读量(万次)"
+              className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm"
+            />
             <input value={draft.sourceUrl} onChange={e => onChange({ ...draft, sourceUrl: e.target.value })} placeholder="来源 URL" className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm" />
           </div>
         </div>

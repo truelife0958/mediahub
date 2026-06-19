@@ -10,6 +10,7 @@ interface ContentGridProps {
   skeletonCount?: number;
   cardSize?: 'large' | 'medium' | 'small';
   showReason?: boolean;
+  keyword?: string;
   emptyTitle: string;
   emptyDesc: string;
   emptyIcon?: string;
@@ -24,6 +25,7 @@ export default function ContentGrid({
   skeletonCount = 10,
   cardSize = 'medium',
   showReason,
+  keyword = '',
   emptyTitle,
   emptyDesc,
   emptyIcon = '·',
@@ -33,7 +35,7 @@ export default function ContentGrid({
   if (loading && page === 1) {
     return (
       <div className="content-grid">
-        <SkeletonCard height={cardSize === 'large' ? '320px' : '290px'} count={skeletonCount} />
+        <SkeletonCard count={skeletonCount} />
       </div>
     );
   }
@@ -43,17 +45,24 @@ export default function ContentGrid({
       <ApiState
         title={emptyIcon === '·' ? emptyTitle : `${emptyIcon} ${emptyTitle}`}
         description={emptyDesc}
-        actionLabel="重新加载"
+        actionLabel="重试"
         onAction={onRetry}
       />
     );
   }
 
   return (
-    <div className="content-grid">
-      {items.map(item => (
-        <ContentCard key={item.id} content={item} size={cardSize} showReason={showReason} onClick={onItemClick} />
-      ))}
-    </div>
+    <>
+      {keyword && (
+        <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3 text-sm text-[var(--text-secondary)]">
+          找到 {items.length} 条「{keyword}」相关结果
+        </div>
+      )}
+      <div className="content-grid">
+        {items.map(item => (
+          <ContentCard key={item.id} content={item} size={cardSize} showReason={showReason} keyword={keyword} onClick={onItemClick} />
+        ))}
+      </div>
+    </>
   );
 }

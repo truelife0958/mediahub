@@ -12,6 +12,20 @@ export default defineConfig({
       '/api': {
         target: apiTarget,
         changeOrigin: true,
+        timeout: 180_000,
+      },
+    },
+  },
+  build: {
+    sourcemap: false,
+    target: 'es2020',
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router-dom')) {
+            return 'vendor';
+          }
+        },
       },
     },
   },

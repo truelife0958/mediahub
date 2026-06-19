@@ -1,70 +1,109 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useCategories, useContents, useCurrentUser, useGroupedDiscovery, usePublicLeaderboards, useRecommendations } from '../api';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useContents, usePublicLeaderboards, useRecommendations } from '../api';
+import { useSharedUser } from '../hooks/useSharedUser';
+import ApiState from '../components/ApiState';
 import ContentGrid from '../components/ContentGrid';
 import Header from '../components/Header';
 import LeaderboardStrip from '../components/LeaderboardStrip';
 import SearchBar from '../components/SearchBar';
 import SectionHeader from '../components/SectionHeader';
-import ApiState from '../components/ApiState';
 import { CATEGORY_TEXT } from '../constants';
-import type { Category, Content } from '../types';
+import type { Content } from '../types';
 
+const MODULE_TYPES: Content['type'][] = ['drama', 'novel', 'comic', 'anime'];
 const HOME_LEADERBOARD_REFRESH_MS = 20_000;
 
-function CategoryTabs({
-  categories,
-  active,
-  onChange,
-}: {
-  categories: Category[];
-  active: string;
-  onChange: (id: string) => void;
-}) {
-  return (
-    <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-1 scrollbar-none">
-      {categories.map(cat => (
-        <button
-          key={cat.id}
-          onClick={() => onChange(cat.id)}
-          className={`control-button relative whitespace-nowrap px-4 py-2 rounded-lg font-medium text-sm inline-flex items-center gap-1.5 cursor-pointer ${active === cat.id ? 'is-active' : ''}`}
-        >
-          <span className="text-base">{cat.icon}</span>
-          <span>{cat.name}</span>
-        </button>
-      ))}
-    </div>
-  );
+const MODULE_COPY: Record<Content['type'], {
+  title: string;
+  subtitle: string;
+  searchHint: string;
+  hotMetric: string;
+  quickSearches: Array<{ label: string; value: string; kind: string }>;
+}> = {
+  drama: {
+    title: '短剧模块',
+    subtitle: '微短剧 / 竖屏短剧热度排行',
+    searchHint: '短剧名、主演、角色、IP',
+    hotMetric: '播放量',
+    quickSearches: [
+      { label: '盛夏芬德拉', value: '盛夏芬德拉', kind: 'IP' },
+      { label: '刘萧旭', value: '刘萧旭', kind: '主演' },
+      { label: '周晟安', value: '周晟安', kind: '角色' },
+      { label: '家里家外', value: '家里家外', kind: '短剧' },
+      { label: '无双', value: '无双', kind: '短剧' },
+    ],
+  },
+  novel: {
+    title: '小说模块',
+    subtitle: '热门小说阅读量排行',
+    searchHint: '小说名、作者、角色、IP',
+    hotMetric: '阅读量',
+    quickSearches: [
+      { label: '斗破苍穹', value: '斗破苍穹', kind: 'IP' },
+      { label: '萧炎', value: '萧炎', kind: '角色' },
+      { label: '凡人修仙传', value: '凡人修仙传', kind: 'IP' },
+      { label: '韩立', value: '韩立', kind: '角色' },
+      { label: '天蚕土豆', value: '天蚕土豆', kind: '作者' },
+    ],
+  },
+  comic: {
+    title: '漫画模块',
+    subtitle: '热门漫画阅读量排行',
+    searchHint: '漫画名、作者、角色、IP',
+    hotMetric: '阅读量',
+    quickSearches: [
+      { label: '一人之下', value: '一人之下', kind: 'IP' },
+      { label: '张楚岚', value: '张楚岚', kind: '角色' },
+      { label: '冯宝宝', value: '冯宝宝', kind: '角色' },
+      { label: '狐妖小红娘', value: '狐妖小红娘', kind: '漫画' },
+      { label: '米二', value: '米二', kind: '作者' },
+    ],
+  },
+  anime: {
+    title: '动漫模块',
+    subtitle: '热门动漫播放量排行',
+    searchHint: '动漫名、角色、IP',
+    hotMetric: '播放量',
+    quickSearches: [
+      { label: '遮天', value: '遮天', kind: 'IP' },
+      { label: '叶凡', value: '叶凡', kind: '角色' },
+      { label: '凡人修仙传', value: '凡人修仙传', kind: 'IP' },
+      { label: '韩立', value: '韩立', kind: '角色' },
+      { label: '灵笼', value: '灵笼', kind: '动漫' },
+    ],
+  },
+};
+
+function normalizeModuleType(rawType: string | undefined): Content['type'] {
+  return MODULE_TYPES.includes(rawType as Content['type']) ? rawType as Content['type'] : 'drama';
 }
 
 export default function Home() {
-  const [activeType, setActiveType] = useState<Content['type']>('drama');
+  const params = useParams<{ type?: string }>();
+  const navigate = useNavigate();
+  const isValidModulePath = !params.type || MODULE_TYPES.includes(params.type as Content['type']);
+  const moduleType = normalizeModuleType(params.type);
+  const copy = MODULE_COPY[moduleType];
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<'hot' | 'latest'>('hot');
-  const [minHotScore, setMinHotScore] = useState(0);
   const [leaderboardLayer, setLeaderboardLayer] = useState<'overall' | 'new' | 'rising' | 'completed'>('overall');
   const [retryKey, setRetryKey] = useState(0);
   const [leaderboardRetryKey, setLeaderboardRetryKey] = useState(0);
-  const [userRetryKey, setUserRetryKey] = useState(0);
 
-  const { categories, error: categoryError } = useCategories(retryKey);
-  const { user } = useCurrentUser(userRetryKey);
+  const { user } = useSharedUser();
   const {
     contents,
     total,
     loading: contentLoading,
     error: contentError,
-  } = useContents(activeType, page, keyword, sort, retryKey);
+  } = useContents(moduleType, page, keyword, sort, retryKey);
   const {
     recommendations,
     loading: recLoading,
     error: recError,
-  } = useRecommendations(activeType, retryKey);
-  const {
-    data: groupedDiscovery,
-    loading: groupedLoading,
-    error: groupedError,
-  } = useGroupedDiscovery(keyword, sort, minHotScore, retryKey);
+  } = useRecommendations(moduleType, retryKey);
   const {
     leaderboards,
     loading: leaderboardLoading,
@@ -78,19 +117,28 @@ export default function Home() {
       : leaderboardLayer === 'rising'
         ? '飙升榜'
         : '完结榜';
-
   const hasMore = contents.length < total;
+  const hasModuleWatchSignal = Boolean(
+    user?.recentlyWatchedIds?.some(contentId => contentId.split(':')[0] === moduleType),
+  );
 
-  const handleTypeChange = useCallback((type: string) => {
-    setActiveType(type as Content['type']);
-    setPage(1);
+  useEffect(() => {
+    if (!params.type) {
+      navigate('/drama', { replace: true });
+    }
+  }, [navigate, params.type]);
+
+  useEffect(() => {
     setKeyword('');
+    setPage(1);
     setSort('hot');
-    setMinHotScore(0);
-  }, []);
+  }, [moduleType]);
 
-  const handleLoadMore = useCallback(() => {
-    setPage(prev => prev + 1);
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setLeaderboardRetryKey(key => key + 1);
+    }, HOME_LEADERBOARD_REFRESH_MS);
+    return () => window.clearInterval(timerId);
   }, []);
 
   const handleKeywordChange = useCallback((value: string) => {
@@ -101,51 +149,77 @@ export default function Home() {
   const handleRetry = useCallback(() => {
     setPage(1);
     setRetryKey(key => key + 1);
-    setUserRetryKey(key => key + 1);
   }, []);
 
-  const isSearchMode = keyword.trim().length > 0;
-  const groupedTypes = (['drama', 'novel', 'comic', 'anime'] as Content['type'][])
-    .filter(type => (groupedDiscovery?.counts?.[type] || 0) > 0);
+  const currentLeaderboard = useMemo(() => leaderboards[moduleType], [leaderboards, moduleType]);
 
-  useEffect(() => {
-    const timerId = window.setInterval(() => {
-      setLeaderboardRetryKey(key => key + 1);
-    }, HOME_LEADERBOARD_REFRESH_MS);
-
-    return () => {
-      window.clearInterval(timerId);
-    };
-  }, []);
+  if (!isValidModulePath) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] relative overflow-x-hidden">
+        <div className="app-backdrop" />
+        <Header user={user} />
+        <main className="max-w-3xl mx-auto px-4 md:px-6 py-12 relative">
+          <ApiState
+            title="模块不存在"
+            description="MediaHub 目前只有短剧、小说、漫画、动漫四个独立入口。"
+            actionLabel="返回短剧"
+            onAction={() => navigate('/drama', { replace: true })}
+          />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] relative overflow-x-hidden">
       <div className="app-backdrop" />
 
-      <Header user={user}>
-        <SearchBar value={keyword} onChange={handleKeywordChange} />
+      <Header user={user} activeType={moduleType}>
+        <SearchBar value={keyword} onChange={handleKeywordChange} placeholder={`搜索：${copy.searchHint}...`} />
       </Header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8 relative">
+        {/* 快速搜索 */}
+        <section className="section-shell mb-8">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <SectionHeader title={copy.title} subtitle={copy.subtitle} />
+            <div className="flex flex-wrap gap-1.5">
+              {copy.quickSearches.map(item => (
+                <button
+                  key={`${item.kind}-${item.value}`}
+                  type="button"
+                  onClick={() => handleKeywordChange(item.value)}
+                  className="control-button rounded-lg px-2.5 py-1.5 text-xs font-semibold"
+                  title={`${item.kind}：${item.value}`}
+                >
+                  <span className="text-[var(--text-muted)]">{item.kind}</span>
+                  <span className="ml-1">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 榜单 */}
         {!keyword && (
-          <section className="section-shell mb-10">
+          <section className="section-shell mb-8">
             <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-              <SectionHeader title="实时热门榜单" subtitle={`短剧、小说、漫画、动漫四类${leaderboardLayerLabel}每 20 秒自动刷新一次`} />
-              <div className="flex flex-wrap gap-2">
-                {[
+              <SectionHeader title={`${CATEGORY_TEXT[moduleType]}热门榜`} subtitle={`${leaderboardLayerLabel} · 仅${CATEGORY_TEXT[moduleType]}数据`} />
+              <div className="flex flex-wrap gap-1.5">
+                {([
                   ['overall', '总榜'],
-                  ['new', '新作榜'],
-                  ['rising', '飙升榜'],
-                  ['completed', '完结榜'],
-                ].map(([layerId, label]) => (
+                  ['new', '新作'],
+                  ['rising', '飙升'],
+                  ['completed', '完结'],
+                ] as const).map(([layerId, label]) => (
                   <button
                     key={layerId}
                     type="button"
                     onClick={() => {
-                      setLeaderboardLayer(layerId as 'overall' | 'new' | 'rising' | 'completed');
+                      setLeaderboardLayer(layerId);
                       setLeaderboardRetryKey(key => key + 1);
                     }}
-                    className={`control-button rounded-lg px-3 py-1.5 text-xs font-semibold ${leaderboardLayer === layerId ? 'is-active' : ''}`}
+                    className={`control-button rounded-lg px-2.5 py-1.5 text-xs font-semibold ${leaderboardLayer === layerId ? 'is-active' : ''}`}
                   >
                     {label}
                   </button>
@@ -154,25 +228,45 @@ export default function Home() {
             </div>
             {leaderboardError && !leaderboardLoading ? (
               <ApiState
-                title="热门榜单暂不可用"
+                title="榜单暂不可用"
                 description={leaderboardError}
                 onAction={() => setLeaderboardRetryKey(key => key + 1)}
               />
             ) : (
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-4">
-                <LeaderboardStrip type="drama" leaderboard={leaderboards.drama} layerLabel={leaderboardLayerLabel} layerId={leaderboardLayer} />
-                <LeaderboardStrip type="novel" leaderboard={leaderboards.novel} layerLabel={leaderboardLayerLabel} layerId={leaderboardLayer} />
-                <LeaderboardStrip type="comic" leaderboard={leaderboards.comic} layerLabel={leaderboardLayerLabel} layerId={leaderboardLayer} />
-                <LeaderboardStrip type="anime" leaderboard={leaderboards.anime} layerLabel={leaderboardLayerLabel} layerId={leaderboardLayer} />
-              </div>
+              <LeaderboardStrip type={moduleType} leaderboard={currentLeaderboard} layerLabel={leaderboardLayerLabel} layerId={leaderboardLayer} />
             )}
           </section>
         )}
 
+        {/* 推荐 */}
         {!keyword && (
-          <section className="section-shell mb-10">
-            <SectionHeader title="为你推荐" subtitle="基于热度、相似 IP 与近期更新综合排序" />
-            {recError ? (
+          <section className="section-shell mb-8">
+            <SectionHeader title={`${CATEGORY_TEXT[moduleType]}为你推荐`} subtitle="基于已看记录和偏好推荐" />
+            {!user ? (
+              <div className="recommendation-hint">
+                <div>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">创建会话后开始推荐</p>
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">标注已看后即可获得个性化推荐</p>
+                </div>
+                <button type="button" className="gold-surface rounded-lg px-4 py-2 text-xs font-semibold" onClick={() => navigate('/me')}>
+                  去我的空间
+                </button>
+              </div>
+            ) : !hasModuleWatchSignal ? (
+              <div className="recommendation-hint">
+                <div>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">先标注已看的{CATEGORY_TEXT[moduleType]}</p>
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">标注后这里会显示个性化推荐</p>
+                </div>
+                <button
+                  type="button"
+                  className="control-button rounded-lg px-4 py-2 text-xs font-semibold"
+                  onClick={() => document.getElementById('module-content-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                >
+                  浏览{CATEGORY_TEXT[moduleType]}
+                </button>
+              </div>
+            ) : recError ? (
               <ApiState
                 title="推荐源暂不可用"
                 description={recError}
@@ -185,8 +279,8 @@ export default function Home() {
                 skeletonCount={5}
                 cardSize="large"
                 showReason
-                emptyTitle="暂无推荐内容"
-                emptyDesc="推荐数据暂未返回，换个分类或稍后重试。"
+                emptyTitle={`暂无${CATEGORY_TEXT[moduleType]}推荐`}
+                emptyDesc="推荐数据暂未返回，稍后重试。"
                 emptyIcon="推荐"
                 onRetry={handleRetry}
               />
@@ -194,19 +288,20 @@ export default function Home() {
           </section>
         )}
 
-        <section>
-          <div className="flex items-center justify-between gap-3 mb-4">
+        {/* 内容列表 */}
+        <section id="module-content-list" className="section-shell">
+          <div className="mb-4 flex items-center justify-between gap-3">
             <SectionHeader
-              title={keyword ? '搜索结果' : '热门内容'}
-              subtitle={keyword ? '跨分类分组展示，本地库优先检索，并补充 AI 热门结果后入库' : '短剧/动漫按播放量，小说/漫画按阅读量排序'}
+              title={keyword ? `搜索：${keyword}` : `${CATEGORY_TEXT[moduleType]}内容`}
+              subtitle={keyword ? `在${CATEGORY_TEXT[moduleType]}模块内检索` : `按${copy.hotMetric}排序`}
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => {
                   setSort('hot');
                   setPage(1);
                 }}
-                className={`control-button px-3 py-1.5 rounded-lg text-xs cursor-pointer ${sort === 'hot' ? 'is-active' : ''}`}
+                className={`control-button rounded-lg px-2.5 py-1.5 text-xs cursor-pointer ${sort === 'hot' ? 'is-active' : ''}`}
               >
                 热度
               </button>
@@ -215,117 +310,61 @@ export default function Home() {
                   setSort('latest');
                   setPage(1);
                 }}
-                className={`control-button px-3 py-1.5 rounded-lg text-xs cursor-pointer ${sort === 'latest' ? 'is-active' : ''}`}
+                className={`control-button rounded-lg px-2.5 py-1.5 text-xs cursor-pointer ${sort === 'latest' ? 'is-active' : ''}`}
               >
                 最新
               </button>
             </div>
           </div>
 
-          {!isSearchMode && <CategoryTabs categories={categories} active={activeType} onChange={handleTypeChange} />}
-
-          {(categoryError || (!isSearchMode && contentError) || (isSearchMode && groupedError)) && (
-            <div className="mb-4">
-              <ApiState
-                title={categoryError ? '分类源暂不可用' : '内容源暂不可用'}
-                description={categoryError || (isSearchMode ? groupedError : contentError) || '数据源暂不可用，请稍后重试。'}
-                onAction={handleRetry}
-              />
-            </div>
-          )}
-
           {keyword && (
             <div className="mb-5 flex flex-wrap items-center gap-2">
-              <span className="text-sm text-[var(--text-muted)]">关键词</span>
-              <span className="gold-surface px-2.5 py-1 rounded-md text-xs font-semibold">{keyword}</span>
-              <label className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] px-3 py-1.5 text-xs text-[var(--text-secondary)]">
-                最低热度
-                <select
-                  value={String(minHotScore)}
-                  onChange={(event) => {
-                    setMinHotScore(Number(event.target.value) || 0);
-                    setPage(1);
-                  }}
-                  className="border-0 bg-transparent text-[var(--text-primary)] outline-none"
-                >
-                  <option value="0">不限</option>
-                  <option value="1000">1000+</option>
-                  <option value="5000">5000+</option>
-                  <option value="10000">10000+</option>
-                </select>
-              </label>
+              <span className="gold-surface px-2.5 py-1 rounded-md text-xs font-semibold">{CATEGORY_TEXT[moduleType]}</span>
+              <span className="text-sm text-[var(--text-secondary)]">{keyword}</span>
               <button
                 onClick={() => {
                   setKeyword('');
                   setPage(1);
-                  setMinHotScore(0);
                 }}
-                className="px-3 py-1.5 text-xs rounded-md bg-transparent text-[var(--text-secondary)] border-0 cursor-pointer hover:text-[var(--text-primary)]"
+                className="px-2.5 py-1 text-xs rounded-md bg-[rgba(255,255,255,0.06)] text-[var(--text-secondary)] border border-[var(--border)] cursor-pointer hover:text-[var(--text-primary)] transition-colors"
               >
-                清空筛选
+                清空
               </button>
             </div>
           )}
 
-          {isSearchMode ? (
-            <div className="space-y-8">
-              {!groupedLoading && groupedDiscovery && groupedDiscovery.total > 0 && (
-                <p className="text-sm text-[var(--text-muted)]">
-                  共命中 {groupedDiscovery.total} 条，按短剧 / 小说 / 漫画 / 动漫分组展示。
-                </p>
-              )}
-              {groupedTypes.length > 0 ? groupedTypes.map(type => (
-                <section key={type} className="section-shell">
-                  <SectionHeader
-                    title={`${CATEGORY_TEXT[type]}结果`}
-                    subtitle={`当前命中 ${groupedDiscovery?.counts?.[type] || 0} 条`}
-                  />
-                  <ContentGrid
-                    items={groupedDiscovery?.groups?.[type] || []}
-                    loading={groupedLoading}
-                    skeletonCount={4}
-                    cardSize="medium"
-                    emptyTitle={`暂无${CATEGORY_TEXT[type]}结果`}
-                    emptyDesc="换个关键词或稍后重试。"
-                    onRetry={handleRetry}
-                  />
-                </section>
-              )) : (
-                <ContentGrid
-                  items={[]}
-                  loading={groupedLoading}
-                  emptyTitle="没有找到相关内容"
-                  emptyDesc="试试别名、演员名、作者名或 IP 名称。"
-                  onRetry={handleRetry}
-                />
-              )}
-            </div>
-          ) : contentError ? null : (
+          {contentError ? (
+            <ApiState
+              title={`${CATEGORY_TEXT[moduleType]}内容源暂不可用`}
+              description={contentError}
+              onAction={handleRetry}
+            />
+          ) : (
             <>
               <ContentGrid
                 items={contents}
                 loading={contentLoading}
                 page={page}
-                emptyTitle="没有找到相关内容"
-                emptyDesc="试试其他关键词或分类，或稍后重试。"
+                skeletonCount={10}
+                keyword={keyword}
+                emptyTitle={`没有找到${CATEGORY_TEXT[moduleType]}内容`}
+                emptyDesc="当前模块没有命中内容，不会显示其他模块的数据。"
                 onRetry={handleRetry}
               />
-
               {hasMore && (
                 <div className="text-center mt-7">
                   <button
-                    onClick={handleLoadMore}
+                    onClick={() => setPage(prev => prev + 1)}
                     disabled={contentLoading}
-                    className="px-7 py-2.5 rounded-xl font-medium text-sm border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] cursor-pointer transition-all duration-200 hover:bg-[var(--bg-card-hover)] disabled:opacity-60"
+                    className="control-button rounded-xl px-6 py-2.5 text-sm font-semibold disabled:opacity-60"
                   >
                     {contentLoading ? '加载中...' : '加载更多'}
                   </button>
                 </div>
               )}
-
               {total > 0 && (
                 <p className="text-center mt-3 text-xs text-[var(--text-muted)]">
-                  已显示 {contents.length} / {total} 条
+                  {contents.length} / {total} 条
                 </p>
               )}
             </>

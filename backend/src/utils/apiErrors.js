@@ -3,8 +3,10 @@ const ERROR_META = {
   not_found: { statusCode: 404, numericCode: 1002 },
   unauthorized: { statusCode: 401, numericCode: 1004 },
   ai_extract_failed: { statusCode: 422, numericCode: 1401 },
+  upstream_forbidden: { statusCode: 403, numericCode: 2004 },
   upstream_rate_limited: { statusCode: 429, numericCode: 2003 },
   upstream_unavailable: { statusCode: 502, numericCode: 2002 },
+  upstream_timeout: { statusCode: 504, numericCode: 2005 },
   internal_error: { statusCode: 500, numericCode: 2001 },
 };
 

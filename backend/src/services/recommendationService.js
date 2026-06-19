@@ -28,6 +28,12 @@ function scoreByProfile(content, profile) {
     reason = `同IP：${content.ipName}`;
   }
 
+  const characterMatch = profile.characters.find(character => content.characters?.includes(character));
+  if (characterMatch) {
+    boost += 3200;
+    reason = `同角色：${characterMatch}`;
+  }
+
   const tagMatch = profile.tags.find(tag => content.tags?.includes(tag));
   if (tagMatch) {
     boost += 2000;
@@ -39,14 +45,15 @@ function scoreByProfile(content, profile) {
   return { boost, reason };
 }
 
-function buildUserProfile(history) {
+function buildUserProfile(history, type) {
   const watched = history
     .map(entry => entry.content)
-    .filter(Boolean);
+    .filter(item => item && (!type || item.type === type));
 
   return {
     watchedIds: new Set(watched.map(item => item.id)),
     actors: [...new Set(watched.flatMap(item => item.actors || []).slice(0, 20))],
+    characters: [...new Set(watched.flatMap(item => item.characters || []).slice(0, 30))],
     ipNames: [...new Set(watched.map(item => item.ipName).filter(Boolean).slice(0, 20))],
     tags: [...new Set(watched.flatMap(item => item.tags || []).slice(0, 30))],
   };
@@ -97,7 +104,7 @@ export async function getRecommendations({ type = 'drama', limit = 10, userId, c
     }));
   }
 
-  const profile = buildUserProfile(history);
+  const profile = buildUserProfile(history, type);
 
   const personalized = pool
     .filter(item => !profile.watchedIds.has(item.id))

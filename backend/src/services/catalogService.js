@@ -20,7 +20,10 @@ import {
 } from './sourceStrategyService.js';
 
 const CACHE_TTL_MS = Math.max(15_000, Number(process.env.CACHE_TTL_MS || 180_000));
+const MAX_CACHE_ENTRIES = Math.max(10, Number(process.env.MEDIAHUB_CATALOG_CACHE_MAX_ENTRIES || 500));
+const INTERACTIVE_AI_SEARCH_TIMEOUT_MS = Math.max(5_000, Number(process.env.MEDIAHUB_INTERACTIVE_AI_SEARCH_TIMEOUT_MS || 30_000));
 const cacheStore = new Map();
+const pendingLoads = new Map();
 
 function buildCacheKey(type, params) {
   return `${type}:${JSON.stringify(params)}`;
@@ -41,10 +44,38 @@ function setCached(key, value, ttlMs = CACHE_TTL_MS) {
     value,
     expiresAt: Date.now() + ttlMs,
   });
+  pruneCacheStore();
 }
+
+function pruneCacheStore() {
+  const now = Date.now();
+  for (const [key, hit] of cacheStore.entries()) {
+    if (now > hit.expiresAt) {
+      cacheStore.delete(key);
+    }
+  }
+  while (cacheStore.size > MAX_CACHE_ENTRIES) {
+    const oldestKey = cacheStore.keys().next().value;
+    if (!oldestKey) break;
+    cacheStore.delete(oldestKey);
+  }
+}
+
+// Periodic cleanup of expired cache entries (even for infrequently accessed keys)
+setInterval(pruneCacheStore, 60_000).unref();
 
 function resetCatalogRuntimeState() {
   cacheStore.clear();
+  pendingLoads.clear();
+}
+
+function getCatalogCacheStats() {
+  pruneCacheStore();
+  return {
+    size: cacheStore.size,
+    maxEntries: MAX_CACHE_ENTRIES,
+    ttlMs: CACHE_TTL_MS,
+  };
 }
 
 function invalidateCatalogCacheByType(type) {
@@ -64,9 +95,22 @@ function invalidateCatalogCacheByType(type) {
 async function getOrSetCache(key, loader, ttlMs = CACHE_TTL_MS) {
   const cached = getCached(key);
   if (cached) return cached;
-  const value = await loader();
-  setCached(key, value, ttlMs);
-  return value;
+
+  // Dedup concurrent cache misses: share the in-flight promise
+  const pending = pendingLoads.get(key);
+  if (pending) return pending;
+
+  const promise = loader()
+    .then((value) => {
+      setCached(key, value, ttlMs);
+      return value;
+    })
+    .finally(() => {
+      pendingLoads.delete(key);
+    });
+
+  pendingLoads.set(key, promise);
+  return promise;
 }
 
 function ensureType(type) {
@@ -94,7 +138,7 @@ function parseContentId(contentId) {
   if (!type || !provider || !rawId) {
     throw createApiError('invalid_request', 'Invalid content id');
   }
-  if (provider === 'fallback' || provider !== 'ai-search') {
+  if (!['ai-search', 'curated-cn'].includes(provider)) {
     throw createApiError('invalid_request', 'Unsupported content source');
   }
   return { type, provider, rawId };
@@ -109,6 +153,8 @@ async function fetchBySourceToken({
   page,
   limit,
   sort,
+  timeoutMs,
+  abortSignal,
 }) {
   if (source === 'ai_search') {
     return searchTrendingContentsWithAi({
@@ -119,6 +165,8 @@ async function fetchBySourceToken({
       page,
       limit,
       sort,
+      timeoutMs,
+      abortSignal,
     });
   }
 
@@ -134,6 +182,8 @@ async function fetchListByType({
   limit = 20,
   sort = 'hot',
   sourceChain,
+  aiTimeoutMs,
+  abortSignal,
   __skipLiveFetchForTest = false,
   __bypassCacheFallback = false,
 }) {
@@ -187,6 +237,8 @@ async function fetchListByType({
           page: pageNum,
           limit: limitNum,
           sort,
+          timeoutMs: aiTimeoutMs,
+          abortSignal,
         });
         hasReachableSource = true;
         const list = Array.isArray(candidate?.list) ? candidate.list : [];
@@ -227,6 +279,8 @@ async function fetchListByType({
       keyword: normalizedKeyword,
       page: pageNum,
       limit: limitNum,
+      timeoutMs: aiTimeoutMs,
+      abortSignal,
     });
     const withSourceState = list.map(item => ({
       ...item,
@@ -325,7 +379,7 @@ async function fetchDetailById(contentId) {
 
 function parseTopicField(field) {
   const normalized = String(field || '').trim().toLowerCase();
-  if (normalized === 'actor' || normalized === 'author' || normalized === 'ip') return normalized;
+  if (normalized === 'actor' || normalized === 'character' || normalized === 'author' || normalized === 'ip') return normalized;
   throw createApiError('invalid_request', 'Invalid topic field');
 }
 
@@ -395,6 +449,7 @@ async function listContents({
         keyword: normalizedKeyword,
         searchTerms: effectiveSearchTerms,
         aliasHints: effectiveAliasHints,
+        aiTimeoutMs: INTERACTIVE_AI_SEARCH_TIMEOUT_MS,
         __skipLiveFetchForTest,
         __bypassCacheFallback: true,
       });
@@ -419,19 +474,18 @@ async function listContents({
     return cached;
   }
 
-  // 已有该分类缓存但本次关键词无命中：返回空列表而不是上游不可用错误。
   if (normalizedKeyword) {
-    const unfilteredCache = listCachedContents({
-      type,
-      page: 1,
-      limit: 1,
-      sort: 'hot',
-      keyword: '',
+    return {
+      list: [],
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: 0,
+      },
+      sourceChain: [],
+      resolvedSource: null,
       stale: false,
-    });
-    if (unfilteredCache.pagination.total > 0) {
-      return cached;
-    }
+    };
   }
 
   if (!__bypassCacheFallback) {
@@ -571,5 +625,6 @@ export {
   fetchListByType,
   parseContentId,
   resetCatalogRuntimeState,
+  getCatalogCacheStats,
   invalidateCatalogCacheByType,
 };

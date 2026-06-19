@@ -5,22 +5,17 @@ import ApiState from '../components/ApiState';
 import ContentGrid from '../components/ContentGrid';
 import Header from '../components/Header';
 import SectionHeader from '../components/SectionHeader';
+import { CATEGORY_TEXT } from '../constants';
 import type { Content } from '../types';
 
 const VALID_TYPES: Content['type'][] = ['drama', 'novel', 'comic', 'anime'];
-const TYPE_LABEL: Record<Content['type'], string> = {
-  drama: '短剧',
-  novel: '小说',
-  comic: '漫画',
-  anime: '动漫',
-};
 
 const LAYER_OPTIONS = [
-  { id: 'overall', label: '总榜' },
-  { id: 'new', label: '新作榜' },
-  { id: 'rising', label: '飙升榜' },
-  { id: 'completed', label: '完结榜' },
-] as const;
+  { id: 'overall' as const, label: '总榜' },
+  { id: 'new' as const, label: '新作' },
+  { id: 'rising' as const, label: '飙升' },
+  { id: 'completed' as const, label: '完结' },
+];
 
 export default function Leaderboards() {
   const params = useParams<{ type: string }>();
@@ -43,13 +38,12 @@ export default function Leaderboards() {
   }, [layer, setSearchParams]);
 
   useEffect(() => {
-    let active = true;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
 
-    getLeaderboard({ type, layer })
+    getLeaderboard({ type, layer }, { signal: controller.signal })
       .then((data) => {
-        if (!active) return;
         const mapped: Content[] = data.list.map(item => ({
           id: item.contentId,
           title: item.title,
@@ -73,18 +67,15 @@ export default function Leaderboards() {
         setCapturedAt(data.list[0]?.capturedAt || '');
       })
       .catch((err) => {
-        if (!active) return;
+        if (err?.name === 'AbortError') return;
         setError(err instanceof Error ? err.message : '榜单加载失败');
         setItems([]);
       })
       .finally(() => {
-        if (!active) return;
         setLoading(false);
       });
 
-    return () => {
-      active = false;
-    };
+    return () => { controller.abort(); };
   }, [layer, retryKey, type]);
 
   const visibleItems = items.slice(0, visibleCount);
@@ -105,16 +96,16 @@ export default function Leaderboards() {
       <div className="app-backdrop" />
       <Header />
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8 relative">
-        <section className="section-shell mb-8">
+        <section className="section-shell">
           <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <SectionHeader title={`${TYPE_LABEL[type]}榜单`} subtitle="支持总榜、新作榜、飙升榜、完结榜切换，展示完整榜单内容。" />
-            <div className="flex flex-wrap items-center gap-2">
+            <SectionHeader title={`${CATEGORY_TEXT[type]}榜单`} subtitle="切换榜单层级，查看完整排行。" />
+            <div className="flex flex-wrap items-center gap-1.5">
               {LAYER_OPTIONS.map(option => (
                 <button
                   key={option.id}
                   type="button"
                   onClick={() => setLayer(option.id)}
-                  className={`control-button rounded-lg px-3 py-1.5 text-xs font-semibold ${layer === option.id ? 'is-active' : ''}`}
+                  className={`control-button rounded-lg px-2.5 py-1.5 text-xs font-semibold ${layer === option.id ? 'is-active' : ''}`}
                 >
                   {option.label}
                 </button>
@@ -122,16 +113,21 @@ export default function Leaderboards() {
               <button
                 type="button"
                 onClick={exportCsv}
-                className="control-button rounded-lg px-3 py-1.5 text-xs font-semibold"
+                className="control-button rounded-lg px-2.5 py-1.5 text-xs font-semibold"
               >
-                导出 CSV
+                导出
               </button>
             </div>
           </div>
 
           <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-[var(--text-muted)]">
-            <span>当前条数：{items.length}</span>
-            <span>最近快照：{capturedAt ? new Date(capturedAt).toLocaleString('zh-CN') : '-'}</span>
+            <span>{items.length} 条</span>
+            {capturedAt && (
+              <>
+                <span>·</span>
+                <span>快照 {new Date(capturedAt).toLocaleDateString('zh-CN')}</span>
+              </>
+            )}
           </div>
 
           {error ? (
@@ -146,7 +142,7 @@ export default function Leaderboards() {
                 items={visibleItems}
                 loading={loading}
                 emptyTitle="暂无榜单内容"
-                emptyDesc="当前榜单还没有抓到可展示的数据。"
+                emptyDesc="当前榜单还没有数据。"
                 onRetry={() => setRetryKey(key => key + 1)}
               />
               {hasMore && !loading && (

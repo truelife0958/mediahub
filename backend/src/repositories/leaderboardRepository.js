@@ -1,18 +1,19 @@
 import { randomUUID } from 'node:crypto';
 import { getDatabase } from '../db/database.js';
+import { createApiError } from '../utils/apiErrors.js';
 
 const CONTENT_TYPES = ['drama', 'novel', 'comic', 'anime'];
 const LAYERS = ['overall', 'new', 'rising', 'completed'];
 
 function ensureType(type) {
   const normalized = String(type || '').trim().toLowerCase();
-  if (!CONTENT_TYPES.includes(normalized)) throw new Error('invalid type');
+  if (!CONTENT_TYPES.includes(normalized)) throw createApiError('invalid_request', 'type must be one of drama/novel/comic/anime');
   return normalized;
 }
 
 function ensureLayer(layer) {
   const normalized = String(layer || 'overall').trim().toLowerCase();
-  if (!LAYERS.includes(normalized)) throw new Error('invalid layer');
+  if (!LAYERS.includes(normalized)) throw createApiError('invalid_request', 'layer must be one of overall/new/rising/completed');
   return normalized;
 }
 
@@ -824,7 +825,12 @@ function exportLeaderboardAsCsv({ type, layer = 'overall', captureId = '' } = {}
   const rows = getSnapshotByCaptureId(resolvedCaptureId);
 
   const header = ['rank', 'content_id', 'title', 'hot_score', 'heat_metric', 'status', 'tags', 'source_url', 'captured_at'];
-  const escape = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+  const escape = (value) => {
+    const str = String(value ?? '');
+    const escaped = str.replace(/"/g, '""');
+    if (/^[=+@\-]/.test(escaped)) return `"\t${escaped}"`;
+    return `"${escaped}"`;
+  };
   const lines = [header.join(',')];
 
   for (const row of rows) {

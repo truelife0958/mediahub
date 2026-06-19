@@ -106,6 +106,7 @@ function mapAiItemToContent({ type, item, index }) {
     type,
     tags: toArray(item?.tags, 8),
     actors: toArray(item?.actors || item?.studios, 8),
+    characters: toArray(item?.characters || item?.roles, 12),
     author: cleanText(item?.author || item?.publisher || 'AI Discovery'),
     ipName: cleanText(item?.ipName || item?.franchise || title),
     status: cleanText(item?.status || 'ongoing'),
@@ -127,44 +128,27 @@ function buildPrompt({ type, keyword, searchTerms = [], aliasHints = '', page, l
     .map(item => cleanText(item))
     .filter(Boolean))]
     .slice(0, 8);
-  const searchTermLine = normalizedSearchTerms.length > 0 ? normalizedSearchTerms.join(' / ') : '无';
+  const searchTermHint = normalizedSearchTerms.length > 0 ? ` 扩展词:${normalizedSearchTerms.join('/')}` : '';
+  const aliasHint = aliasHints ? ` 别名:${aliasHints}` : '';
   return [
-    '请输出真实世界的热门内容清单，严格返回 JSON，不要 markdown。',
-    `目标分类: ${hint}`,
-    `关键词: ${keyword || '无'}`,
-    `检索扩展词: ${searchTermLine}`,
-    `别名参考: ${aliasHints || '无'}`,
-    `真实爆款参考: ${TYPE_SEARCH_ANCHORS[type] || hint}`,
-    `页码: ${page}`,
-    `数量: ${limit}`,
-    `排序偏好: ${sort}`,
-    '要求:',
-    '1) 必须返回 items 数组，长度 <= 数量。',
-    '2) 只返回中国大陆公开发行或中国原创内容；不要返回欧美、日韩或其他海外作品。',
-    '3) title 使用中文官方名称，必须唯一。',
-    '4) drama 只返回微短剧/短剧，不要返回长剧、电视剧或网剧；其他分类按中国小说、国漫漫画、国产动漫处理。',
-    '5) 每项字段: title, summary, tags[], actors[], author, ipName, status(ongoing/completed), hotScore, sourceUrl, cover, releaseDate。',
-    '6) hotScore 使用全网播放量/阅读量的“万次”数值：短剧和动漫为播放量，小说和漫画为阅读量；未知时填 0，不要编造精确值。',
-    '7) 演员、作者、制作方、上线年份、来源链接必须尽量真实准确，summary 简洁准确。',
-    '8) sourceUrl 优先使用爱奇艺、腾讯视频、优酷、哔哩哔哩、起点中文网、腾讯动漫、央视网等中国公开页面。',
-    '{"items":[{"title":"","summary":"","tags":[],"actors":[],"author":"","ipName":"","status":"ongoing","hotScore":1000,"sourceUrl":"","cover":"","releaseDate":"2025-01-01"}]}'
+    `输出${hint}热门清单，只返回JSON。`,
+    `关键词:${keyword || '无'}${searchTermHint}${aliasHint} 爆款参考:${TYPE_SEARCH_ANCHORS[type] || hint} 数量:${limit} 排序:${sort} 页码:${page}`,
+    '要求:只返回中国大陆原创内容;title用中文名且唯一;drama只返回微短剧不要长剧;每项含title,summary,tags,hotScore。',
+    '{"items":[{"title":"","summary":"","tags":[],"hotScore":1000}]}'
   ].join('\n');
 }
 
-async function callAiSearch({ config, prompt }) {
-  const { response, payload } = await postAiChatCompletion({
+async function callAiSearch({ config, prompt, timeoutMs, abortSignal }) {
+  // postAiChatCompletion throws on non-OK responses with publicCode,
+  // so we only receive { response, payload } on success.
+  const { payload } = await postAiChatCompletion({
     config,
     prompt,
     systemPrompt: '你是 MediaHub 的 AI 搜索助手。只返回可解析 JSON，不要 markdown，不要解释。',
     temperature: 0.2,
+    timeoutMs,
+    abortSignal,
   });
-
-  if (!response.ok) {
-    const message = cleanText(payload?.error?.message || response.statusText || 'AI 搜索失败');
-    throw createApiError('upstream_unavailable', `AI 搜索失败: ${message}`, {
-      status: response.status,
-    });
-  }
 
   return payload;
 }
@@ -177,6 +161,8 @@ async function searchTrendingContentsWithAi({
   page = 1,
   limit = 20,
   sort = 'hot',
+  timeoutMs,
+  abortSignal,
 } = {}) {
   const config = getAiConfigPrivate();
   if (!config?.enabled || !config?.apiKey) {
@@ -185,7 +171,7 @@ async function searchTrendingContentsWithAi({
 
   const prompt = buildPrompt({ type, keyword, searchTerms, aliasHints, page, limit, sort });
   const normalizedLimit = Math.min(50, Math.max(1, Number(limit) || 20));
-  const payload = await callAiSearch({ config, prompt });
+  const payload = await callAiSearch({ config, prompt, timeoutMs, abortSignal });
 
   const outputText = extractOutputText(payload);
   if (!outputText) {

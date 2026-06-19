@@ -15,12 +15,15 @@ export function asyncHandler(fn) {
 function statusToPublicCode(statusCode) {
   if (statusCode === 404) return 'not_found';
   if (statusCode === 401) return 'unauthorized';
+  if (statusCode === 403) return 'upstream_forbidden';
+  if (statusCode === 429) return 'upstream_rate_limited';
+  if (statusCode === 504) return 'upstream_timeout';
   if (statusCode >= 500) return 'internal_error';
   return 'invalid_request';
 }
 
 export function errorHandler(err, req, res, _next) {
-  const statusCode = err.statusCode || 500;
+  const statusCode = err.statusCode || err.status || 500;
   const code = err.code || 2001;
   const error = err.publicCode || statusToPublicCode(statusCode);
   const message = statusCode === 500 && process.env.NODE_ENV === 'production'
@@ -34,7 +37,7 @@ export function errorHandler(err, req, res, _next) {
     code,
     error,
     message,
-    stack: statusCode >= 500 ? String(err?.stack || '') : undefined,
+    stack: process.env.NODE_ENV !== 'production' && statusCode >= 500 ? String(err?.stack || '') : undefined,
   };
   console.error(`[error] ${JSON.stringify(payload)}`);
 

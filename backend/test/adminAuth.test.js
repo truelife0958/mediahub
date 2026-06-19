@@ -4,6 +4,7 @@ import { Readable } from 'node:stream';
 import { EventEmitter } from 'node:events';
 import { resetDatabaseForTest } from '../src/db/database.js';
 import { createApp } from '../src/app.js';
+import { resetLoginRateLimit } from '../src/routes/admin.js';
 
 function createMockResponse(resolve) {
   const chunks = [];
@@ -61,6 +62,7 @@ function cookiePair(cookieHeader = '') {
 
 function createTestClient() {
   resetDatabaseForTest(':memory:');
+  resetLoginRateLimit();
   process.env.MEDIAHUB_ADMIN_PASSWORD = 'test-admin-secret';
   const app = createApp();
   return { request: options => sendRequest(app, options) };

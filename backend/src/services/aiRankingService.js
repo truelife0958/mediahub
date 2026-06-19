@@ -46,7 +46,7 @@ function parseAiJson(text) {
   return {};
 }
 
-async function rankContentsWithAi(pool, config, { type, keyword = '', page = 1, limit = 20 } = {}) {
+async function rankContentsWithAi(pool, config, { type, keyword = '', page = 1, limit = 20, timeoutMs, abortSignal } = {}) {
   if (!Array.isArray(pool) || pool.length === 0) return pool;
   if (!config?.enabled || !config?.apiKey) return pool;
 
@@ -59,14 +59,14 @@ async function rankContentsWithAi(pool, config, { type, keyword = '', page = 1, 
       sourceItems: pool.map(item => ({ id: item.id, title: item.title })),
     });
 
-    const { response, payload } = await postAiChatCompletion({
+    const { payload } = await postAiChatCompletion({
       config,
       prompt,
       systemPrompt: '你是 MediaHub 的内容排序助手。只返回可解析 JSON，不要 markdown，不要解释。',
       temperature: 0.1,
+      timeoutMs: timeoutMs || 30_000,
+      abortSignal,
     });
-
-    if (!response.ok) return pool;
     const outputText = extractAiOutputText(payload);
     if (!outputText) return pool;
 

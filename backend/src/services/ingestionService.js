@@ -6,6 +6,10 @@ import { getIngestionCursor, saveIngestionCursor } from '../utils/ingestionCurso
 import { parsePositiveInt } from '../utils/retryTools.js';
 import { captureLeaderboardForType } from './leaderboardService.js';
 
+const BACKFILL_AI_TIMEOUT_MS = Math.max(5_000, Number(process.env.MEDIAHUB_BACKFILL_AI_TIMEOUT_MS || 15_000));
+const BACKFILL_OVERALL_TIMEOUT_MS = Math.max(15_000, Number(process.env.MEDIAHUB_BACKFILL_OVERALL_TIMEOUT_MS || 60_000));
+const BACKFILL_MAX_CONSECUTIVE_FAILURES = Math.max(1, Number(process.env.MEDIAHUB_BACKFILL_MAX_CONSECUTIVE_FAILURES || 2));
+
 const SOURCE_BY_TYPE = {
   drama: 'ai_search',
   novel: 'ai_search',
@@ -146,7 +150,13 @@ async function collectBackfillContents(type, {
   pageSize,
   sortModes,
   incrementalCursor,
+  aiTimeoutMs,
+  overallTimeoutMs,
+  abortSignal,
 } = {}) {
+  const effectiveAiTimeoutMs = Math.max(5_000, Number(aiTimeoutMs) || BACKFILL_AI_TIMEOUT_MS);
+  const effectiveOverallTimeoutMs = Math.max(10_000, Number(overallTimeoutMs) || BACKFILL_OVERALL_TIMEOUT_MS);
+
   if (loader) {
     const result = await loader();
     return {
@@ -158,54 +168,102 @@ async function collectBackfillContents(type, {
     };
   }
 
+  // Combine the caller's abort signal with the overall timeout signal so that
+  // either one can cancel in-flight fetch requests.
+  const overallController = new AbortController();
+  const overallTimer = setTimeout(() => overallController.abort(), effectiveOverallTimeoutMs);
+
+  const onExternalAbort = () => overallController.abort();
+  if (abortSignal) {
+    if (abortSignal.aborted) overallController.abort();
+    else abortSignal.addEventListener('abort', onExternalAbort, { once: true });
+  }
+
   const list = [];
   const failures = [];
   let attemptedPages = 0;
   let incrementalFiltered = 0;
+  let consecutiveFailures = 0;
+  let timedOut = false;
 
-  for (const sort of sortModes) {
-    for (let page = 1; page <= pageCount; page += 1) {
-      attemptedPages += 1;
-      let result;
+  try {
+    for (const sort of sortModes) {
+      if (overallController.signal.aborted) break;
+      for (let page = 1; page <= pageCount; page += 1) {
+        if (overallController.signal.aborted) break;
 
-      try {
-        result = await (pageLoader
-          ? pageLoader({ type, page, limit: pageSize, sort, incrementalCursor })
-          : fetchListByType({
-            type,
-            page,
-            limit: pageSize,
+        attemptedPages += 1;
+        let result;
+
+        try {
+          result = await (pageLoader
+            ? pageLoader({ type, page, limit: pageSize, sort, incrementalCursor })
+            : fetchListByType({
+              type,
+              page,
+              limit: pageSize,
+              sort,
+              __bypassCacheFallback: true,
+              aiTimeoutMs: effectiveAiTimeoutMs,
+              abortSignal: overallController.signal,
+            }));
+          consecutiveFailures = 0;
+        } catch (error) {
+          if (overallController.signal.aborted) {
+            timedOut = true;
+            break;
+          }
+          const isForbidden = error?.publicCode === 'upstream_forbidden';
+          failures.push({
             sort,
-            __bypassCacheFallback: true,
-          }));
-      } catch (error) {
-        failures.push({
-          sort,
-          page,
-          message: toErrorMessage(error),
-          error,
-        });
-        continue;
+            page,
+            message: toErrorMessage(error),
+            error,
+          });
+          consecutiveFailures += 1;
+
+          // On 403/forbidden, stop retrying further pages of the same sort
+          // — the AI provider is rejecting this type of request
+          if (isForbidden) break;
+
+          // Stop early after N consecutive failures to avoid long waits
+          // when the upstream is consistently unavailable/timeout/rate-limited.
+          if (consecutiveFailures >= BACKFILL_MAX_CONSECUTIVE_FAILURES) break;
+          continue;
+        }
+
+        const pageList = Array.isArray(result?.list) ? result.list : [];
+        if (pageList.length === 0) break;
+
+        const filtered = filterIncrementalByCursor(pageList, incrementalCursor);
+        incrementalFiltered += Math.max(0, pageList.length - filtered.length);
+        list.push(...filtered);
+
+        if (pageList.length < pageSize) break;
       }
-
-      const pageList = Array.isArray(result?.list) ? result.list : [];
-      if (pageList.length === 0) break;
-
-      const filtered = filterIncrementalByCursor(pageList, incrementalCursor);
-      incrementalFiltered += Math.max(0, pageList.length - filtered.length);
-      list.push(...filtered);
-
-      if (pageList.length < pageSize) break;
+      if (consecutiveFailures >= BACKFILL_MAX_CONSECUTIVE_FAILURES && !overallController.signal.aborted) break;
     }
+  } catch (error) {
+    // Catch AbortError from overall timeout
+    if (error?.name === 'AbortError') {
+      timedOut = true;
+    } else {
+      throw error;
+    }
+  } finally {
+    clearTimeout(overallTimer);
+    if (abortSignal) abortSignal.removeEventListener('abort', onExternalAbort);
   }
 
-  return {
+  const result = {
     list: dedupeById(list),
     attemptedPages,
     failedPages: failures.length,
     failures,
     incrementalFiltered,
   };
+  if (timedOut) result.timedOut = true;
+  return result;
 }
 
 function normalizeBackfillOptions({ pageCount, pageSize, sortModes }) {
@@ -259,6 +317,8 @@ async function refreshContentType(
       pageSize: normalized.pageSize,
       sortModes: normalized.sortModes,
       incrementalCursor,
+      aiTimeoutMs: BACKFILL_AI_TIMEOUT_MS,
+      overallTimeoutMs: BACKFILL_OVERALL_TIMEOUT_MS,
     });
     const resolvedSource = collected.list.find(item => item?.source?.provider)?.source?.provider || source;
 
@@ -274,17 +334,22 @@ async function refreshContentType(
       : null;
 
     if (count === 0 && collected.failedPages > 0) {
-      const terminalMessage = firstError || '刷新失败';
+      const terminalMessage = collected.timedOut
+        ? '刷新超时，AI 服务响应过慢，请稍后重试或减少回填页数。'
+        : (firstError || '刷新失败');
       const firstPublicError = pickFirstPublicApiError(collected.failures);
+      const effectiveCode = collected.timedOut
+        ? 'upstream_timeout'
+        : (firstPublicError?.publicCode || 'upstream_unavailable');
       const terminalError = firstPublicError
-        ? createApiError(firstPublicError.publicCode, terminalMessage, firstPublicError.details || {})
-        : createApiError('upstream_unavailable', terminalMessage);
+        ? createApiError(effectiveCode, terminalMessage, firstPublicError.details || {})
+        : createApiError(effectiveCode, terminalMessage);
       recordSourceRun({
         type,
         source,
         status: 'failed',
         count: 0,
-        error: partialErrorMessage || terminalMessage,
+        error: terminalMessage,
         startedAt,
       });
       saveCursorStatus({
@@ -293,7 +358,7 @@ async function refreshContentType(
         cursorSnapshot: incrementalCursor,
         status: 'failed',
         count: 0,
-        error: partialErrorMessage || terminalMessage,
+        error: terminalMessage,
       });
       throw markSourceRunRecorded(terminalError);
     }

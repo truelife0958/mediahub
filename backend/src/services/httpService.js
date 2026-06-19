@@ -276,4 +276,21 @@ export async function fetchJson(url, {
   throw createApiError('upstream_unavailable', '上游内容服务不可用', { url, attempts: maxAttempts });
 }
 
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, bucket] of RATE_LIMIT_BUCKETS.entries()) {
+    if (now - bucket.updatedAtMs > CLEANUP_INTERVAL_MS) {
+      RATE_LIMIT_BUCKETS.delete(key);
+    }
+  }
+  for (const [key, state] of CIRCUIT_BREAKERS.entries()) {
+    if (state.openUntilMs && state.openUntilMs > 0 && state.openUntilMs <= now) {
+      CIRCUIT_BREAKERS.delete(key);
+    } else if (!state.openUntilMs && state.failures === 0) {
+      CIRCUIT_BREAKERS.delete(key);
+    }
+  }
+}, CLEANUP_INTERVAL_MS).unref();
+
 export { resetHttpServiceRuntimeState };

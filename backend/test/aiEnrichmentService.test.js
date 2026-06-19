@@ -1,6 +1,24 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { enrichPublicContent } from '../src/services/aiEnrichmentService.js';
+import { _setMockRequestFn, _clearMockRequestFn } from '../src/services/aiChatClient.js';
+
+function chatResponse(content, init = {}) {
+  return {
+    status: init.status ?? 200,
+    statusText: init.statusText ?? 'OK',
+    payload: {
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: typeof content === 'string' ? content : JSON.stringify(content),
+          },
+        },
+      ],
+    },
+  };
+}
 
 test('enrichPublicContent extracts simple tags and summary from public text', async () => {
   const result = await enrichPublicContent({
@@ -34,23 +52,20 @@ test('enrichPublicContent accepts AI JSON output when model gateway returns stru
   process.env.MEDIAHUB_AI_BASE_URL = 'https://example.ai/v1';
   process.env.MEDIAHUB_AI_API_KEY = 'sk-test';
 
-  const originalFetch = global.fetch;
-  global.fetch = async (url) => {
+  _setMockRequestFn(async ({ url }) => {
     if (String(url).includes('/chat/completions')) {
-      return new Response(JSON.stringify({
-        choices: [{ message: { content: JSON.stringify({
-          summary: 'AI摘要',
-          tags: ['玄幻', '热血'],
-          actors: ['配音A'],
-          author: 'AI作者',
-          ipName: '星际计划',
-          status: 'ongoing',
-          hotScore: 888,
-        }) } }],
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return chatResponse({
+        summary: 'AI摘要',
+        tags: ['玄幻', '热血'],
+        actors: ['配音A'],
+        author: 'AI作者',
+        ipName: '星际计划',
+        status: 'ongoing',
+        hotScore: 888,
+      });
     }
-    throw new Error('unexpected fetch');
-  };
+    throw new Error('unexpected request');
+  });
 
   try {
     const result = await enrichPublicContent({
@@ -69,7 +84,7 @@ test('enrichPublicContent accepts AI JSON output when model gateway returns stru
     assert.equal(result.status, 'ongoing');
     assert.equal(result.hotScore, 888);
   } finally {
-    global.fetch = originalFetch;
+    _clearMockRequestFn();
     if (prevEnabled === undefined) delete process.env.MEDIAHUB_AI_ENABLED;
     else process.env.MEDIAHUB_AI_ENABLED = prevEnabled;
     if (prevModel === undefined) delete process.env.MEDIAHUB_AI_MODEL;

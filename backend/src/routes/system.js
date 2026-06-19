@@ -1,12 +1,13 @@
 import express from 'express';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { getAiConfigPublic, updateAiConfig } from '../services/aiConfigService.js';
+import { getAiConfigPublic, testAiConnection, updateAiConfig } from '../services/aiConfigService.js';
 import {
   getSourceRoutingSettingsSnapshot,
   upsertSourceChainOverride,
   clearSourceChainOverride,
 } from '../services/sourceStrategyService.js';
 import { getSystemSettingsSnapshot, updateSystemSettings } from '../services/systemSettingsService.js';
+import { getAutoRefreshRuntimeStatus, restartAutoRefreshRuntime } from '../services/autoRefreshRuntimeService.js';
 import { getReferenceSettings, updateReferenceSettings } from '../services/referenceSettingsService.js';
 import {
   buildAdminSummary,
@@ -44,6 +45,7 @@ router.get('/settings', asyncHandler(async (_req, res) => {
 
 router.put('/settings', asyncHandler(async (req, res) => {
   const data = updateSystemSettings(req.body || {});
+  restartAutoRefreshRuntime();
   recordAuditEntry({
     action: 'system.settings.update',
     entityType: 'system_settings',
@@ -53,6 +55,10 @@ router.put('/settings', asyncHandler(async (req, res) => {
     details: req.body || {},
   });
   res.json({ code: 0, data });
+}));
+
+router.get('/auto-refresh/status', asyncHandler(async (_req, res) => {
+  res.json({ code: 0, data: getAutoRefreshRuntimeStatus() });
 }));
 
 router.get('/reference-settings', asyncHandler(async (_req, res) => {
@@ -169,6 +175,25 @@ router.put('/ai-config', asyncHandler(async (req, res) => {
     details: {
       ...req.body,
       apiKey: req.body?.apiKey ? '***' : undefined,
+    },
+  });
+  res.json({ code: 0, data });
+}));
+
+router.post('/ai-config/test', asyncHandler(async (req, res) => {
+  const data = await testAiConnection(req.body || {});
+  recordAuditEntry({
+    action: 'system.ai-config.test',
+    entityType: 'ai_config',
+    entityId: 'runtime',
+    actor: 'admin',
+    requestId: req.requestId || '',
+    details: {
+      ok: data.ok,
+      status: data.status,
+      model: data.model,
+      baseUrl: data.baseUrl,
+      hasApiKey: Boolean(req.body?.apiKey) || Boolean(data.config?.hasApiKey),
     },
   });
   res.json({ code: 0, data });
