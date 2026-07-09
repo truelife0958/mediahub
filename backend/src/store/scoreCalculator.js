@@ -19,7 +19,7 @@ function scoreByRank(value, maxRank = 50) {
 
 function calculateCompositeScore(metrics = {}) {
   const playOrReadScore = scoreByCeiling(metrics.playOrReadYi, 10);
-  const platformRank = metrics.platformHotRank || metrics.newDramaRank;
+  const platformRank = metrics.platformOriginalRank || metrics.platformHotRank || metrics.newDramaRank;
   const platformHeatScore = Number(metrics.platformHeatWan) > 0
     ? scoreByCeiling(metrics.platformHeatWan, 7800)
     : scoreByRank(platformRank);
@@ -33,17 +33,17 @@ function calculateCompositeScore(metrics = {}) {
   const sourceSignalScore = scoreByCeiling(metrics.sourceSignalScore, 100);
   const rankRecommendationScore = scoreByCeiling(metrics.rankRecommendationScore, 100);
   const authorityRankScore = scoreByCeiling(metrics.authorityRankScore, 100);
-  const platformOriginalRank = metrics.platformOriginalRank;
+  const platformOriginalRank = platformRank || undefined;
   const explicitPlatformRankScore = Number(metrics.platformRankScore) > 0
     ? scoreByCeiling(metrics.platformRankScore, 100)
     : 0;
   const platformRankScore = explicitPlatformRankScore > 0
     ? explicitPlatformRankScore
-    : scoreByRank(platformOriginalRank || metrics.platformHotRank || metrics.newDramaRank, 50);
+    : scoreByRank(platformOriginalRank, 50);
   const sourceConfidenceScore = scoreByCeiling(metrics.sourceConfidenceScore, 100);
   const hasMixedRankingSignal = authorityRankScore > 0
     || explicitPlatformRankScore > 0
-    || Number(platformOriginalRank) > 0
+    || Number(metrics.platformOriginalRank) > 0
     || sourceConfidenceScore > 0;
 
   let totalScoreValue;

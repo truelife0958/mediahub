@@ -32,3 +32,11 @@ test('legacy rankRecommendationScore path remains supported', () => {
   assert.equal(score.rankRecommendationScore, 95);
   assert.ok(score.totalScore > 85);
 });
+
+
+test('platformOriginalRank falls back to legacy platform rank fields', () => {
+  const score = calculateCompositeScore({ platformHotRank: 7, sourceConfidenceScore: 50 });
+
+  assert.equal(score.platformOriginalRank, 7);
+  assert.equal(score.platformRankScore, 88);
+});
