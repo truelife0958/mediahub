@@ -1,9 +1,43 @@
+export type ContentType = 'drama' | 'novel' | 'anime' | 'comic';
+
+
+export type RankingEvidenceType = 'platform_rank' | 'official_rank' | 'annual_rank' | 'manual_verified' | 'topic_signal' | 'search_index' | 'source_score';
+
+export type SourceConfidence = 'high' | 'medium' | 'low';
+
+export interface RankingEvidence {
+  sourceId?: string;
+  sourceName: string;
+  sourceUrl: string;
+  capturedAt?: string;
+  rank?: number;
+  score?: number;
+  evidenceType: RankingEvidenceType;
+  confidence?: number;
+  note?: string;
+}
+
+export interface RankingMeta {
+  sourceConfidence: SourceConfidence;
+  rankingReason: string;
+  bestPlatformRank?: number;
+  authorityRank?: number;
+  sourceNames: string[];
+}
+
+export interface HotTrendPoint {
+  date: string;
+  score: number;
+  rank: number;
+  capturedAt?: string;
+}
+
 export interface Content {
   id: string;
   title: string;
   cover?: string;
   summary: string;
-  type: 'drama' | 'novel' | 'comic' | 'anime';
+  type: ContentType;
   tags: string[];
   actors: string[];
   characters?: string[];
@@ -21,41 +55,80 @@ export interface Content {
     label: string;
     url?: string;
   };
-  leaderboardEvidence?: LeaderboardSnapshotItem[];
+  metrics?: {
+    playOrReadYi?: number;
+    platformHeatWan?: number;
+    likesWan?: number;
+    favoritesWan?: number;
+    searchIndex?: number;
+    topicPlayYi?: number;
+    topicSignalScore?: number;
+    platformHotRank?: number;
+    newDramaRank?: number;
+    playOrReadScore?: number;
+    platformHeatScore?: number;
+    searchIndexScore?: number;
+    topicScore?: number;
+    sourceSignalScore?: number;
+    sourceSignalCount?: number;
+    sourceConfidenceScore?: number;
+    platformRankScore?: number;
+    platformOriginalRank?: number;
+    authorityRankScore?: number;
+    authorityOriginalRank?: number;
+    totalScore?: number;
+  };
+  rank?: number;
+  relations?: ContentRelations;
+  leaderboardEvidence?: ContentEvidence[];
+  rankingEvidence?: RankingEvidence[];
+  rankingMeta?: RankingMeta;
+  hotSignals?: HotSignal[];
+  trend?: HotTrendPoint[];
   relatedContents?: Content[];
   similarContents?: Content[];
-  reason?: string;
 }
 
-export interface UserProfile {
-  id: string;
-  username: string;
-  recentlyWatchedIds?: string[];
-  followingIds?: string[];
-  subscriptions?: UserKeywordSubscription[];
-}
-
-export interface WatchHistoryEntry {
-  content: Content;
-  watchedAt: string;
-}
-
-export interface UserKeywordSubscription {
-  id: number;
+export interface HotSignal {
+  platform: 'baidu' | 'weibo' | 'douyin' | 'wechat' | string;
+  platformName: string;
   keyword: string;
-  type: '' | Content['type'];
-  createdAt: string;
-  alreadyExists?: boolean;
+  rank?: number;
+  sourceUrl?: string;
+  capturedAt?: string;
+  searchIndex?: number;
+  topicPlayYi?: number;
+  heatValue?: number;
+  topicSignalScore?: number;
 }
 
-export interface UserPreferenceProfile {
-  totalWatched: number;
-  byType: Array<{ type: Content['type']; count: number }>;
-  favoriteTags: Array<{ name: string; count: number }>;
-  favoriteActors: Array<{ name: string; count: number }>;
-  favoriteCharacters: Array<{ name: string; count: number }>;
-  favoriteIps: Array<{ name: string; count: number }>;
-  summary: string;
+export interface ContentEvidence {
+  label?: string;
+  sourceUrl?: string;
+  url?: string;
+  capturedAt?: string;
+  rank?: number;
+  value?: number | string;
+  evidence?: Record<string, unknown>;
+}
+
+export interface ContentRelationRef {
+  id: string;
+  type: Content['type'];
+  title: string;
+  rank: number;
+  source: string;
+  sourceName: string;
+  hotScore: number;
+  matchedBy?: 'ip' | 'actor' | 'category';
+  matchedValues?: string[];
+}
+
+export interface ContentRelations {
+  sameIp: ContentRelationRef[];
+  sameActors: ContentRelationRef[];
+  sameCategories: ContentRelationRef[];
+  sameCategory?: ContentRelationRef[];
 }
 
 export interface Category {
@@ -98,6 +171,10 @@ export interface IngestionRefreshResult {
   count: number;
   durationMs?: number;
   error?: string;
+  supplementalSignals?: {
+    count: number;
+    errors: Array<{ platform: string; message: string }>;
+  };
 }
 
 export interface AutoRefreshRuntimeStatus {
@@ -124,12 +201,90 @@ export interface AutoRefreshRuntimeStatus {
   };
 }
 
+export interface JsonDataStatus {
+  types: Array<{
+    type: Content['type'];
+    count: number;
+    date: string;
+    capturedAt: string;
+  }>;
+  indexes: {
+    actor: number;
+    ip: number;
+    category: number;
+  };
+}
+
+export interface CrawlLogRun {
+  id: string;
+  type: Content['type'];
+  source: string;
+  status: 'success' | 'failed';
+  count: number;
+  partial?: boolean;
+  attemptedPages?: number;
+  failedPages?: number;
+  warning?: string | null;
+  error?: string | null;
+  startedAt?: string;
+  finishedAt?: string;
+  jsonDataset?: {
+    count: number;
+    capturedAt: string;
+    date: string;
+  };
+  items?: Array<{
+    id: string;
+    title: string;
+    source: string;
+    hotScore?: number;
+    metrics?: Content['metrics'];
+  }>;
+  supplementalSignals?: {
+    count: number;
+    errors: Array<{ platform: string; message: string }>;
+  };
+}
+
+export interface JsonDataPreview {
+  type: Content['type'];
+  file: string;
+  exists: boolean;
+  date: string;
+  capturedAt: string;
+  count: number;
+  items: Array<{
+    id: string;
+    type: Content['type'];
+    title: string;
+    rank: number;
+    source: string;
+    sourceName: string;
+    sourceUrl?: string;
+    actors: string[];
+    author: string;
+    ipName: string;
+    categories: string[];
+    metrics: Content['metrics'];
+    hotSignals?: HotSignal[];
+    rankingEvidence?: RankingEvidence[];
+    rankingMeta?: RankingMeta;
+    capturedAt: string;
+  }>;
+  latestLog: {
+    file: string;
+    date: string;
+    updatedAt: string;
+    runs: CrawlLogRun[];
+  };
+}
+
 export interface RefreshAllContentTypesResponse {
   results: IngestionRefreshResult[];
   status: AutoRefreshRuntimeStatus;
 }
 
-export type TopicField = 'actor' | 'character' | 'author' | 'ip';
+export type TopicField = 'actor' | 'character' | 'author' | 'ip' | 'category';
 
 export interface DiscoveryResponse {
   keyword: string;
@@ -139,13 +294,6 @@ export interface DiscoveryResponse {
   counts: Record<Content['type'], number>;
   groups: Record<Content['type'], Content[]>;
   stale: boolean;
-}
-
-export interface TopicContentsResponse extends PaginatedResponse<Content> {
-  field: TopicField;
-  value: string;
-  typeFilter: '' | Content['type'];
-  minHotScore: number;
 }
 
 export interface IpUniverseResponse {
@@ -164,137 +312,10 @@ export interface EntityProfileResponse {
   tags: Array<{ name: string; count: number }>;
 }
 
-export interface CompareResponse {
-  ids: string[];
-  list: Content[];
-  metrics: Array<{
-    id: string;
-    title: string;
-    type: Content['type'];
-    hotScore: number;
-    heatMetric?: 'playback' | 'reading';
-    status: Content['status'];
-    tagCount: number;
-    actorCount: number;
-  }>;
-}
-
 export interface SearchExplainResponse {
   id: string;
   keyword: string;
   fields: string[];
-}
-
-export interface SourceHealth {
-  type: Content['type'];
-  source: string;
-  attempts: number;
-  successes: number;
-  emptyHits: number;
-  failures: number;
-  rateLimited: number;
-  consecutiveFailures: number;
-  ewmaLatencyMs: number;
-  score: number;
-  lastStatus: 'unknown' | 'success' | 'empty' | 'rate_limited' | 'failed';
-  lastError: string | null;
-  updatedAt: string;
-}
-
-export interface SourceRoutingSettings {
-  defaults: Record<Content['type'], string[]>;
-  supported: Record<Content['type'], string[]>;
-  effective: Record<Content['type'], string[]>;
-  overrides: Record<Content['type'], string[]>;
-}
-
-export interface AiConfig {
-  enabled: boolean;
-  model: string;
-  baseUrl: string;
-  hasApiKey: boolean;
-  persistedTo?: 'runtime' | 'env';
-  envFilePath?: string;
-  source?: {
-    enabled?: string;
-    model?: string;
-    baseUrl?: string;
-    apiKey?: string;
-  };
-}
-
-export interface AiConnectionTestResult {
-  ok: boolean;
-  status: 'success' | 'disabled' | 'missing_api_key' | 'invalid_config' | 'failed';
-  message: string;
-  model: string;
-  baseUrl: string;
-  latencyMs: number;
-  httpStatus?: number;
-  sample?: string;
-  config: AiConfig;
-}
-
-export interface SystemSettings {
-  autoRefresh: {
-    enabled: boolean;
-    mode: 'daily' | 'interval';
-    intervalMinutes: number;
-    failureBackoffEnabled: boolean;
-    failureBackoffMultiplier: number;
-    failureBackoffMaxMinutes: number;
-    hour: number;
-    minute: number;
-    runOnStartup: boolean;
-  };
-  ingestBackfill: {
-    pages: number;
-    pageSize: number;
-    sorts: string[];
-  };
-  cache: {
-    ttlMs: number;
-    timeoutMs: number;
-    retryMaxAttempts?: number;
-    retryBaseDelayMs?: number;
-    circuitBreakerFailureThreshold: number;
-    circuitBreakerOpenMs: number;
-    rateLimitPerSecond: number;
-    rateLimitBurst: number;
-  };
-  notifications?: {
-    webhookEnabled: boolean;
-    webhookTimeoutMs: number;
-    webhookRetryMaxAttempts?: number;
-    webhookRetryBaseDelayMs?: number;
-  };
-  sourceRouting?: SourceRoutingSettings;
-}
-
-export type EditableSystemSettings = Omit<SystemSettings, 'sourceRouting'>;
-
-export interface ReferencePromptTemplate {
-  version: string;
-  name: string;
-  status: string;
-  prompt: string;
-}
-
-export interface ReferenceSettings {
-  promptTemplates: ReferencePromptTemplate[];
-  keywordPresets: string[];
-  recommendationRules: string[];
-}
-
-export interface SearchAliasGroup {
-  id: number;
-  canonicalKeyword: string;
-  aliases: string[];
-  type: '' | Content['type'];
-  enabled: boolean;
-  notes: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface ContentQualityStats {
@@ -343,9 +364,6 @@ export interface AdminSummary {
   totalContents: number;
   countsByType: Record<Content['type'], number>;
   sourceStatuses: SourceStatus[];
-  sourceHealth: SourceHealth[];
-  aiConfig: AiConfig;
-  routing: SourceRoutingSettings;
   quality: ContentQualityStats;
   recentRuns: SourceRunLog[];
   runStats: {
@@ -354,168 +372,9 @@ export interface AdminSummary {
     failedRuns: number;
     successRate: number;
   };
-  cost: {
-    estimatedPromptTokens: number;
-    estimatedCostUsd: number;
-    currency: string;
-    note: string;
-  };
 }
 
 export interface AdminLogs {
   runs: SourceRunLog[];
   errorSummary: Record<string, number>;
-}
-
-export interface LeaderboardLayerOption {
-  id: 'overall' | 'new' | 'rising' | 'completed';
-  name: string;
-}
-
-export interface LeaderboardLayerConfig {
-  layers: LeaderboardLayerOption[];
-  types: Array<Content['type']>;
-}
-
-export interface LeaderboardSnapshotItem {
-  captureId: string;
-  type: Content['type'];
-  layer: LeaderboardLayerOption['id'];
-  rank: number;
-  contentId: string;
-  title: string;
-  hotScore: number;
-  heatMetric: 'playback' | 'reading';
-  status: Content['status'];
-  tags: string[];
-  sourceUrl: string;
-  evidence: Record<string, unknown>;
-  capturedAt: string;
-}
-
-export interface LeaderboardResponse {
-  type: Content['type'];
-  layer: LeaderboardLayerOption['id'];
-  captureId: string | null;
-  list: LeaderboardSnapshotItem[];
-  total: number;
-  stale: boolean;
-}
-
-export interface LeaderboardEvent {
-  id: number;
-  type: Content['type'];
-  layer: LeaderboardLayerOption['id'];
-  eventType: string;
-  contentId: string;
-  title: string;
-  prevRank: number | null;
-  newRank: number | null;
-  rankDelta: number | null;
-  prevHotScore: number | null;
-  newHotScore: number | null;
-  message: string;
-  details: Record<string, unknown>;
-  capturedAt: string;
-}
-
-export interface LeaderboardAlertsResponse {
-  events: LeaderboardEvent[];
-}
-
-export interface LeaderboardAnomaly {
-  code: string;
-  severity: 'low' | 'medium' | 'high';
-  type: Content['type'];
-  layer: '' | LeaderboardLayerOption['id'];
-  source: string;
-  message: string;
-  detail: Record<string, unknown>;
-  detectedAt: string;
-}
-
-export interface LeaderboardAnomaliesResponse {
-  staleThresholdMs: number;
-  list: LeaderboardAnomaly[];
-}
-
-export interface LeaderboardDiffResponse {
-  type: Content['type'];
-  layer: LeaderboardLayerOption['id'];
-  baseCaptureId: string | null;
-  compareCaptureId: string | null;
-  added: Array<{ contentId: string; title: string; rank: number; hotScore: number }>;
-  dropped: Array<{ contentId: string; title: string; rank: number; hotScore: number }>;
-  moved: Array<{
-    contentId: string;
-    title: string;
-    prevRank: number;
-    newRank: number;
-    rankDelta: number;
-    prevHotScore: number;
-    newHotScore: number;
-    hotScoreDelta: number;
-  }>;
-}
-
-export interface LeaderboardTrendResponse {
-  type: Content['type'];
-  layer: LeaderboardLayerOption['id'];
-  timeline: Array<{
-    captureId: string;
-    capturedAt: string;
-    top: {
-      contentId: string;
-      title: string;
-      hotScore: number;
-      heatMetric: 'playback' | 'reading';
-    } | null;
-    listSize: number;
-  } | LeaderboardSnapshotItem>;
-}
-
-export interface KeywordSubscription {
-  id: number;
-  keyword: string;
-  type: '' | Content['type'];
-  channel: string;
-  target: string;
-  enabled: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface KeywordSubscriptionHit {
-  id: number;
-  subscriptionId: number;
-  captureId: string;
-  keyword: string;
-  type: Content['type'];
-  contentId: string;
-  title: string;
-  matchedField: string;
-  details: Record<string, unknown>;
-  capturedAt: string;
-}
-
-export interface AuditLogRecord {
-  id: number;
-  action: string;
-  entityType: string;
-  entityId: string;
-  actor: string;
-  requestId: string;
-  details: Record<string, unknown>;
-  createdAt: string;
-}
-
-export interface ContentRevisionRecord {
-  id: number;
-  contentId: string;
-  action: string;
-  actor: string;
-  before: Record<string, unknown>;
-  patch: Record<string, unknown>;
-  after: Record<string, unknown>;
-  createdAt: string;
 }
