@@ -121,10 +121,20 @@ function toContent(item, rank = 0, { trend = [] } = {}) {
   };
 }
 
+function positiveRank(value) {
+  const rank = Number(value);
+  return Number.isFinite(rank) && rank > 0 ? rank : 0;
+}
+
 function sortItems(items, sort = 'hot') {
   const list = [...items];
   list.sort((a, b) => {
     if (sort === 'latest') return Date.parse(b.capturedAt || '') - Date.parse(a.capturedAt || '');
+    const aAuthorityRank = positiveRank(a.metrics?.authorityOriginalRank || a.metrics?.annualRank);
+    const bAuthorityRank = positiveRank(b.metrics?.authorityOriginalRank || b.metrics?.annualRank);
+    if (aAuthorityRank && bAuthorityRank && aAuthorityRank !== bAuthorityRank) return aAuthorityRank - bAuthorityRank;
+    if (aAuthorityRank && !bAuthorityRank) return -1;
+    if (!aAuthorityRank && bAuthorityRank) return 1;
     return (Number(b.metrics?.totalScore) || 0) - (Number(a.metrics?.totalScore) || 0);
   });
   return list;

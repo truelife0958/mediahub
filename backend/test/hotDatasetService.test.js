@@ -400,3 +400,18 @@ test('buildDataset sorts all modules by mixed ranking total score', () => {
   assert.equal(dataset.items[0].rank, 1);
   assert.equal(dataset.items[1].rank, 2);
 });
+
+
+test('buildDataset gives authority original rank priority over composite score', () => {
+  const dataset = buildDataset('drama', [
+    { id: 'drama:annual:002', type: 'drama', title: 'Annual Two', metrics: { authorityOriginalRank: 2, authorityRankScore: 99, platformOriginalRank: 2, sourceConfidenceScore: 95 } },
+    { id: 'drama:annual:001', type: 'drama', title: 'Annual One', metrics: { authorityOriginalRank: 1, authorityRankScore: 100, platformOriginalRank: 4, sourceConfidenceScore: 95 } },
+    { id: 'drama:platform:001', type: 'drama', title: 'Platform One', metrics: { platformOriginalRank: 1, platformRankScore: 100, sourceConfidenceScore: 90 } },
+  ], { now: new Date('2026-07-09T00:00:00.000Z') });
+
+  assert.deepEqual(dataset.items.map(item => item.id), [
+    'drama:annual:001',
+    'drama:annual:002',
+    'drama:platform:001',
+  ]);
+});

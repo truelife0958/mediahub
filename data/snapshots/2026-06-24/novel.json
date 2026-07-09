@@ -1,0 +1,95 @@
+{
+  "type": "novel",
+  "date": "2026-06-24",
+  "capturedAt": "2026-06-24T23:02:27.771Z",
+  "items": [
+    {
+      "id": "novel:fanqie:wozaijingshenbingyuanxuezhanshen",
+      "type": "novel",
+      "title": "我在精神病院学斩神",
+      "source": "fanqie",
+      "sourceName": "番茄小说",
+      "sourceUrl": "https://fanqienovel.com/",
+      "author": "三九音域",
+      "ipName": "我在精神病院学斩神",
+      "categories": [
+        "都市脑洞",
+        "群像",
+        "热血",
+        "神话"
+      ],
+      "summary": "林七夜在现代都市中卷入神明与守夜人的冲突，围绕神话力量、少年成长和群像守护展开。",
+      "metrics": {
+        "platformHotRank": 1,
+        "searchIndex": 0,
+        "topicSignalScore": 0,
+        "playOrReadScore": 0,
+        "platformHeatScore": 100,
+        "searchIndexScore": 0,
+        "topicScore": 0,
+        "totalScore": 30
+      },
+      "evidence": [
+        {
+          "label": "番茄小说公开站内来源",
+          "url": "https://fanqienovel.com/"
+        }
+      ],
+      "capturedAt": "2026-06-23T00:00:00.000Z",
+      "actors": [],
+      "characters": [],
+      "status": "ongoing",
+      "rank": 1,
+      "relations": {
+        "sameIp": [],
+        "sameActors": [],
+        "sameCategories": [],
+        "sameCategory": []
+      }
+    },
+    {
+      "id": "novel:qidian:guimizhizhu",
+      "type": "novel",
+      "title": "诡秘之主",
+      "source": "qidian",
+      "sourceName": "起点中文网",
+      "sourceUrl": "https://www.qidian.com/book/1010868264/",
+      "author": "爱潜水的乌贼",
+      "ipName": "诡秘之主",
+      "categories": [
+        "西方奇幻",
+        "克苏鲁",
+        "蒸汽朋克",
+        "悬疑"
+      ],
+      "summary": "克莱恩在蒸汽与神秘并存的世界中探索非凡力量，逐步揭开旧日、教会和隐秘组织的谜团。",
+      "metrics": {
+        "platformHotRank": 1,
+        "searchIndex": 0,
+        "topicSignalScore": 0,
+        "playOrReadScore": 0,
+        "platformHeatScore": 100,
+        "searchIndexScore": 0,
+        "topicScore": 0,
+        "totalScore": 30
+      },
+      "evidence": [
+        {
+          "label": "起点中文网公开作品来源",
+          "url": "https://www.qidian.com/book/1010868264/"
+        }
+      ],
+      "capturedAt": "2026-06-23T00:00:00.000Z",
+      "actors": [],
+      "characters": [],
+      "status": "ongoing",
+      "rank": 2,
+      "relations": {
+        "sameIp": [],
+        "sameActors": [],
+        "sameCategories": [],
+        "sameCategory": []
+      }
+    }
+  ]
+}

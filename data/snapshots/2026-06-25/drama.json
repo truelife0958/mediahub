@@ -1,0 +1,59 @@
+{
+  "type": "drama",
+  "date": "2026-06-25",
+  "capturedAt": "2026-06-25T23:07:04.055Z",
+  "items": [
+    {
+      "id": "drama:hongguo:xuniwanzhangguangmanghao",
+      "type": "drama",
+      "title": "许你万丈光芒好",
+      "source": "hongguo",
+      "sourceName": "红果短剧",
+      "sourceUrl": "https://www.hongguoduanju.com/",
+      "actors": [
+        "马小宇",
+        "余茵"
+      ],
+      "ipName": "许你万丈光芒好",
+      "categories": [
+        "真千金复仇",
+        "娱乐圈逆袭",
+        "霸总甜宠",
+        "萌娃助攻"
+      ],
+      "summary": "宁夕回归后手撕假千金和偏心家人，在娱乐圈逆袭，并与高冷霸总陆霆骁展开甜宠关系。",
+      "metrics": {
+        "playOrReadYi": 10,
+        "platformHeatWan": 7445,
+        "likesWan": 289,
+        "favoritesWan": 164,
+        "searchIndex": 0,
+        "topicPlayYi": 3.2,
+        "platformHotRank": 3,
+        "newDramaRank": 1,
+        "playOrReadScore": 100,
+        "platformHeatScore": 95,
+        "searchIndexScore": 0,
+        "topicScore": 88,
+        "totalScore": 77.3
+      },
+      "evidence": [
+        {
+          "label": "用户提供知乎专栏摘录",
+          "url": "https://zhuanlan.zhihu.com/p/2027552229104657291"
+        }
+      ],
+      "capturedAt": "2026-06-20T00:00:00.000Z",
+      "characters": [],
+      "author": "",
+      "status": "ongoing",
+      "rank": 1,
+      "relations": {
+        "sameIp": [],
+        "sameActors": [],
+        "sameCategories": [],
+        "sameCategory": []
+      }
+    }
+  ]
+}
