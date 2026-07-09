@@ -249,17 +249,22 @@ async function rebuildIndexes({ dataDir, types = [...VALID_TYPES] } = {}) {
 
 async function refreshHotDataset(type, { dataDir, seeds, extraItems = [], now = new Date() } = {}) {
   ensureType(type);
+  const previousDataset = await readCurrentDataset(type, { dataDir });
   const seedItems = Array.isArray(seeds) ? seeds : await readSeedItems(type, { dataDir });
   const dataset = buildDataset(type, [...seedItems, ...extraItems], { now });
-  await writeCurrentDataset(type, dataset, { dataDir });
-  await writeSnapshotDataset(type, dataset, { dataDir, now });
+  const fallbackUsed = dataset.items.length === 0 && previousDataset?.items?.length > 0;
+  const datasetToPersist = fallbackUsed ? previousDataset : dataset;
+
+  await writeCurrentDataset(type, datasetToPersist, { dataDir });
+  await writeSnapshotDataset(type, datasetToPersist, { dataDir, now });
   await rebuildIndexes({ dataDir });
   return {
     type,
     status: 'success',
-    count: dataset.items.length,
-    list: dataset.items.map((item, index) => toContent(item, index + 1)),
-    dataset,
+    count: datasetToPersist.items.length,
+    fallbackUsed,
+    list: datasetToPersist.items.map((item, index) => toContent(item, index + 1)),
+    dataset: datasetToPersist,
   };
 }
 
