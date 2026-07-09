@@ -31,7 +31,7 @@ function getRankingReason(item: Pick<Content, 'rankingMeta'>) {
   return item.rankingMeta?.rankingReason || '综合真实来源、平台热度与搜索话题信号排序';
 }
 
-interface RankListItem extends RankBoardItemLike {
+export interface RankListItem extends RankBoardItemLike {
   id: string;
   title: string;
   type: Content['type'];
