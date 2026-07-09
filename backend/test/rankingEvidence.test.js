@@ -72,3 +72,74 @@ test('buildRankingMeta extracts authority and platform ranks', () => {
   assert.equal(meta.updatedBy, 'seed_backfill');
   assert.match(meta.rankingReason, /权威榜/);
 });
+
+test('official rank and platform rank coexist without official replacing platform source', () => {
+  const evidence = normalizeRankingEvidence([
+    { sourceId: 'official', sourceName: '官方精选榜', sourceUrl: 'https://example.com/official', rank: 1, evidenceType: 'official_rank', confidence: 0.92 },
+    { sourceId: 'kuaishou', sourceName: '快手短剧热榜', sourceUrl: 'https://example.com/ks', rank: 6, evidenceType: 'platform_rank', confidence: 0.76 },
+  ]);
+
+  const meta = buildRankingMeta({ title: '官方与平台双榜', rankingEvidence: evidence });
+
+  assert.equal(meta.authorityRank, 1);
+  assert.equal(meta.authoritySource, '官方精选榜');
+  assert.equal(meta.bestPlatformRank, 6);
+  assert.equal(meta.bestPlatformSource, '快手短剧热榜');
+  assert.equal(
+    buildRankingReason({ title: '官方与平台双榜', rankingEvidence: evidence }),
+    '权威榜「官方精选榜」第1名，平台榜「快手短剧热榜」第6名，来源可信度高。'
+  );
+});
+
+test('fractional small and invalid ranks do not become zero rank evidence', () => {
+  const evidence = normalizeRankingEvidence([
+    { sourceId: 'small', sourceName: '小数平台榜', sourceUrl: 'https://example.com/small', rank: 0.4, evidenceType: 'platform_rank', confidence: 0.7 },
+    { sourceId: 'invalid', sourceName: '无效权威榜', sourceUrl: 'https://example.com/invalid', rank: 'not-a-number', evidenceType: 'annual_rank', confidence: 0.9 },
+  ]);
+
+  assert.equal(evidence[0].rank, undefined);
+  assert.equal(evidence[1].rank, undefined);
+
+  const meta = buildRankingMeta({ title: '无有效名次', rankingEvidence: evidence });
+
+  assert.equal(meta.authorityRank, undefined);
+  assert.equal(meta.authoritySource, undefined);
+  assert.equal(meta.bestPlatformRank, undefined);
+  assert.equal(meta.bestPlatformSource, undefined);
+  assert.doesNotMatch(meta.rankingReason, /第0名|第0\.4名|权威榜「|平台榜「/);
+});
+
+test('normalizeRankingEvidence clamps confidence and supports aliases and fallbacks', () => {
+  const result = normalizeRankingEvidence([
+    {
+      provider: 'alias-provider',
+      label: '别名来源',
+      url: 'https://example.com/alias',
+      rank: '12',
+      value: '88.5',
+      evidenceType: 'unknown_type',
+      confidence: 1.4,
+    },
+    {
+      sourceName: '低可信来源',
+      sourceUrl: 'https://example.com/low',
+      evidenceType: 'topic_signal',
+      confidence: -0.3,
+    },
+  ]);
+
+  assert.equal(result.length, 2);
+  assert.deepEqual(result[0], {
+    sourceId: 'alias-provider',
+    sourceName: '别名来源',
+    sourceUrl: 'https://example.com/alias',
+    capturedAt: undefined,
+    rank: 12,
+    score: 88.5,
+    evidenceType: 'platform_rank',
+    confidence: 1,
+    note: undefined,
+  });
+  assert.equal(result[1].confidence, 0);
+  assert.equal(confidenceLabelForEvidence(result), 'high');
+});

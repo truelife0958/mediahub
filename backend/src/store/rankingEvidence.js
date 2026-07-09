@@ -8,7 +8,7 @@ const EVIDENCE_TYPES = new Set([
 ]);
 
 const AUTHORITY_TYPES = new Set(['annual_rank', 'official_rank', 'manual_verified']);
-const PLATFORM_TYPES = new Set(['platform_rank', 'official_rank']);
+const PLATFORM_TYPES = new Set(['platform_rank']);
 
 function clamp(value, min = 0, max = 1) {
   const numeric = Number(value);
@@ -19,7 +19,8 @@ function clamp(value, min = 0, max = 1) {
 function toOptionalPositiveInteger(value) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric) || numeric <= 0) return undefined;
-  return Math.round(numeric);
+  const rounded = Math.round(numeric);
+  return rounded > 0 ? rounded : undefined;
 }
 
 function toOptionalNumber(value) {
@@ -67,7 +68,8 @@ function buildRankingReason(item = {}) {
   const evidence = normalizeRankingEvidence(item.rankingEvidence || item.evidence || []);
   const authority = bestRankByType(evidence, AUTHORITY_TYPES);
   const platform = bestRankByType(evidence, PLATFORM_TYPES);
-  const confidenceText = confidenceLabelForEvidence(evidence) === 'high' ? '高' : confidenceLabelForEvidence(evidence) === 'medium' ? '中' : '低';
+  const confidenceLabel = confidenceLabelForEvidence(evidence);
+  const confidenceText = confidenceLabel === 'high' ? '高' : confidenceLabel === 'medium' ? '中' : '低';
   const parts = [];
   if (authority) parts.push(`权威榜「${authority.sourceName}」第${authority.rank}名`);
   if (platform) parts.push(`平台榜「${platform.sourceName}」第${platform.rank}名`);
