@@ -59,6 +59,28 @@ $env:MEDIAHUB_CRAWL_FETCH_TIMEOUT_MS=15000
 npm run crawl:real
 ```
 
+### 本地调试与提交前清理
+
+```powershell
+npm run dev
+```
+
+调试地址：
+
+- 前端：<http://127.0.0.1:5173/>
+- 后端健康检查：<http://127.0.0.1:3001/api/health>
+
+本地调试可能会产生日志、缓存或浏览器测试产物，请统一放在 `.tmp/`、`tmp/`、`test-results/` 或 `playwright-report/` 下。这些目录已被 `.gitignore` 忽略，不应提交。
+
+如果 `npm run dev` 或后台刷新任务改动了 `data/current/`、`data/indexes/` 或 `data/snapshots/`，提交前必须先确认这是有意更新的真实数据；否则请还原这些调试生成变更。
+
+提交前建议执行：
+
+```powershell
+git status --short
+git diff --stat
+```
+
 ## 页面路由
 
 | 路由 | 用途 |
@@ -184,6 +206,7 @@ npx playwright install chromium
 - 新增数据采集源必须保留来源 URL 和采集口径说明。
 - 前端不得展示估算播放/阅读量为“真实播放/阅读量”；只有 `realPlayCount` / `realReadCount` 可作为真实指标展示。
 - 后端 API 错误应返回统一错误结构，避免页面出现裸异常。
+- 调试运行后先执行 `git status --short`，只提交人工确认的源码、文档和有意更新的数据快照。
 
 ## 后续优化方向
 
