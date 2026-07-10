@@ -1,10 +1,11 @@
-import { createHash, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { getCookie } from '../utils/cookies.js';
 import { createApiError } from '../utils/apiErrors.js';
 import { getAdminPassword, isSecureCookieEnabled } from '../utils/productionConfig.js';
 
 const ADMIN_COOKIE = 'mediahub_admin';
 const ADMIN_MAX_AGE_SECONDS = 12 * 60 * 60;
+const adminSessions = new Map();
 
 function hashPassword(password) {
   return createHash('sha256').update(String(password || '')).digest('hex');
@@ -25,13 +26,41 @@ function verifyAdminPassword(password) {
   return safeEqual(hashPassword(password), createAdminToken());
 }
 
+function pruneAdminSessions(now = Date.now()) {
+  for (const [token, session] of adminSessions.entries()) {
+    if (!session?.expiresAt || session.expiresAt <= now) adminSessions.delete(token);
+  }
+}
+
+function createSessionToken() {
+  return randomBytes(32).toString('base64url');
+}
+
 function isAdminAuthenticated(req) {
+  pruneAdminSessions();
   const token = getCookie(req, ADMIN_COOKIE);
-  return safeEqual(token, createAdminToken());
+  const session = adminSessions.get(String(token || ''));
+  if (!session) return false;
+  if (session.passwordHash !== createAdminToken()) {
+    adminSessions.delete(token);
+    return false;
+  }
+  if (session.expiresAt <= Date.now()) {
+    adminSessions.delete(token);
+    return false;
+  }
+  return true;
 }
 
 function setAdminCookie(res) {
-  res.cookie(ADMIN_COOKIE, createAdminToken(), {
+  pruneAdminSessions();
+  const token = createSessionToken();
+  adminSessions.set(token, {
+    createdAt: Date.now(),
+    expiresAt: Date.now() + ADMIN_MAX_AGE_SECONDS * 1000,
+    passwordHash: createAdminToken(),
+  });
+  res.cookie(ADMIN_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: isSecureCookieEnabled(),
@@ -40,7 +69,9 @@ function setAdminCookie(res) {
   });
 }
 
-function clearAdminCookie(res) {
+function clearAdminCookie(res, req) {
+  const token = req ? getCookie(req, ADMIN_COOKIE) : '';
+  if (token) adminSessions.delete(token);
   res.clearCookie(ADMIN_COOKIE, {
     httpOnly: true,
     sameSite: 'lax',
@@ -57,12 +88,18 @@ function requireAdmin(req, _res, next) {
   next(createApiError('unauthorized', 'Admin password required'));
 }
 
+function resetAdminSessions() {
+  adminSessions.clear();
+}
+
 export {
   ADMIN_COOKIE,
   ADMIN_MAX_AGE_SECONDS,
   clearAdminCookie,
+  createAdminToken,
   isAdminAuthenticated,
   requireAdmin,
+  resetAdminSessions,
   setAdminCookie,
   verifyAdminPassword,
 };

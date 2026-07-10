@@ -2,14 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { LONG_RUNNING_REQUEST_TIMEOUT_MS, requestJson } from './client';
 import type {
   Category,
-  CompareResponse,
   Content,
   DiscoveryResponse,
   EntityProfileResponse,
   IpUniverseResponse,
   PaginatedResponse,
   SearchExplainResponse,
-  TopicContentsResponse,
   TopicField,
 } from '../types';
 
@@ -69,7 +67,7 @@ export function useContents(type: string, page = 1, keyword = '', sort: 'hot' | 
       setTotal(0);
     }
 
-    getContentPage({ type, page, keyword, sort, searchMode: 'hybrid' }, { signal: controller.signal })
+    getContentPage({ type, page, keyword, sort, searchMode: 'local' }, { signal: controller.signal })
       .then((res) => {
         if (!active) return;
         if (isReset || page === 1) {
@@ -128,6 +126,13 @@ export function getContentPage(
   );
 }
 
+export function getContentDetail(id: string, init?: { signal?: AbortSignal }) {
+  return requestJson<Content>(
+    `/contents/${encodeURIComponent(id)}`,
+    { signal: init?.signal, timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS },
+  );
+}
+
 export function getGroupedDiscovery(
   params: {
     keyword: string;
@@ -150,32 +155,6 @@ export function getGroupedDiscovery(
 
   return requestJson<DiscoveryResponse>(
     `/contents/discover/grouped?${query.toString()}`,
-    { signal: init?.signal, timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS },
-  );
-}
-
-export function getTopicContents(
-  params: {
-    field: TopicField;
-    value: string;
-    type?: '' | Content['type'];
-    page?: number;
-    limit?: number;
-    sort?: 'hot' | 'latest';
-    minHotScore?: number;
-  },
-  init?: { signal?: AbortSignal },
-) {
-  const query = new URLSearchParams({
-    page: String(params.page || 1),
-    limit: String(params.limit || 20),
-    sort: params.sort || 'hot',
-    minHotScore: String(Math.max(0, Number(params.minHotScore) || 0)),
-  });
-  if (params.type) query.set('type', params.type);
-
-  return requestJson<TopicContentsResponse>(
-    `/contents/topics/${encodeURIComponent(params.field)}/${encodeURIComponent(params.value)}?${query.toString()}`,
     { signal: init?.signal, timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS },
   );
 }
@@ -263,7 +242,7 @@ export function useContentDetail(id: string, retryKey = 0) {
     setError(null);
     setContent(null);
 
-    requestJson<Content>(`/contents/${encodeURIComponent(id)}`, { signal: controller.signal, timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS })
+    getContentDetail(id, { signal: controller.signal })
       .then((data) => {
         if (!active) return;
         setContent(data);
@@ -348,11 +327,6 @@ export async function getIpUniverse(ipName: string) {
 
 export async function getEntityProfile(field: TopicField, value: string, init?: { signal?: AbortSignal }) {
   return requestJson<EntityProfileResponse>(`/contents/entity/${encodeURIComponent(field)}/${encodeURIComponent(value)}`, { signal: init?.signal, timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS });
-}
-
-export async function compareContents(ids: string[], init?: { signal?: AbortSignal }) {
-  const query = new URLSearchParams({ ids: ids.join(',') });
-  return requestJson<CompareResponse>(`/contents/compare?${query.toString()}`, { signal: init?.signal, timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS });
 }
 
 export async function explainSearchMatch(id: string, keyword: string) {

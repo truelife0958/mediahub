@@ -415,3 +415,60 @@ test('buildDataset gives authority original rank priority over composite score',
     'drama:platform:001',
   ]);
 });
+
+
+test('buildDataset persists only the real ranked top 100 rows with contiguous ranks', () => {
+  const rawItems = Array.from({ length: 105 }, (_, index) => makeDramaSeed({
+    id: `drama:hongguo:rank-${String(index + 1).padStart(3, '0')}`,
+    title: `Ranked Drama ${index + 1}`,
+    metrics: {
+      platformOriginalRank: index + 1,
+      platformRankScore: 105 - index,
+      sourceConfidenceScore: 90,
+      playOrReadYi: 20 - index / 10,
+      platformHeatWan: 9000 - index,
+      searchIndex: 5000 - index,
+      topicSignalScore: 100 - index / 2,
+    },
+  }));
+
+  const dataset = buildDataset('drama', rawItems, { now: new Date('2026-07-10T00:00:00.000Z') });
+
+  assert.equal(dataset.items.length, 100);
+  assert.equal(dataset.items[0].id, 'drama:hongguo:rank-001');
+  assert.equal(dataset.items.at(-1).id, 'drama:hongguo:rank-100');
+  assert.deepEqual(dataset.items.map(item => item.rank), Array.from({ length: 100 }, (_, index) => index + 1));
+  assert.ok(!dataset.items.some(item => item.id === 'drama:hongguo:rank-101'));
+});
+
+test('buildDataset uses platform original rank before hot score fallback when no authority rank exists', () => {
+  const dataset = buildDataset('comic', [
+    {
+      id: 'comic:tencent:rank-002',
+      type: 'comic',
+      title: 'Platform Rank Two',
+      source: 'tencent_comic',
+      sourceName: 'Tencent Comic',
+      author: 'Author Two',
+      categories: ['real-rank'],
+      metrics: { platformOriginalRank: 2, platformRankScore: 99, totalScore: 10, sourceConfidenceScore: 90 },
+      evidence: [{ label: 'Tencent ranking', url: 'https://ac.qq.com/' }],
+    },
+    {
+      id: 'comic:tencent:rank-001',
+      type: 'comic',
+      title: 'Platform Rank One',
+      source: 'tencent_comic',
+      sourceName: 'Tencent Comic',
+      author: 'Author One',
+      categories: ['real-rank'],
+      metrics: { platformOriginalRank: 1, platformRankScore: 100, totalScore: 1, sourceConfidenceScore: 90 },
+      evidence: [{ label: 'Tencent ranking', url: 'https://ac.qq.com/' }],
+    },
+  ], { now: new Date('2026-07-10T00:00:00.000Z') });
+
+  assert.deepEqual(dataset.items.map(item => item.id), [
+    'comic:tencent:rank-001',
+    'comic:tencent:rank-002',
+  ]);
+});

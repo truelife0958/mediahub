@@ -4,34 +4,33 @@ import { resetDatabaseForTest } from '../src/db/database.js';
 import { upsertContents } from '../src/repositories/contentRepository.js';
 import { listContents, resetCatalogRuntimeState } from '../src/services/catalogService.js';
 import { buildCuratedRealContents } from '../src/services/curatedRealContentService.js';
-import { _setMockRequestFn, _clearMockRequestFn } from '../src/services/aiChatClient.js';
 
 const cached = {
-  id: 'anime:ai-search:1',
-  title: 'Cached Anime',
+  id: 'drama:hongguo:1',
+  title: 'Cached Drama',
   cover: 'https://example.com/cover.jpg',
   summary: 'Cached real content.',
-  type: 'anime',
-  tags: ['Action'],
+  type: 'drama',
+  tags: ['Short Drama'],
   actors: [],
-  author: 'AI Discovery',
-  ipName: 'Cached Anime',
+  author: 'Hongguo',
+  ipName: 'Cached Drama',
   status: 'completed',
   hotScore: 100,
   createdAt: '2020-01-01T00:00:00.000Z',
   updatedAt: '2026-05-12T00:00:00.000Z',
-  source: { provider: 'ai-search', label: 'AI Discovery', url: 'https://example.com/ai-search/1' },
+  source: { provider: 'hongguo', label: 'Hongguo', url: 'https://www.hongguoduanju.com/' },
 };
 
 test('listContents returns database content directly when cache exists', async () => {
   resetDatabaseForTest(':memory:');
   upsertContents([cached]);
 
-  const result = await listContents({ type: 'anime', page: 1, limit: 10, __skipLiveFetchForTest: true });
+  const result = await listContents({ type: 'drama', page: 1, limit: 10, __skipLiveFetchForTest: true });
 
   assert.equal(result.stale, false);
   assert.equal(result.list.length, 1);
-  assert.equal(result.list[0].title, 'Cached Anime');
+  assert.equal(result.list[0].title, 'Cached Drama');
 });
 
 test('listContents returns empty list for keyword miss when cache already has this type', async () => {
@@ -39,7 +38,7 @@ test('listContents returns empty list for keyword miss when cache already has th
   upsertContents([cached]);
 
   const result = await listContents({
-    type: 'anime',
+    type: 'drama',
     keyword: 'naruto',
     page: 1,
     limit: 10,
@@ -55,7 +54,7 @@ test('listContents returns empty list instead of upstream error when no cache ex
   resetDatabaseForTest(':memory:');
 
   const result = await listContents({
-    type: 'anime',
+    type: 'drama',
     page: 1,
     limit: 10,
     __skipLiveFetchForTest: true,
@@ -66,18 +65,16 @@ test('listContents returns empty list instead of upstream error when no cache ex
   assert.equal(result.pagination.total, 0);
 });
 
-test('listContents seeds curated real contents when live AI is unavailable and cache is empty', async () => {
+test('listContents seeds curated real contents when live platform source is unavailable and cache is empty', async () => {
   resetDatabaseForTest(':memory:');
   const previous = {
-    MEDIAHUB_AI_ENABLED: process.env.MEDIAHUB_AI_ENABLED,
     MEDIAHUB_CURATED_REAL_SEED_ENABLED: process.env.MEDIAHUB_CURATED_REAL_SEED_ENABLED,
   };
-  process.env.MEDIAHUB_AI_ENABLED = 'false';
   process.env.MEDIAHUB_CURATED_REAL_SEED_ENABLED = 'true';
 
   try {
     const result = await listContents({
-      type: 'anime',
+      type: 'novel',
       page: 1,
       limit: 10,
     });
@@ -99,10 +96,8 @@ test('listContents seeds curated real contents when live AI is unavailable and c
 test('curated drama seed uses China short dramas ranked by all-network views', async () => {
   resetDatabaseForTest(':memory:');
   const previous = {
-    MEDIAHUB_AI_ENABLED: process.env.MEDIAHUB_AI_ENABLED,
     MEDIAHUB_CURATED_REAL_SEED_ENABLED: process.env.MEDIAHUB_CURATED_REAL_SEED_ENABLED,
   };
-  process.env.MEDIAHUB_AI_ENABLED = 'false';
   process.env.MEDIAHUB_CURATED_REAL_SEED_ENABLED = 'true';
 
   try {
@@ -132,26 +127,13 @@ test('curated drama seed uses China short dramas ranked by all-network views', a
   }
 });
 
-test('curated China seeds use all-network playback or reading volume metrics', () => {
+test('curated China novel seeds use all-network reading volume metrics', () => {
   const expectedVolumeByType = {
     novel: {
       '斗破苍穹': 1_000_000,
       '全职高手': 1_000_000,
       '凡人修仙传': 1_000_000,
       '诡秘之主': 10_000,
-    },
-    comic: {
-      '一人之下': 3_000_000,
-      '非人哉': 3_000_000,
-      '狐妖小红娘': 1_660_000,
-      '中国惊奇先生': 3_000_000,
-      '镇魂街': 503_600,
-    },
-    anime: {
-      '斗罗大陆': 5_380_000,
-      '遮天': 17_000_000,
-      '灵笼': 1_000_000,
-      '凡人修仙传': 610_000,
     },
   };
 
@@ -179,58 +161,16 @@ test('curated drama seed keeps unverified short-drama volume as undisclosed', ()
   assert.match(byTitle.get('无双')?.summary ?? '', /播放总量待平台披露/);
 });
 
-test('hybrid keyword search merges AI results into local cache and returns mapped heat metric', async () => {
+test('hybrid keyword search ignores unsupported source tokens', async () => {
   resetDatabaseForTest(':memory:');
   resetCatalogRuntimeState();
   const previous = {
-    MEDIAHUB_AI_ENABLED: process.env.MEDIAHUB_AI_ENABLED,
-    MEDIAHUB_AI_MODEL: process.env.MEDIAHUB_AI_MODEL,
-    MEDIAHUB_AI_BASE_URL: process.env.MEDIAHUB_AI_BASE_URL,
-    MEDIAHUB_AI_API_KEY: process.env.MEDIAHUB_AI_API_KEY,
-    MEDIAHUB_AI_SEARCH_WEB_ENABLED: process.env.MEDIAHUB_AI_SEARCH_WEB_ENABLED,
+    MEDIAHUB_SOURCE_CHAIN_DRAMA: process.env.MEDIAHUB_SOURCE_CHAIN_DRAMA,
   };
-  process.env.MEDIAHUB_AI_ENABLED = 'true';
-  process.env.MEDIAHUB_AI_MODEL = 'gpt-5-mini';
-  process.env.MEDIAHUB_AI_BASE_URL = 'https://example.ai/v1';
-  process.env.MEDIAHUB_AI_API_KEY = 'sk-test';
-  process.env.MEDIAHUB_AI_SEARCH_WEB_ENABLED = 'true';
-
-  const originalFetch = global.fetch;
-  _setMockRequestFn(async ({ body }) => {
-    const parsed = JSON.parse(String(body || '{}'));
-    const prompt = parsed.messages?.map(message => message.content).join('\n');
-    assert.match(prompt, /关键词:? ?盛夏芬德拉/);
-    return {
-      status: 200,
-      statusText: 'OK',
-      payload: {
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                items: [
-                  {
-                    title: '盛夏芬德拉',
-                    summary: '短剧热榜样本。',
-                    tags: ['短剧'],
-                    actors: ['刘萧旭'],
-                    author: '马厩制片厂',
-                    ipName: '盛夏芬德拉',
-                    status: 'ongoing',
-                    hotScore: 440000,
-                    sourceUrl: 'https://example.com/drama/shengxia',
-                  },
-                ],
-              }),
-            },
-          },
-        ],
-      },
-    };
-  });
+  process.env.MEDIAHUB_SOURCE_CHAIN_DRAMA = 'unsupported_source';
 
   try {
-    const first = await listContents({
+    const result = await listContents({
       type: 'drama',
       keyword: '盛夏芬德拉',
       page: 1,
@@ -238,31 +178,9 @@ test('hybrid keyword search merges AI results into local cache and returns mappe
       sort: 'hot',
       searchMode: 'hybrid',
     });
-    assert.ok(first.list.length >= 1);
-    const aiItem = first.list.find(item => item.source?.provider === 'ai-search' && item.title === '盛夏芬德拉');
-    assert.ok(aiItem);
-    assert.equal(aiItem.hotScore, 440_000);
-    assert.equal(aiItem.heatMetric, 'playback');
-
-    _clearMockRequestFn();
-    _setMockRequestFn(async () => {
-      throw new Error('upstream should not be called after cache upsert');
-    });
-    const second = await listContents({
-      type: 'drama',
-      keyword: '盛夏芬德拉',
-      page: 1,
-      limit: 10,
-      sort: 'hot',
-      searchMode: 'hybrid',
-    });
-    assert.ok(second.list.length >= 1);
-    const cachedAiItem = second.list.find(item => item.source?.provider === 'ai-search' && item.title === '盛夏芬德拉');
-    assert.ok(cachedAiItem);
-    assert.equal(cachedAiItem.heatMetric, 'playback');
+    assert.equal(result.stale, false);
+    assert.equal(result.list.some(item => item.source?.provider === 'unsupported_source'), false);
   } finally {
-    _clearMockRequestFn();
-    global.fetch = originalFetch;
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;

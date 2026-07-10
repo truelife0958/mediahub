@@ -14,9 +14,12 @@
     "build": "npm run build --workspace=frontend",
     "start": "node scripts/run-mediahub-command.mjs start-backend",
     "test:backend": "npm run test --workspace=backend",
-    "test:frontend": "npm run test --workspace=frontend"
+    "test:frontend": "npm run test --workspace=frontend",
+    "crawl:real": "node scripts/update-real-dataset-catalog.mjs && node scripts/fill-hot-datasets.mjs",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "concurrently": "^9.1.0"
   },
   "workspaces": [

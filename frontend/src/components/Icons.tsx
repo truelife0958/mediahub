@@ -34,11 +34,45 @@ export function IconMedia({ size = 20 }: { size?: number }) {
   );
 }
 
+export function IconChart({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M4 19V5" />
+      <path d="M4 19h16" />
+      <rect x="7" y="11" width="3" height="5" rx="1" />
+      <rect x="12" y="7" width="3" height="9" rx="1" />
+      <rect x="17" y="9" width="3" height="7" rx="1" />
+    </svg>
+  );
+}
+
+export function IconRefresh({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 12a9 9 0 0 1-15.4 6.4" />
+      <path d="M3 12A9 9 0 0 1 18.4 5.6" />
+      <path d="M18 2v4h-4" />
+      <path d="M6 22v-4h4" />
+    </svg>
+  );
+}
+
 export function IconGear({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Z" />
       <path d="M19.4 15a1.8 1.8 0 0 0 .36 1.99l.04.04a2.1 2.1 0 1 1-2.97 2.97l-.04-.04a1.8 1.8 0 0 0-1.99-.36 1.8 1.8 0 0 0-1.08 1.64V21.4a2.1 2.1 0 1 1-4.2 0v-.16a1.8 1.8 0 0 0-1.08-1.64 1.8 1.8 0 0 0-1.99.36l-.04.04a2.1 2.1 0 1 1-2.97-2.97l.04-.04A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-1.64-1.08H2.8a2.1 2.1 0 1 1 0-4.2h.16A1.8 1.8 0 0 0 4.6 8.64a1.8 1.8 0 0 0-.36-1.99l-.04-.04a2.1 2.1 0 1 1 2.97-2.97l.04.04a1.8 1.8 0 0 0 1.99.36h.01A1.8 1.8 0 0 0 10.3 2.4V2.2a2.1 2.1 0 1 1 4.2 0v.2a1.8 1.8 0 0 0 1.08 1.64h.01a1.8 1.8 0 0 0 1.99-.36l.04-.04a2.1 2.1 0 1 1 2.97 2.97l-.04.04a1.8 1.8 0 0 0-.36 1.99v.01a1.8 1.8 0 0 0 1.64 1.08h.2a2.1 2.1 0 1 1 0 4.2h-.2A1.8 1.8 0 0 0 19.4 15Z" />
+    </svg>
+  );
+}
+
+export function IconFullscreen({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+      <path d="M16 3h3a2 2 0 0 1 2 2v3" />
+      <path d="M8 21H5a2 2 0 0 1-2-2v-3" />
+      <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
     </svg>
   );
 }

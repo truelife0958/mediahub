@@ -48,8 +48,8 @@ function getSystemSettingsSnapshot() {
       runOnStartup: parseBoolean(process.env.MEDIAHUB_AUTO_REFRESH_ON_STARTUP, true),
     },
     ingestBackfill: {
-      pages: parseBoundedInteger(process.env.MEDIAHUB_INGEST_BACKFILL_PAGES, 3, 1, 10),
-      pageSize: parseBoundedInteger(process.env.MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE, 30, 1, 50),
+      pages: parseBoundedInteger(process.env.MEDIAHUB_INGEST_BACKFILL_PAGES, 2, 1, 10),
+      pageSize: parseBoundedInteger(process.env.MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE, 50, 1, 50),
       sorts: parseBackfillSortModes(process.env.MEDIAHUB_INGEST_BACKFILL_SORTS),
     },
     cache: {

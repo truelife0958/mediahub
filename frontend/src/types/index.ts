@@ -32,6 +32,34 @@ export interface HotTrendPoint {
   capturedAt?: string;
 }
 
+
+export interface RealMetricSource {
+  sourceId: string;
+  sourceName: string;
+  sourceUrl: string;
+  metricType: 'play' | 'read';
+  value: number;
+  unit: 'count';
+  method: 'public_page' | 'embedded_json' | 'public_api' | 'third_party';
+  confidence: 'official' | 'trusted_third_party';
+  capturedAt: string;
+}
+
+
+export type PublicReportField = 'releaseDate' | 'playCount' | 'readCount' | 'contentType' | 'actors' | 'copyrightOwner' | 'summary';
+
+export interface PublicReportFieldSource {
+  field: PublicReportField;
+  value: string | number | string[];
+  sourceId: string;
+  sourceName: string;
+  sourceUrl: string;
+  sourceType: 'official_media' | 'self_media' | 'platform_public' | 'trusted_third_party';
+  capturedAt: string;
+  confidence: 'high' | 'medium';
+  snippet?: string;
+}
+
 export interface Content {
   id: string;
   title: string;
@@ -41,6 +69,10 @@ export interface Content {
   tags: string[];
   actors: string[];
   characters?: string[];
+  releaseDate?: string;
+  contentType?: string;
+  copyrightOwner?: string;
+  fieldSources?: PublicReportFieldSource[];
   author: string;
   ipName: string;
   status: 'ongoing' | 'completed';
@@ -56,6 +88,11 @@ export interface Content {
     url?: string;
   };
   metrics?: {
+    realPlayCount?: number;
+    realReadCount?: number;
+    realMetricStatus?: 'official' | 'trusted_third_party' | 'unavailable';
+    realMetricCapturedAt?: string;
+    realMetricSources?: RealMetricSource[];
     playOrReadYi?: number;
     platformHeatWan?: number;
     likesWan?: number;
@@ -171,6 +208,14 @@ export interface IngestionRefreshResult {
   count: number;
   durationMs?: number;
   error?: string;
+  warning?: string | null;
+  fallbackUsed?: boolean;
+  jsonDataset?: {
+    count: number;
+    capturedAt: string;
+    date: string;
+    fallbackUsed?: boolean;
+  } | null;
   supplementalSignals?: {
     count: number;
     errors: Array<{ platform: string; message: string }>;
@@ -199,6 +244,47 @@ export interface AutoRefreshRuntimeStatus {
     pageSize: number;
     sortModes: string[];
   };
+}
+
+
+export interface RefreshJob {
+  id: string;
+  trigger: string;
+  types: Content['type'][];
+  status: 'queued' | 'running' | 'success' | 'partial' | 'failed';
+  currentType: Content['type'] | null;
+  currentStage: string;
+  progress: {
+    total: number;
+    completed: number;
+    failed: number;
+  };
+  results: IngestionRefreshResult[];
+  error: string | null;
+  enqueuedAt: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+  updatedAt: string;
+  backfill: {
+    pageCount: number;
+    pageSize: number;
+    sortModes: string[];
+  };
+}
+
+export interface RefreshJobQueueStatus {
+  running: boolean;
+  queueLength: number;
+  activeJob: RefreshJob | null;
+  queuedJobs: RefreshJob[];
+  recentJobs: RefreshJob[];
+  persistError: string | null;
+  updatedAt: string;
+}
+
+export interface EnqueueRefreshAllContentTypesResponse {
+  job: RefreshJob;
+  queue: RefreshJobQueueStatus;
 }
 
 export interface JsonDataStatus {

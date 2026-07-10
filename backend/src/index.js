@@ -1,4 +1,5 @@
 import { createApp } from './app.js';
+import { isDatabaseDisabled } from './db/database.js';
 import { startAutoRefreshRuntime, stopAutoRefreshRuntime } from './services/autoRefreshRuntimeService.js';
 import { seedAllCuratedRealContents } from './services/curatedRealContentService.js';
 
@@ -7,7 +8,7 @@ process.on('unhandledRejection', (reason) => {
 });
 
 const app = createApp();
-const seedResults = seedAllCuratedRealContents();
+const seedResults = isDatabaseDisabled() ? [] : seedAllCuratedRealContents();
 startAutoRefreshRuntime();
 
 const PORT = Number(process.env.PORT || 3001);

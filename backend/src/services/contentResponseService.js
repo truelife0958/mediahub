@@ -5,8 +5,8 @@ function isCoverHidden() {
 
 const HEAT_METRIC_BY_TYPE = {
   drama: 'playback',
-  anime: 'playback',
   novel: 'reading',
+  anime: 'playback',
   comic: 'reading',
 };
 
@@ -32,22 +32,9 @@ function shapeContentNode(content, hideCover) {
   return next;
 }
 
-function mapWatchHistoryEntry(entry, hideCover) {
-  if (!entry || typeof entry !== 'object') return entry;
-  return {
-    ...entry,
-    content: shapeContentNode(entry.content, hideCover),
-  };
-}
-
 function mapPayload(payload, hideCover) {
   if (Array.isArray(payload)) {
-    return payload.map(item => {
-      if (item && typeof item === 'object' && 'watchedAt' in item && 'content' in item) {
-        return mapWatchHistoryEntry(item, hideCover);
-      }
-      return shapeContentNode(item, hideCover);
-    });
+    return payload.map(item => shapeContentNode(item, hideCover));
   }
 
   if (!payload || typeof payload !== 'object') return payload;
@@ -70,10 +57,6 @@ function mapPayload(payload, hideCover) {
       ...payload,
       groups,
     };
-  }
-
-  if ('watchedAt' in payload && 'content' in payload) {
-    return mapWatchHistoryEntry(payload, hideCover);
   }
 
   return shapeContentNode(payload, hideCover);

@@ -10,34 +10,34 @@ import {
 } from '../src/repositories/contentRepository.js';
 
 const sample = {
-  id: 'anime:ai-search:1',
-  title: 'Cowboy Bebop',
+  id: 'drama:hongguo:1',
+  title: '许你万丈光芒好',
   cover: 'https://example.com/cover.jpg',
-  summary: 'Space bounty hunters.',
-  type: 'anime',
-  tags: ['Action', 'Sci-Fi'],
-  actors: ['Sunrise'],
-  characters: ['Spike Spiegel'],
-  author: 'Original',
-  ipName: 'Cowboy Bebop',
+  summary: 'Hongguo short drama sample.',
+  type: 'drama',
+  tags: ['短剧', '甜宠'],
+  actors: ['马小宇'],
+  characters: ['陆霆骁'],
+  author: 'Hongguo',
+  ipName: '许你万丈光芒好',
   status: 'completed',
   hotScore: 9000,
   createdAt: '1998-04-03T00:00:00.000Z',
   updatedAt: '2026-05-12T00:00:00.000Z',
-  source: { provider: 'ai-search', label: 'AI Discovery', url: 'https://example.com/ai-search/1' },
+  source: { provider: 'hongguo', label: 'Hongguo', url: 'https://www.hongguoduanju.com/' },
 };
 
 test('upsertContents stores and lists stale-capable cached content', () => {
   resetDatabaseForTest(':memory:');
   upsertContents([sample]);
 
-  const result = listCachedContents({ type: 'anime', page: 1, limit: 10, sort: 'hot' });
-  const detail = getCachedContentById('anime:ai-search:1');
+  const result = listCachedContents({ type: 'drama', page: 1, limit: 10, sort: 'hot' });
+  const detail = getCachedContentById('drama:hongguo:1');
 
   assert.equal(result.list.length, 1);
   assert.equal(result.list[0].id, sample.id);
   assert.equal(result.list[0].stale, true);
-  assert.equal(result.list[0].source.provider, 'ai-search');
+  assert.equal(result.list[0].source.provider, 'hongguo');
   assert.equal(detail.title, sample.title);
   assert.deepEqual(detail.tags, sample.tags);
 });
@@ -49,28 +49,28 @@ test('listCachedContents excludes non-real test fixtures by default', () => {
     sample,
     {
       ...sample,
-      id: 'anime:regression:1',
-      title: 'ANIME 回归样本 1',
+      id: 'drama:regression:1',
+      title: 'DRAMA regression fixture 1',
       hotScore: 99_999,
       source: { provider: 'regression', label: 'Regression Source', url: 'https://example.com' },
     },
     {
       ...sample,
-      id: 'anime:smoke:e2e-1',
-      title: 'E2E 冒烟动漫 A',
+      id: 'drama:smoke:e2e-1',
+      title: 'E2E smoke drama A',
       hotScore: 99_998,
       source: { provider: 'smoke', label: 'Smoke Source', url: 'https://example.com' },
     },
     {
       ...sample,
-      id: 'anime:visual:1',
-      title: 'ANIME 视觉基线 1',
+      id: 'drama:visual:1',
+      title: 'DRAMA visual baseline 1',
       hotScore: 99_997,
       source: { provider: 'visual', label: 'Visual Baseline', url: 'https://example.com' },
     },
   ]);
 
-  const result = listCachedContents({ type: 'anime', page: 1, limit: 10, sort: 'hot' });
+  const result = listCachedContents({ type: 'drama', page: 1, limit: 10, sort: 'hot' });
 
   assert.equal(result.pagination.total, 1);
   assert.deepEqual(result.list.map(item => item.id), [sample.id]);
@@ -81,20 +81,20 @@ test('listCachedContents excludes legacy overseas cached providers by default', 
 
   const cnCurated = {
     ...sample,
-    id: 'anime:curated-cn:1',
-    title: '凡人修仙传',
+    id: 'drama:curated-cn:1',
+    title: '无双',
     hotScore: 100,
-    source: { provider: 'curated-cn', label: '中国真实内容精选', region: 'CN', url: 'https://www.bilibili.com/bangumi/' },
+    source: { provider: 'curated-cn', label: '中国真实内容精选', region: 'CN', url: 'https://www.hongguoduanju.com/' },
   };
 
   upsertContents([
     cnCurated,
     {
       ...sample,
-      id: 'anime:curated-real:old-1',
+      id: 'drama:curated-real:old-1',
       title: 'Frieren: Beyond Journey’s End',
       hotScore: 99_999,
-      source: { provider: 'curated-real', label: 'Curated Real Dataset', url: 'https://frieren-anime.jp/' },
+      source: { provider: 'curated-real', label: 'Curated Real Dataset', url: 'https://example.com/curated-real/old' },
     },
     {
       ...sample,
@@ -106,12 +106,12 @@ test('listCachedContents excludes legacy overseas cached providers by default', 
     },
   ]);
 
-  const anime = listCachedContents({ type: 'anime', page: 1, limit: 10, sort: 'hot' });
+  const dramaCurrent = listCachedContents({ type: 'drama', page: 1, limit: 10, sort: 'hot' });
   const drama = listCachedContents({ type: 'drama', page: 1, limit: 10, sort: 'hot' });
 
-  assert.equal(anime.pagination.total, 1);
-  assert.deepEqual(anime.list.map(item => item.title), ['凡人修仙传']);
-  assert.equal(drama.pagination.total, 0);
+  assert.equal(dramaCurrent.pagination.total, 1);
+  assert.deepEqual(dramaCurrent.list.map(item => item.title), ['无双']);
+  assert.equal(drama.pagination.total, 1);
 });
 
 test('listCachedContents still includes test fixtures when explicitly enabled', () => {
@@ -123,20 +123,20 @@ test('listCachedContents still includes test fixtures when explicitly enabled', 
     upsertContents([
       {
         ...sample,
-        id: 'anime:regression:include-1',
-        title: 'ANIME 回归样本 1',
+        id: 'drama:regression:include-1',
+        title: 'DRAMA regression fixture 1',
         source: { provider: 'regression', label: 'Regression Source', url: 'https://example.com' },
       },
       {
         ...sample,
-        id: 'anime:curated-real:include-1',
+        id: 'drama:curated-real:include-1',
         title: 'Frieren: Beyond Journey’s End',
         hotScore: 99_999,
-        source: { provider: 'curated-real', label: 'Curated Real Dataset', url: 'https://frieren-anime.jp/' },
+        source: { provider: 'curated-real', label: 'Curated Real Dataset', url: 'https://example.com/curated-real/include' },
       },
     ]);
 
-    const result = listCachedContents({ type: 'anime', page: 1, limit: 10, sort: 'hot' });
+    const result = listCachedContents({ type: 'drama', page: 1, limit: 10, sort: 'hot' });
 
     assert.equal(result.pagination.total, 2);
   } finally {
@@ -151,7 +151,7 @@ test('FTS search matches multi-token keyword and keeps deterministic pagination'
   upsertContents([
     {
       ...sample,
-      id: 'anime:ai-search:100',
+      id: 'drama:hongguo:100',
       title: 'dragon king returns',
       summary: 'A return of the king',
       ipName: 'dragon-king',
@@ -159,7 +159,7 @@ test('FTS search matches multi-token keyword and keeps deterministic pagination'
     },
     {
       ...sample,
-      id: 'anime:ai-search:101',
+      id: 'drama:hongguo:101',
       title: 'dragon legend',
       summary: 'A king tale',
       ipName: 'dragon-legend',
@@ -167,7 +167,7 @@ test('FTS search matches multi-token keyword and keeps deterministic pagination'
     },
     {
       ...sample,
-      id: 'anime:ai-search:102',
+      id: 'drama:hongguo:102',
       title: 'other story',
       summary: 'not relevant',
       ipName: 'other',
@@ -175,14 +175,14 @@ test('FTS search matches multi-token keyword and keeps deterministic pagination'
     },
   ]);
 
-  const page1 = listCachedContents({ type: 'anime', page: 1, limit: 1, sort: 'hot', keyword: 'dragon king' });
-  const page2 = listCachedContents({ type: 'anime', page: 2, limit: 1, sort: 'hot', keyword: 'dragon king' });
+  const page1 = listCachedContents({ type: 'drama', page: 1, limit: 1, sort: 'hot', keyword: 'dragon king' });
+  const page2 = listCachedContents({ type: 'drama', page: 2, limit: 1, sort: 'hot', keyword: 'dragon king' });
 
   assert.equal(page1.pagination.total, 2);
   assert.equal(page1.list.length, 1);
-  assert.equal(page1.list[0].id, 'anime:ai-search:100');
+  assert.equal(page1.list[0].id, 'drama:hongguo:100');
   assert.equal(page2.list.length, 1);
-  assert.equal(page2.list[0].id, 'anime:ai-search:101');
+  assert.equal(page2.list[0].id, 'drama:hongguo:101');
 });
 
 test('listCachedContents supports expanded search terms for alias recall', () => {
@@ -191,7 +191,7 @@ test('listCachedContents supports expanded search terms for alias recall', () =>
   upsertContents([
     {
       ...sample,
-      id: 'drama:ai-search:alias-1',
+      id: 'drama:hongguo:alias-1',
       type: 'drama',
       title: '家里家外',
       summary: '短剧爆款样本',
@@ -218,7 +218,7 @@ test('listCachedContents searches actors, characters, tags and ipName locally', 
 
   upsertContents([{
     ...sample,
-    id: 'drama:ai-search:character-1',
+    id: 'drama:hongguo:character-1',
     title: '盛夏芬德拉',
     type: 'drama',
     tags: ['短剧', '治愈爱情'],
@@ -242,27 +242,27 @@ test('upsertContents dedupes by normalized title + source + ipName', () => {
 
   const first = {
     ...sample,
-    id: 'anime:ai-search:dup-1',
+    id: 'drama:hongguo:dup-1',
     title: 'Dragon King Returns',
     ipName: 'dragon-king-returns',
-    source: { provider: 'ai-search', label: 'AI Discovery', url: 'https://example.com/ai-search/dup-1' },
+    source: { provider: 'hongguo', label: 'Hongguo', url: 'https://www.hongguoduanju.com/dup-1' },
   };
   const duplicate = {
     ...sample,
-    id: 'anime:ai-search:dup-2',
+    id: 'drama:hongguo:dup-2',
     title: ' Dragon-King Returns ',
     ipName: 'dragon-king-returns',
-    source: { provider: 'ai-search', label: 'AI Discovery', url: 'https://example.com/ai-search/dup-2' },
+    source: { provider: 'hongguo', label: 'Hongguo', url: 'https://www.hongguoduanju.com/dup-2' },
     summary: 'updated summary',
   };
 
   upsertContents([first]);
   upsertContents([duplicate]);
 
-  const result = listCachedContents({ type: 'anime', page: 1, limit: 20, sort: 'hot' });
+  const result = listCachedContents({ type: 'drama', page: 1, limit: 20, sort: 'hot' });
   assert.equal(result.pagination.total, 1);
   assert.equal(result.list.length, 1);
-  assert.equal(result.list[0].id, 'anime:ai-search:dup-1');
+  assert.equal(result.list[0].id, 'drama:hongguo:dup-1');
   assert.equal(result.list[0].summary, 'updated summary');
 });
 
@@ -273,16 +273,16 @@ test('tokenizeKeywordForFts builds safe prefix query for FTS5', () => {
 
 test('buildDedupeHash is stable for whitespace and punctuation variants', () => {
   const a = buildDedupeHash({
-    type: 'anime',
+    type: 'drama',
     title: 'Dragon King Returns',
     ipName: 'same-ip',
-    source: { provider: 'ai-search' },
+    source: { provider: 'hongguo' },
   });
   const b = buildDedupeHash({
-    type: 'anime',
+    type: 'drama',
     title: ' Dragon-King Returns ',
     ipName: 'same-ip',
-    source: { provider: 'ai-search' },
+    source: { provider: 'hongguo' },
   });
 
   assert.equal(a, b);

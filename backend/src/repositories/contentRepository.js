@@ -25,10 +25,12 @@ function normalizeText(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+const MAX_QUERY_PAGE = 1000;
+
 const HEAT_METRIC_BY_TYPE = {
   drama: 'playback',
-  anime: 'playback',
   novel: 'reading',
+  anime: 'playback',
   comic: 'reading',
 };
 
@@ -36,6 +38,37 @@ function normalizeHeatMetric(metric, type = 'drama') {
   const value = String(metric || '').trim().toLowerCase();
   if (value === 'playback' || value === 'reading') return value;
   return HEAT_METRIC_BY_TYPE[type] || 'playback';
+}
+
+function normalizeItemSource(item = {}) {
+  if (item.source && typeof item.source === 'object') {
+    return {
+      provider: normalizeText(item.source.provider || item.source.label || 'unknown'),
+      label: String(item.source.label || item.source.provider || 'Unknown').trim(),
+      url: String(item.source.url || '').trim(),
+      region: String(item.source.region || '').trim(),
+    };
+  }
+  const provider = normalizeText(item.source || item.sourceId || 'unknown');
+  return {
+    provider,
+    label: String(item.sourceName || item.sourceLabel || provider || 'Unknown').trim(),
+    url: String(item.sourceUrl || item.url || '').trim(),
+    region: String(item.region || '').trim(),
+  };
+}
+
+function normalizeItemArray(primary, fallback, max = 12) {
+  const value = Array.isArray(primary) ? primary : (Array.isArray(fallback) ? fallback : []);
+  return [...new Set(value.map(item => String(item || '').trim()).filter(Boolean))].slice(0, max);
+}
+
+function normalizeItemMetrics(item = {}) {
+  return item.metrics && typeof item.metrics === 'object' ? item.metrics : {};
+}
+
+function normalizeItemFieldSources(item = {}) {
+  return Array.isArray(item.fieldSources) ? item.fieldSources : [];
 }
 
 function buildDedupeHash(item) {
@@ -149,6 +182,11 @@ function rowToContent(row, stale = true) {
     status: row.status || 'completed',
     hotScore: Number(row.hot_score) || 0,
     heatMetric: normalizeHeatMetric(row.heat_metric, row.type),
+    releaseDate: row.release_date || '',
+    contentType: row.content_type || '',
+    copyrightOwner: row.copyright_owner || '',
+    metrics: parseJson(row.metrics_json || '{}', {}),
+    fieldSources: parseJson(row.field_sources_json || '[]', []),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     cachedAt: row.cached_at,
@@ -167,8 +205,9 @@ function upsertContents(contents = []) {
     INSERT INTO contents (
       id, type, title, cover, summary, author, ip_name, status, hot_score, heat_metric,
       tags_json, actors_json, characters_json, source_json, created_at, updated_at, cached_at,
+      metrics_json, field_sources_json, release_date, content_type, copyright_owner,
       normalized_title, dedupe_hash
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       type = excluded.type,
       title = excluded.title,
@@ -186,6 +225,11 @@ function upsertContents(contents = []) {
       created_at = excluded.created_at,
       updated_at = excluded.updated_at,
       cached_at = excluded.cached_at,
+      metrics_json = excluded.metrics_json,
+      field_sources_json = excluded.field_sources_json,
+      release_date = excluded.release_date,
+      content_type = excluded.content_type,
+      copyright_owner = excluded.copyright_owner,
       normalized_title = excluded.normalized_title,
       dedupe_hash = excluded.dedupe_hash
   `);
@@ -199,6 +243,10 @@ function upsertContents(contents = []) {
       const existing = findExistingStmt.get(item.id, dedupeHash);
       const persistentId = existing?.id || item.id;
 
+      const normalizedSource = normalizeItemSource(item);
+      const tags = normalizeItemArray(item.tags, item.categories, 8);
+      const actors = normalizeItemArray(item.actors, [], 8);
+      const characters = normalizeItemArray(item.characters, [], 12);
       const result = upsertStmt.run(
         persistentId,
         item.type,
@@ -210,13 +258,18 @@ function upsertContents(contents = []) {
         item.status || 'completed',
         Number(item.hotScore) || 0,
         normalizeHeatMetric(item.heatMetric, item.type),
-        serialize(item.tags || []),
-        serialize(item.actors || []),
-        serialize(item.characters || []),
-        JSON.stringify(item.source || {}),
-        item.createdAt || now,
-        item.updatedAt || now,
+        serialize(tags),
+        serialize(actors),
+        serialize(characters),
+        JSON.stringify(normalizedSource),
+        item.createdAt || item.capturedAt || now,
+        item.updatedAt || item.capturedAt || now,
         now,
+        JSON.stringify(normalizeItemMetrics(item)),
+        JSON.stringify(normalizeItemFieldSources(item)),
+        item.releaseDate || '',
+        item.contentType || '',
+        item.copyrightOwner || '',
         normalizedTitle,
         dedupeHash,
       );
@@ -241,7 +294,7 @@ function listCachedContents({
   stale = true,
 }) {
   const db = getDatabase();
-  const pageNum = Math.max(1, Number(page) || 1);
+  const pageNum = Math.min(MAX_QUERY_PAGE, Math.max(1, Number(page) || 1));
   const limitNum = Math.min(50, Math.max(1, Number(limit) || 20));
   const offset = (pageNum - 1) * limitNum;
   const orderBy = sort === 'latest' ? 'updated_at DESC' : 'hot_score DESC';
@@ -349,10 +402,14 @@ function listCachedContentsByTopic({
     };
   }
 
-  const validField = topicField === 'actor' || topicField === 'character' || topicField === 'author' || topicField === 'ip';
-  if (!validField) throw createApiError('invalid_request', 'Invalid topic field. Must be actor, character, author, or ip');
+  const validField = topicField === 'actor'
+    || topicField === 'character'
+    || topicField === 'author'
+    || topicField === 'ip'
+    || topicField === 'category';
+  if (!validField) throw createApiError('invalid_request', 'Invalid topic field. Must be actor, character, author, ip, or category');
 
-  const pageNum = Math.max(1, Number(page) || 1);
+  const pageNum = Math.min(MAX_QUERY_PAGE, Math.max(1, Number(page) || 1));
   const limitNum = Math.min(50, Math.max(1, Number(limit) || 20));
   const offset = (pageNum - 1) * limitNum;
   const orderBy = sort === 'latest' ? 'updated_at DESC' : 'hot_score DESC';
@@ -374,6 +431,9 @@ function listCachedContentsByTopic({
     params.push(`%${escapeLike(topicValue)}%`);
   } else if (topicField === 'character') {
     where.push("EXISTS (SELECT 1 FROM json_each(contents.characters_json) character WHERE lower(character.value) LIKE lower(?) ESCAPE '\\')");
+    params.push(`%${escapeLike(topicValue)}%`);
+  } else if (topicField === 'category') {
+    where.push("EXISTS (SELECT 1 FROM json_each(contents.tags_json) tag WHERE lower(tag.value) LIKE lower(?) ESCAPE '\\')");
     params.push(`%${escapeLike(topicValue)}%`);
   } else {
     where.push("EXISTS (SELECT 1 FROM json_each(contents.actors_json) actor WHERE lower(actor.value) LIKE lower(?) ESCAPE '\\')");
@@ -436,19 +496,9 @@ function discoverCachedContents({
   stale = true,
 }) {
   const normalizedKeyword = String(keyword || '').trim();
-  const types = ['drama', 'novel', 'comic', 'anime'];
-  const groups = {
-    drama: [],
-    novel: [],
-    comic: [],
-    anime: [],
-  };
-  const counts = {
-    drama: 0,
-    novel: 0,
-    comic: 0,
-    anime: 0,
-  };
+  const types = ['drama', 'novel', 'anime', 'comic'];
+  const groups = Object.fromEntries(types.map(type => [type, []]));
+  const counts = Object.fromEntries(types.map(type => [type, 0]));
   let total = 0;
 
   for (const type of types) {
@@ -563,20 +613,20 @@ function listContentQualityStats() {
         type: item.type,
         issues: issueCodes,
         suggestion: issueCodes.some(code => code === 'missing_summary' || code === 'missing_tags')
-          ? '建议使用 AI 补缺失信息后人工审核'
+          ? '建议补全平台来源字段后人工审核'
           : '建议人工核验热度来源',
       });
     }
 
     const text = `${item.title} ${item.summary} ${item.ipName} ${(item.tags || []).join(' ')}`.toLowerCase();
     if (item.type === 'drama' && /(电视剧|长剧|卫视|集电视剧|连续剧)/.test(text)) {
-      boundaryRisks.push({ id: item.id, title: item.title, type: item.type, reason: '短剧模块疑似混入长剧/电视剧描述' });
+      boundaryRisks.push({ id: item.id, title: item.title, type: item.type, reason: '短剧入口疑似混入长剧/电视剧描述' });
     }
     if ((item.type === 'novel' || item.type === 'comic') && item.heatMetric !== 'reading') {
-      boundaryRisks.push({ id: item.id, title: item.title, type: item.type, reason: '小说/漫画应使用阅读量口径' });
+      boundaryRisks.push({ id: item.id, title: item.title, type: item.type, reason: `${item.type === 'novel' ? '小说' : '漫画'}应使用阅读量口径` });
     }
     if ((item.type === 'drama' || item.type === 'anime') && item.heatMetric !== 'playback') {
-      boundaryRisks.push({ id: item.id, title: item.title, type: item.type, reason: '短剧/动漫应使用播放量口径' });
+      boundaryRisks.push({ id: item.id, title: item.title, type: item.type, reason: `${item.type === 'drama' ? '短剧' : '动漫'}应使用播放量口径` });
     }
 
     const duplicateKey = `${item.type}|${normalizeTitle(item.title)}|${normalizeText(item.ipName || '')}`;

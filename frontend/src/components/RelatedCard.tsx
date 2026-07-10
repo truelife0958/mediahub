@@ -2,7 +2,7 @@ import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CATEGORY_COLORS, CATEGORY_TEXT } from '../constants';
 import type { Content } from '../types';
-import { formatHotScoreShort } from '../utils/hotScore';
+import { formatRealMetricDisplay, getTotalScore } from '../utils/contentMetrics';
 
 interface RelatedCardProps {
   content: Content;
@@ -11,6 +11,8 @@ interface RelatedCardProps {
 const RelatedCard = memo(function RelatedCard({ content }: RelatedCardProps) {
   const navigate = useNavigate();
   const handleClick = useCallback(() => navigate(`/detail/${content.id}`), [content.id, navigate]);
+  const totalScore = getTotalScore({ metrics: content.metrics, hotScore: content.hotScore });
+  const realMetric = formatRealMetricDisplay({ heatMetric: content.heatMetric, metrics: content.metrics });
 
   return (
     <button
@@ -40,8 +42,9 @@ const RelatedCard = memo(function RelatedCard({ content }: RelatedCardProps) {
             : content.author}
         </p>
       </div>
-      <div className="flex items-center text-[#fb923c] font-semibold text-xs shrink-0 self-center">
-        {formatHotScoreShort(content.hotScore, content.heatMetric)}
+      <div className="flex flex-col items-end text-[#fb923c] font-semibold text-xs shrink-0 self-center">
+        <span>{realMetric.value}</span>
+        <small className="text-[10px] text-[var(--text-muted)]">{realMetric.label} / {totalScore.toFixed(1)}</small>
       </div>
     </button>
   );

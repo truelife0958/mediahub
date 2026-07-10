@@ -7,7 +7,7 @@ import {
   updateSearchAliasGroup as updateSearchAliasGroupRecord,
 } from '../repositories/searchAliasRepository.js';
 
-const CONTENT_TYPES = ['drama', 'novel', 'comic', 'anime'];
+const CONTENT_TYPES = ['drama', 'novel', 'anime', 'comic'];
 const MAX_ALIAS_TERMS = 12;
 const MAX_TERM_LENGTH = 80;
 
@@ -32,7 +32,7 @@ function normalizeType(value, { required = false } = {}) {
     return '';
   }
   if (!CONTENT_TYPES.includes(normalized)) {
-    throw createApiError('invalid_request', 'type must be one of drama/novel/comic/anime');
+    throw createApiError('invalid_request', 'type must be one of drama/novel/anime/comic');
   }
   return normalized;
 }

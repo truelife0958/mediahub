@@ -1,17 +1,17 @@
 import { createApiError } from '../utils/apiErrors.js';
 
 const DEFAULT_SOURCE_CHAIN_BY_TYPE = {
-  drama: ['ai_search'],
-  novel: ['ai_search'],
-  comic: ['ai_search'],
-  anime: ['ai_search'],
+  drama: ['platform_hot'],
+  novel: ['platform_hot'],
+  anime: ['platform_hot'],
+  comic: ['platform_hot'],
 };
 
 const SOURCE_CHAIN_ENV_BY_TYPE = {
   drama: 'MEDIAHUB_SOURCE_CHAIN_DRAMA',
   novel: 'MEDIAHUB_SOURCE_CHAIN_NOVEL',
-  comic: 'MEDIAHUB_SOURCE_CHAIN_COMIC',
   anime: 'MEDIAHUB_SOURCE_CHAIN_ANIME',
+  comic: 'MEDIAHUB_SOURCE_CHAIN_COMIC',
 };
 
 const SOURCE_HEALTH = new Map();
@@ -25,8 +25,9 @@ function normalizeSourceToken(token, type) {
   const value = String(token || '').trim().toLowerCase();
   if (!value) return null;
   if (value === 'builtin') {
-    return 'ai_search';
+    return 'platform_hot';
   }
+  if (value === 'crawler' || value === 'platform' || value === 'platform_hot') return 'platform_hot';
   return value;
 }
 
@@ -48,7 +49,7 @@ function parseSourceChain(input, type, fallback = []) {
 function ensureValidType(type) {
   const normalizedType = normalizeType(type);
   if (!Object.prototype.hasOwnProperty.call(DEFAULT_SOURCE_CHAIN_BY_TYPE, normalizedType)) {
-    throw createApiError('invalid_request', 'type must be one of drama/novel/comic/anime');
+    throw createApiError('invalid_request', 'type must be one of drama/novel/anime/comic');
   }
   return normalizedType;
 }
@@ -224,18 +225,13 @@ function getSourceHealthSnapshot({ type } = {}) {
 }
 
 function getSourceRoutingSettingsSnapshot() {
-  const types = ['drama', 'novel', 'comic', 'anime'];
+  const types = Object.keys(DEFAULT_SOURCE_CHAIN_BY_TYPE);
   const supported = Object.fromEntries(types.map(type => [type, listSupportedSources(type)]));
   const overrides = Object.fromEntries(types.map(type => [type, SOURCE_CHAIN_OVERRIDES.get(type) || []]));
   return {
     defaults: DEFAULT_SOURCE_CHAIN_BY_TYPE,
     supported,
-    effective: {
-      drama: resolveSourceChainByType('drama'),
-      novel: resolveSourceChainByType('novel'),
-      comic: resolveSourceChainByType('comic'),
-      anime: resolveSourceChainByType('anime'),
-    },
+    effective: Object.fromEntries(types.map(type => [type, resolveSourceChainByType(type)])),
     overrides,
   };
 }

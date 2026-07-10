@@ -5,19 +5,32 @@ import { createApiError } from '../utils/apiErrors.js';
 import { getIngestionCursor, saveIngestionCursor } from '../utils/ingestionCursor.js';
 import { parsePositiveInt } from '../utils/retryTools.js';
 import { captureLeaderboardForType } from './leaderboardService.js';
+import { refreshHotDataset } from './hotDatasetService.js';
+import { appendCrawlLog, isJsonHotDataEnabled } from '../store/jsonStore.js';
+import { fetchTargetPlatformHotItems } from './targetPlatformCrawlerService.js';
+import { enrichItemsWithPublicReportFields } from './publicReportFieldCollectorService.js';
+import { fetchSupplementalHotSignals, normalizeSignalLoaderResult } from './hotSignalCrawlerService.js';
+import { mergeHotSignalsIntoItems } from '../store/hotSignalMerger.js';
+import { recordSourceOutcome } from './sourceStrategyService.js';
+import { isDatabaseDisabled } from '../db/database.js';
 
-const BACKFILL_AI_TIMEOUT_MS = Math.max(5_000, Number(process.env.MEDIAHUB_BACKFILL_AI_TIMEOUT_MS || 15_000));
+const BACKFILL_REQUEST_TIMEOUT_MS = Math.max(
+  5_000,
+  Number(process.env.MEDIAHUB_BACKFILL_REQUEST_TIMEOUT_MS || 15_000)
+);
 const BACKFILL_OVERALL_TIMEOUT_MS = Math.max(15_000, Number(process.env.MEDIAHUB_BACKFILL_OVERALL_TIMEOUT_MS || 60_000));
 const BACKFILL_MAX_CONSECUTIVE_FAILURES = Math.max(1, Number(process.env.MEDIAHUB_BACKFILL_MAX_CONSECUTIVE_FAILURES || 2));
 
 const SOURCE_BY_TYPE = {
-  drama: 'ai_search',
-  novel: 'ai_search',
-  comic: 'ai_search',
-  anime: 'ai_search',
+  drama: 'platform_hot',
+  novel: 'platform_hot',
+  anime: 'platform_hot',
+  comic: 'platform_hot',
 };
 const MAX_PAGE_COUNT = 10;
 const MAX_PAGE_SIZE = 50;
+const activeRefreshesByType = new Map();
+let refreshQueue = Promise.resolve();
 
 function sourceForType(type) {
   const source = SOURCE_BY_TYPE[type];
@@ -121,6 +134,52 @@ function buildCursorFromList(list, fallback) {
   };
 }
 
+async function enrichWithHotSignals(list, {
+  signalLoader,
+  defaultSignalEnabled = true,
+  type,
+  now = new Date(),
+} = {}) {
+  if (!Array.isArray(list) || list.length === 0) {
+    return {
+      list: [],
+      signals: [],
+      errors: [],
+      warning: null,
+    };
+  }
+  if (!signalLoader && !defaultSignalEnabled) {
+    return {
+      list,
+      signals: [],
+      errors: [],
+      warning: null,
+    };
+  }
+
+  try {
+    const result = signalLoader
+      ? await signalLoader({ type, items: list, now })
+      : await fetchSupplementalHotSignals({ now });
+    const normalized = normalizeSignalLoaderResult(result);
+    return {
+      list: mergeHotSignalsIntoItems(list, normalized.signals),
+      signals: normalized.signals,
+      errors: normalized.errors,
+      warning: normalized.errors.length > 0
+        ? `部分热榜信号采集失败(${normalized.errors.length})`
+        : null,
+    };
+  } catch (error) {
+    return {
+      list,
+      signals: [],
+      errors: [{ platform: 'supplemental_hot_signals', message: error?.message || 'fetch failed' }],
+      warning: `热榜信号采集失败: ${error?.message || 'fetch failed'}`,
+    };
+  }
+}
+
 function readIncrementalEnabled(input) {
   if (input === undefined || input === null || input === '') {
     const envValue = String(process.env.MEDIAHUB_INGEST_INCREMENTAL_ENABLED || 'true').trim().toLowerCase();
@@ -150,11 +209,11 @@ async function collectBackfillContents(type, {
   pageSize,
   sortModes,
   incrementalCursor,
-  aiTimeoutMs,
+  requestTimeoutMs,
   overallTimeoutMs,
   abortSignal,
 } = {}) {
-  const effectiveAiTimeoutMs = Math.max(5_000, Number(aiTimeoutMs) || BACKFILL_AI_TIMEOUT_MS);
+  const effectiveRequestTimeoutMs = Math.max(5_000, Number(requestTimeoutMs) || BACKFILL_REQUEST_TIMEOUT_MS);
   const effectiveOverallTimeoutMs = Math.max(10_000, Number(overallTimeoutMs) || BACKFILL_OVERALL_TIMEOUT_MS);
 
   if (loader) {
@@ -204,7 +263,7 @@ async function collectBackfillContents(type, {
               limit: pageSize,
               sort,
               __bypassCacheFallback: true,
-              aiTimeoutMs: effectiveAiTimeoutMs,
+              requestTimeoutMs: effectiveRequestTimeoutMs,
               abortSignal: overallController.signal,
             }));
           consecutiveFailures = 0;
@@ -223,7 +282,7 @@ async function collectBackfillContents(type, {
           consecutiveFailures += 1;
 
           // On 403/forbidden, stop retrying further pages of the same sort
-          // — the AI provider is rejecting this type of request
+          // because the upstream platform is rejecting this type of request.
           if (isForbidden) break;
 
           // Stop early after N consecutive failures to avoid long waits
@@ -269,13 +328,13 @@ async function collectBackfillContents(type, {
 function normalizeBackfillOptions({ pageCount, pageSize, sortModes }) {
   const normalizedPageCount = parsePositiveInt(
     pageCount,
-    parsePositiveInt(process.env.MEDIAHUB_INGEST_BACKFILL_PAGES, 3, 1, MAX_PAGE_COUNT),
+    parsePositiveInt(process.env.MEDIAHUB_INGEST_BACKFILL_PAGES, 2, 1, MAX_PAGE_COUNT),
     1,
     MAX_PAGE_COUNT
   );
   const normalizedPageSize = parsePositiveInt(
     pageSize,
-    parsePositiveInt(process.env.MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE, 30, 1, MAX_PAGE_SIZE),
+    parsePositiveInt(process.env.MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE, 50, 1, MAX_PAGE_SIZE),
     1,
     MAX_PAGE_SIZE
   );
@@ -291,10 +350,13 @@ function normalizeBackfillOptions({ pageCount, pageSize, sortModes }) {
   };
 }
 
-async function refreshContentType(
+async function executeRefreshContentType(
   type,
   {
     loader,
+    targetLoader,
+    signalLoader,
+    publicReportLoader,
     pageLoader,
     pageCount,
     pageSize,
@@ -304,25 +366,49 @@ async function refreshContentType(
 ) {
   const source = sourceForType(type);
   const startedAt = new Date().toISOString();
+  const databaseDisabled = isDatabaseDisabled();
 
   const normalized = normalizeBackfillOptions({ pageCount, pageSize, sortModes });
   const incrementalEnabled = readIncrementalEnabled(incremental);
-  const incrementalCursor = incrementalEnabled ? getIngestionCursor({ type, source }) : null;
+  const incrementalCursor = incrementalEnabled && !databaseDisabled ? getIngestionCursor({ type, source }) : null;
+  const refreshStartedAt = Date.now();
+  const effectiveLoader = loader || (!pageLoader
+    ? (targetLoader || (() => fetchTargetPlatformHotItems({ type })))
+    : undefined);
 
   try {
     const collected = await collectBackfillContents(type, {
-      loader,
+      loader: effectiveLoader,
       pageLoader,
       pageCount: normalized.pageCount,
       pageSize: normalized.pageSize,
       sortModes: normalized.sortModes,
       incrementalCursor,
-      aiTimeoutMs: BACKFILL_AI_TIMEOUT_MS,
+      requestTimeoutMs: BACKFILL_REQUEST_TIMEOUT_MS,
       overallTimeoutMs: BACKFILL_OVERALL_TIMEOUT_MS,
     });
-    const resolvedSource = collected.list.find(item => item?.source?.provider)?.source?.provider || source;
+    const publicReports = await enrichItemsWithPublicReportFields(collected.list, {
+      searchPublicReports: publicReportLoader,
+      now: new Date(startedAt),
+    });
+    const enriched = await enrichWithHotSignals(publicReports.list, {
+      signalLoader,
+      defaultSignalEnabled: !loader && !targetLoader && !pageLoader,
+      type,
+      now: new Date(startedAt),
+    });
+    const jsonDataset = isJsonHotDataEnabled()
+      ? await refreshHotDataset(type, {
+        extraItems: enriched.list,
+        now: new Date(startedAt),
+      })
+      : null;
+    const writableList = jsonDataset?.list || enriched.list;
+    const resolvedSource = jsonDataset?.list?.find(item => item?.source?.provider)?.source?.provider
+      || collected.list.find(item => item?.source?.provider)?.source?.provider
+      || source;
 
-    const count = upsertContents(collected.list);
+    const count = databaseDisabled ? (jsonDataset?.count ?? writableList.length) : upsertContents(writableList);
     const firstError = collected.failures[0]?.message;
     const partialErrorMessage = collected.failedPages > 0
       ? buildPartialErrorMessage({
@@ -331,11 +417,11 @@ async function refreshContentType(
         count,
         firstError: firstError || 'unknown error',
       })
-      : null;
+      : enriched.warning;
 
     if (count === 0 && collected.failedPages > 0) {
       const terminalMessage = collected.timedOut
-        ? '刷新超时，AI 服务响应过慢，请稍后重试或减少回填页数。'
+        ? '刷新超时，上游平台响应过慢，请稍后重试或减少回填页数。'
         : (firstError || '刷新失败');
       const firstPublicError = pickFirstPublicApiError(collected.failures);
       const effectiveCode = collected.timedOut
@@ -344,55 +430,103 @@ async function refreshContentType(
       const terminalError = firstPublicError
         ? createApiError(effectiveCode, terminalMessage, firstPublicError.details || {})
         : createApiError(effectiveCode, terminalMessage);
-      recordSourceRun({
-        type,
-        source,
-        status: 'failed',
-        count: 0,
-        error: terminalMessage,
-        startedAt,
-      });
-      saveCursorStatus({
-        type,
-        source,
-        cursorSnapshot: incrementalCursor,
-        status: 'failed',
-        count: 0,
-        error: terminalMessage,
-      });
+      if (!databaseDisabled) {
+        recordSourceRun({
+          type,
+          source,
+          status: 'failed',
+          count: 0,
+          error: terminalMessage,
+          startedAt,
+        });
+      }
+      if (!databaseDisabled) {
+        saveCursorStatus({
+          type,
+          source,
+          cursorSnapshot: incrementalCursor,
+          status: 'failed',
+          count: 0,
+          error: terminalMessage,
+        });
+      }
       throw markSourceRunRecorded(terminalError);
     }
 
     const nextCursor = buildCursorFromList(collected.list, incrementalCursor);
 
-    recordSourceRun({
-      type,
-      source: resolvedSource,
-      status: 'success',
-      count,
-      error: partialErrorMessage,
-      startedAt,
-    });
-
-    saveCursorStatus({
+    if (!databaseDisabled) {
+      recordSourceRun({
+        type,
+        source: resolvedSource,
+        status: 'success',
+        count,
+        error: partialErrorMessage,
+        startedAt,
+      });
+    }
+    recordSourceOutcome({
       type,
       source,
-      cursorSnapshot: nextCursor,
-      status: 'success',
-      count,
-      error: partialErrorMessage,
+      status: count > 0 ? 'success' : 'empty',
+      latencyMs: Date.now() - refreshStartedAt,
     });
+
+    if (!databaseDisabled) {
+      saveCursorStatus({
+        type,
+        source,
+        cursorSnapshot: nextCursor,
+        status: 'success',
+        count,
+        error: partialErrorMessage,
+      });
+    }
 
     let leaderboard = null;
     let leaderboardWarning = null;
-    try {
-      leaderboard = await captureLeaderboardForType({
+    if (!databaseDisabled) {
+      try {
+        leaderboard = await captureLeaderboardForType({
+          type,
+          actor: 'system',
+          layers: ['overall', 'new', 'rising', 'completed'],
+        });
+      } catch (error) {
+        leaderboardWarning = error?.message || 'leaderboard capture failed';
+      }
+    }
+
+    if (jsonDataset) {
+      await appendCrawlLog({
         type,
-        actor: 'system',
-        layers: ['overall', 'new', 'rising', 'completed'],
-      });
-    } catch (error) {
-      leaderboardWarning = error?.message || 'leaderboard capture failed';
+        source: resolvedSource,
+        status: 'success',
+        count,
+        partial: collected.failedPages > 0,
+        attemptedPages: collected.attemptedPages,
+        failedPages: collected.failedPages,
+        warning: partialErrorMessage,
+        startedAt,
+        finishedAt: new Date().toISOString(),
+        jsonDataset: {
+          count: jsonDataset.count,
+          capturedAt: jsonDataset.dataset?.capturedAt || '',
+          date: jsonDataset.dataset?.date || '',
+          fallbackUsed: Boolean(jsonDataset.fallbackUsed),
+        },
+        items: writableList.slice(0, 20).map(item => ({
+          id: item.id,
+          title: item.title,
+          source: item.source?.provider || item.source || '',
+          hotScore: item.hotScore,
+          metrics: item.metrics || {},
+        })),
+        supplementalSignals: {
+          count: enriched.signals.length,
+          errors: enriched.errors,
+        },
+      }, { now: new Date(startedAt) });
     }
 
     return {
@@ -404,6 +538,10 @@ async function refreshContentType(
       failedPages: collected.failedPages,
       attemptedPages: collected.attemptedPages,
       warning: partialErrorMessage,
+      supplementalSignals: {
+        count: enriched.signals.length,
+        errors: enriched.errors,
+      },
       pageCount: normalized.pageCount,
       pageSize: normalized.pageSize,
       sortModes: normalized.sortModes,
@@ -415,9 +553,15 @@ async function refreshContentType(
       },
       leaderboard,
       leaderboardWarning,
+      jsonDataset: jsonDataset ? {
+        count: jsonDataset.count,
+        capturedAt: jsonDataset.dataset?.capturedAt || '',
+        date: jsonDataset.dataset?.date || '',
+        fallbackUsed: Boolean(jsonDataset.fallbackUsed),
+      } : null,
     };
   } catch (error) {
-    if (!error?.sourceRunRecorded) {
+    if (!error?.sourceRunRecorded && !databaseDisabled) {
       recordSourceRun({
         type,
         source,
@@ -425,6 +569,13 @@ async function refreshContentType(
         count: 0,
         error: error.message || '刷新失败',
         startedAt,
+      });
+      recordSourceOutcome({
+        type,
+        source,
+        status: error?.publicCode === 'upstream_rate_limited' ? 'rate_limited' : 'failed',
+        latencyMs: Date.now() - refreshStartedAt,
+        error,
       });
       if (incrementalEnabled) {
         saveCursorStatus({
@@ -437,9 +588,45 @@ async function refreshContentType(
         });
       }
     }
-    if (error.publicCode) throw error;
+    if (error.publicCode) {
+      if (error.statusCode) throw error;
+      throw createApiError(error.publicCode, error.message || '刷新失败', error.details || {});
+    }
     throw createApiError('upstream_unavailable', error.message || '刷新失败');
   }
 }
 
-export { refreshContentType, sourceForType, dedupeById, parseSortModes, filterIncrementalByCursor, buildCursorFromList };
+
+function resetIngestionRefreshQueueForTest() {
+  activeRefreshesByType.clear();
+  refreshQueue = Promise.resolve();
+}
+
+async function refreshContentType(type, options = {}) {
+  sourceForType(type);
+  const key = String(type);
+  const active = activeRefreshesByType.get(key);
+  if (active) return active;
+
+  const queued = refreshQueue
+    .catch(() => {})
+    .then(() => executeRefreshContentType(type, options));
+  const promise = queued.finally(() => {
+    if (activeRefreshesByType.get(key) === promise) {
+      activeRefreshesByType.delete(key);
+    }
+  });
+  activeRefreshesByType.set(key, promise);
+  refreshQueue = promise.catch(() => {});
+  return promise;
+}
+
+export {
+  refreshContentType,
+  sourceForType,
+  dedupeById,
+  parseSortModes,
+  filterIncrementalByCursor,
+  buildCursorFromList,
+  resetIngestionRefreshQueueForTest,
+};

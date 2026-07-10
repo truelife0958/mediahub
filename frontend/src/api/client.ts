@@ -1,4 +1,4 @@
-interface ApiEnvelope<T> {
+﻿interface ApiEnvelope<T> {
   code: number;
   data: T;
   error?: string;
@@ -16,8 +16,8 @@ const ERROR_MESSAGE_BY_CODE: Record<number, string> = {
   1401: '内容解析失败，请稍后重试。',
   2002: '上游内容服务暂不可用，请稍后重试。',
   2003: '上游限流中，请稍后再试。',
-  2004: 'AI 服务拒绝访问，请检查 API Key 权限或内容合规策略。',
-  2005: 'AI 模型响应超时，可尝试减少请求内容或在后台管理刷新。',
+  2004: '上游平台拒绝访问，请稍后重试或检查采集源。',
+  2005: '数据采集请求超时，可稍后刷新榜单或在数据页重试。',
 };
 
 function normalizeApiErrorMessage(payload: ApiEnvelope<unknown> | null, status: number) {
@@ -56,8 +56,12 @@ export async function requestJson<T>(path: string, init?: RequestJsonInit): Prom
   }
 
   const headers = new Headers(init?.headers || {});
+  const method = String(init?.method || 'GET').toUpperCase();
   if (!headers.has('Accept')) headers.set('Accept', 'application/json');
   if (init?.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  if (!['GET', 'HEAD'].includes(method) && !headers.has('X-MediaHub-Admin-Action')) {
+    headers.set('X-MediaHub-Admin-Action', 'true');
+  }
 
   try {
     const response = await fetch(`/api${path}`, {
@@ -89,8 +93,6 @@ export async function requestJson<T>(path: string, init?: RequestJsonInit): Prom
       if (timedOut) {
         throw new Error(`请求超时(${Math.round(timeoutMs / 1000)}s)，请稍后重试。`, { cause: error });
       }
-      // External signal abort (component unmount / request cancelled) — re-throw silently
-      // so callers can distinguish from a genuine timeout.
       throw new DOMException('请求已取消', 'AbortError');
     }
     throw error;

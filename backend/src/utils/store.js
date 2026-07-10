@@ -5,8 +5,8 @@ const MAX_FOLLOWS = 200;
 const categories = [
   { id: 'drama', name: '短剧', icon: '剧' },
   { id: 'novel', name: '小说', icon: '文' },
-  { id: 'comic', name: '漫画', icon: '漫' },
   { id: 'anime', name: '动漫', icon: '动' },
+  { id: 'comic', name: '漫画', icon: '漫' },
 ];
 
 export {

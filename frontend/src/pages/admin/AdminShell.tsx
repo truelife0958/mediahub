@@ -37,44 +37,47 @@ export default function AdminShell({
   children,
 }: AdminShellProps) {
   const current = modules.find(item => item.id === activeModule) || modules[0];
+  const showSidebar = modules.length > 1;
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="admin-panel rounded-2xl p-3 lg:sticky lg:top-24 lg:self-start" data-testid="admin-left-nav">
-        <div className="mb-3 px-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent-primary)]">Control Center</p>
-          <h2 className="mt-1 text-xl font-black tracking-[-0.03em]">后台管理</h2>
-          <p className="mt-1 text-xs text-[var(--text-muted)]">左侧模块导航 · 右侧标签工作台</p>
-        </div>
-        <nav className="space-y-1">
-          {modules.map(item => {
-            const active = item.id === current.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onModuleChange(item.id)}
-                data-testid={`admin-nav-${item.id}`}
-                className={`w-full rounded-xl border px-3 py-3 text-left transition-all ${active ? 'border-[rgba(232,168,56,0.42)] bg-[rgba(232,168,56,0.10)] text-[var(--text-primary)] shadow-[0_16px_40px_-28px_rgba(232,168,56,0.9)]' : 'border-transparent text-[var(--text-secondary)] hover:border-[var(--border)] hover:bg-[rgba(255,255,255,0.035)] hover:text-[var(--text-primary)]'}`}
-              >
-                <span className="flex items-center gap-3">
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-bold">{item.label}</span>
-                    <span className="block truncate text-[11px] text-[var(--text-muted)]">{item.subtitle}</span>
+    <div className={`grid grid-cols-1 gap-4 ${showSidebar ? 'lg:grid-cols-[220px_minmax(0,1fr)]' : ''}`}>
+      {showSidebar && (
+        <aside className="admin-panel rounded-2xl p-3 lg:sticky lg:top-24 lg:self-start" data-testid="admin-left-nav">
+          <div className="mb-3 px-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent-primary)]">Data</p>
+            <h2 className="mt-1 text-xl font-black tracking-[-0.03em]">数据面板</h2>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">只保留采集状态和 JSON 数据</p>
+          </div>
+          <nav className="space-y-1">
+            {modules.map(item => {
+              const active = item.id === current.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => onModuleChange(item.id)}
+                  data-testid={`admin-nav-${item.id}`}
+                  className={`w-full rounded-xl border px-3 py-3 text-left transition-all ${active ? 'border-[rgba(232,168,56,0.42)] bg-[rgba(232,168,56,0.10)] text-[var(--text-primary)] shadow-[0_16px_40px_-28px_rgba(232,168,56,0.9)]' : 'border-transparent text-[var(--text-secondary)] hover:border-[var(--border)] hover:bg-[rgba(255,255,255,0.035)] hover:text-[var(--text-primary)]'}`}
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="text-lg">{item.icon}</span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-bold">{item.label}</span>
+                      <span className="block truncate text-[11px] text-[var(--text-muted)]">{item.subtitle}</span>
+                    </span>
                   </span>
-                </span>
-              </button>
-            );
-          })}
-        </nav>
-      </aside>
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+      )}
 
       <section className="min-w-0">
         <div className="admin-panel rounded-2xl p-4 md:p-5">
           <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div>
-              <p className="text-xs text-[var(--text-muted)]">当前模块</p>
+              <p className="text-xs text-[var(--text-muted)]">当前数据入口</p>
               <h2 className="text-2xl font-black tracking-[-0.03em]">{current.label}</h2>
               <p className="mt-1 text-sm text-[var(--text-muted)]">{current.subtitle}</p>
             </div>

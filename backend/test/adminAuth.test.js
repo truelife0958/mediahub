@@ -6,6 +6,8 @@ import { resetDatabaseForTest } from '../src/db/database.js';
 import { createApp } from '../src/app.js';
 import { resetLoginRateLimit } from '../src/routes/admin.js';
 
+const ADMIN_HEADERS = { origin: 'http://127.0.0.1:5174', 'x-mediahub-admin-action': 'true' };
+
 function createMockResponse(resolve) {
   const chunks = [];
   const response = new EventEmitter();
@@ -71,12 +73,34 @@ function createTestClient() {
 test('admin APIs reject unauthenticated users', async () => {
   const client = createTestClient();
 
-  for (const pathname of ['/api/system/settings', '/api/sources/status']) {
+  for (const pathname of ['/api/system/json-data-status', '/api/sources/status']) {
     const response = await client.request({ pathname });
     assert.equal(response.status, 401, pathname);
     assert.equal(response.data.code, 1004);
     assert.equal(response.data.error, 'unauthorized');
   }
+});
+
+
+test('admin mutating APIs require trusted origin and admin action header', async () => {
+  const client = createTestClient();
+
+  const noHeader = await client.request({
+    method: 'POST',
+    pathname: '/api/admin/login',
+    body: { password: 'test-admin-secret' },
+  });
+  assert.equal(noHeader.status, 401);
+  assert.equal(noHeader.data.error, 'unauthorized');
+
+  const badOrigin = await client.request({
+    method: 'POST',
+    pathname: '/api/admin/login',
+    headers: { origin: 'https://evil.example', 'x-mediahub-admin-action': 'true' },
+    body: { password: 'test-admin-secret' },
+  });
+  assert.equal(badOrigin.status, 401);
+  assert.equal(badOrigin.data.error, 'unauthorized');
 });
 
 test('admin login sets httpOnly cookie and unlocks protected APIs', async () => {
@@ -85,6 +109,7 @@ test('admin login sets httpOnly cookie and unlocks protected APIs', async () => 
   const loginResponse = await client.request({
     method: 'POST',
     pathname: '/api/admin/login',
+    headers: ADMIN_HEADERS,
     body: { password: 'test-admin-secret' },
   });
 
@@ -95,12 +120,61 @@ test('admin login sets httpOnly cookie and unlocks protected APIs', async () => 
   assert.match(cookie, /HttpOnly/i);
   assert.match(cookie, /SameSite=Lax/i);
 
-  const settingsResponse = await client.request({
-    pathname: '/api/system/settings',
+  const statusResponse = await client.request({
+    pathname: '/api/system/json-data-status',
     headers: { cookie: cookiePair(cookie) },
   });
-  assert.equal(settingsResponse.status, 200);
-  assert.equal(settingsResponse.data.code, 0);
+  assert.equal(statusResponse.status, 200);
+  assert.equal(statusResponse.data.code, 0);
+});
+
+
+
+test('admin login rate limit returns a 429 API error after repeated failures', async () => {
+  const client = createTestClient();
+
+  for (let index = 0; index < 5; index += 1) {
+    const response = await client.request({
+      method: 'POST',
+      pathname: '/api/admin/login',
+      headers: ADMIN_HEADERS,
+      body: { password: 'wrong' },
+    });
+    assert.equal(response.status, 401, `failed login ${index + 1} should still be an auth error`);
+  }
+
+  const limitedResponse = await client.request({
+    method: 'POST',
+    pathname: '/api/admin/login',
+    headers: ADMIN_HEADERS,
+    body: { password: 'wrong' },
+  });
+  assert.equal(limitedResponse.status, 429);
+  assert.equal(limitedResponse.data.code, 1005);
+  assert.equal(limitedResponse.data.error, 'rate_limited');
+});
+
+test('successful admin logins do not consume failed-login rate limit budget', async () => {
+  const client = createTestClient();
+
+  for (let index = 0; index < 6; index += 1) {
+    const loginResponse = await client.request({
+      method: 'POST',
+      pathname: '/api/admin/login',
+      headers: ADMIN_HEADERS,
+      body: { password: 'test-admin-secret' },
+    });
+    assert.equal(loginResponse.status, 200, `successful login ${index + 1} should not be rate limited`);
+  }
+
+  const wrongResponse = await client.request({
+    method: 'POST',
+    pathname: '/api/admin/login',
+    headers: ADMIN_HEADERS,
+    body: { password: 'wrong' },
+  });
+  assert.equal(wrongResponse.status, 401);
+  assert.equal(wrongResponse.data.error, 'unauthorized');
 });
 
 test('admin login rejects wrong password and logout clears session', async () => {
@@ -109,6 +183,7 @@ test('admin login rejects wrong password and logout clears session', async () =>
   const wrongResponse = await client.request({
     method: 'POST',
     pathname: '/api/admin/login',
+    headers: ADMIN_HEADERS,
     body: { password: 'wrong' },
   });
   assert.equal(wrongResponse.status, 401);
@@ -117,6 +192,7 @@ test('admin login rejects wrong password and logout clears session', async () =>
   const loginResponse = await client.request({
     method: 'POST',
     pathname: '/api/admin/login',
+    headers: ADMIN_HEADERS,
     body: { password: 'test-admin-secret' },
   });
   const cookie = firstCookieHeader(loginResponse);
@@ -124,7 +200,7 @@ test('admin login rejects wrong password and logout clears session', async () =>
   const logoutResponse = await client.request({
     method: 'POST',
     pathname: '/api/admin/logout',
-    headers: { cookie: cookiePair(cookie) },
+    headers: { ...ADMIN_HEADERS, cookie: cookiePair(cookie) },
   });
   assert.equal(logoutResponse.status, 200);
   assert.match(firstCookieHeader(logoutResponse), /^mediahub_admin=;/);

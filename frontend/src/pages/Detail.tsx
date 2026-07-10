@@ -1,189 +1,76 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  addWatchHistory,
-  createUserSubscription,
-  getLeaderboardTrend,
-  getUserFavorites,
-  toggleFavorite,
-  toggleFollow,
   useContentDetail,
 } from '../api';
-import { useSharedUser } from '../hooks/useSharedUser';
-import RelatedCard from '../components/RelatedCard';
 import ApiState from '../components/ApiState';
-import Toast from '../components/Toast';
-import { useToast } from '../hooks/useToast';
 import { CATEGORY_COLORS, CATEGORY_TEXT, CATEGORY_ICONS } from '../constants';
-import { IconBack, IconHeart, IconHistory } from '../components/Icons';
-import { formatHotScore } from '../utils/hotScore';
-import type { LeaderboardTrendResponse } from '../types';
+import { IconBack, IconChart } from '../components/Icons';
+import { buildRelationSections } from '../utils/contentRelations';
+import { buildPublicFactRows, formatFieldSourceLine, PUBLIC_FIELD_LABEL } from '../utils/publicReportFields';
+import {
+  buildMetricRows,
+  formatMetricScore,
+  formatRealMetricDisplay,
+  getTotalScore,
+  hasBrokenText,
+} from '../utils/contentMetrics';
+import type { HotSignal } from '../types';
+
+function formatRelationHeat(hotScore?: number) {
+  const value = Math.max(0, Number(hotScore) || 0) / 10000;
+  if (value >= 100) return `${Math.round(value)}分`;
+  return `${value.toFixed(1)}分`;
+}
+
+function formatSignalMetric(signal: HotSignal) {
+  const searchIndex = Number(signal.searchIndex);
+  if (Number.isFinite(searchIndex) && searchIndex > 0) return `热搜 ${Math.round(searchIndex)}`;
+
+  const topicPlayYi = Number(signal.topicPlayYi);
+  if (Number.isFinite(topicPlayYi) && topicPlayYi > 0) {
+    return `话题 ${topicPlayYi.toFixed(topicPlayYi >= 10 ? 1 : 2).replace(/\.0$/, '')} 亿`;
+  }
+
+  const topicScore = Number(signal.topicSignalScore);
+  if (Number.isFinite(topicScore) && topicScore > 0) return `话题 ${Math.round(topicScore)}`;
+
+  const heatValue = Number(signal.heatValue);
+  if (Number.isFinite(heatValue) && heatValue > 0) return `热度 ${Math.round(heatValue)}`;
+
+  return signal.rank ? `#${signal.rank}` : '已命中';
+}
 
 export default function Detail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [retryKey, setRetryKey] = useState(0);
-  const { user } = useSharedUser();
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [watched, setWatched] = useState(false);
-  const [actionBusy, setActionBusy] = useState<'favorite' | 'history' | 'follow' | 'subscribe' | ''>('');
-  const [trend, setTrend] = useState<LeaderboardTrendResponse | null>(null);
-  const [compareCount, setCompareCount] = useState(0);
-  const { toast, showToast } = useToast();
   const contentId = id || '';
   const invalidContentId = contentId.length > 200 || !/^[a-z]+:[a-z0-9-]+:[\w.-]+$/i.test(contentId);
   const { content, loading, error } = useContentDetail(contentId, retryKey);
 
   const handleGoBack = useCallback(() => navigate(-1), [navigate]);
-  const buildTopicPath = useCallback((field: 'actor' | 'character' | 'author' | 'ip', value: string) => (
-    `/topics/${field}/${encodeURIComponent(value)}?type=${encodeURIComponent(content?.type || '')}`
-  ), [content?.type]);
+  const buildSearchPath = useCallback((value: string) => (
+    `/search?q=${encodeURIComponent(value)}`
+  ), []);
 
-  useEffect(() => {
-    if (!contentId) return;
-    const controller = new AbortController();
-
-    if (user) {
-      getUserFavorites({ signal: controller.signal })
-        .then((items) => {
-          setIsFavorite(items.some(item => item.id === contentId));
-        })
-        .catch((err) => {
-          if (err?.name === 'AbortError') return;
-          setIsFavorite(false);
-        });
-    } else {
-      setIsFavorite(false);
-    }
-    setWatched(Boolean(user && contentId && user.recentlyWatchedIds?.includes(contentId)));
-    setIsFollowing(Boolean(user && contentId && user.followingIds?.includes(contentId)));
-
-    return () => { controller.abort(); };
-  }, [contentId, user]);
-
-  const evidenceList = useMemo(() => content?.leaderboardEvidence || [], [content?.leaderboardEvidence]);
-  const trendItems = useMemo(() => (trend?.timeline || []).slice(-8), [trend?.timeline]);
-
-  useEffect(() => {
-    if (!content) return;
-    const controller = new AbortController();
-    getLeaderboardTrend({ type: content.type, layer: 'overall', contentId: content.id, limit: 12 }, { signal: controller.signal })
-      .then(setTrend)
-      .catch((err) => {
-        if (err?.name === 'AbortError') return;
-        setTrend(null);
-      });
-    return () => { controller.abort(); };
-  }, [content?.id, content?.type]);
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem('mediahub_compare_ids') || '[]';
-      const ids = JSON.parse(raw);
-      setCompareCount(Array.isArray(ids) ? ids.length : 0);
-    } catch {
-      setCompareCount(0);
-    }
-  }, [contentId]);
-
-  const handleToggleFavorite = useCallback(async () => {
-    if (!contentId) return;
-    if (!user) {
-      navigate('/me');
-      return;
-    }
-    setActionBusy('favorite');
-    try {
-      const result = await toggleFavorite(contentId);
-      setIsFavorite(result.isFavorite);
-      showToast(result.isFavorite ? '已加入收藏' : '已取消收藏', 'success');
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : '操作失败', 'error');
-    } finally {
-      setActionBusy('');
-    }
-  }, [contentId, navigate, user, showToast]);
-
-  const handleMarkWatched = useCallback(async () => {
-    if (!contentId || watched) return;
-    if (!user) {
-      navigate('/me');
-      return;
-    }
-    setActionBusy('history');
-    try {
-      await addWatchHistory(contentId);
-      setWatched(true);
-      showToast('已标注为已看', 'success');
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : '操作失败', 'error');
-    } finally {
-      setActionBusy('');
-    }
-  }, [contentId, navigate, user, watched, showToast]);
-
-  const handleToggleFollow = useCallback(async () => {
-    if (!contentId) return;
-    if (!user) {
-      navigate('/me');
-      return;
-    }
-    setActionBusy('follow');
-    try {
-      const result = await toggleFollow(contentId);
-      setIsFollowing(result.isFollowing);
-      showToast(result.isFollowing ? '已加入追更' : '已取消追更', 'success');
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : '操作失败', 'error');
-    } finally {
-      setActionBusy('');
-    }
-  }, [contentId, navigate, user, showToast]);
-
-  const handleSubscribeIp = useCallback(async () => {
-    if (!content?.ipName) return;
-    if (!user) {
-      navigate('/me');
-      return;
-    }
-    setActionBusy('subscribe');
-    try {
-      const result = await createUserSubscription({ keyword: content.ipName, type: content.type });
-      showToast(result.alreadyExists ? `已订阅关键词：${content.ipName}` : `已订阅关键词：${content.ipName}`, result.alreadyExists ? 'info' : 'success');
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : '操作失败', 'error');
-    } finally {
-      setActionBusy('');
-    }
-  }, [content, navigate, user, showToast]);
-
-  const handleAddCompare = useCallback(() => {
-    if (!contentId) return;
-    let ids: string[];
-    try {
-      const raw = window.localStorage.getItem('mediahub_compare_ids') || '[]';
-      const parsed = JSON.parse(raw);
-      ids = Array.isArray(parsed) ? parsed.map(String) : [];
-    } catch {
-      ids = [];
-    }
-    if (ids.includes(contentId)) {
-      showToast('已在对比列表中', 'info');
-      return;
-    }
-    const next = [contentId, ...ids].slice(0, 4);
-    try {
-      window.localStorage.setItem('mediahub_compare_ids', JSON.stringify(next));
-      setCompareCount(next.length);
-      showToast(`已加入对比（${next.length}/4）`, 'success');
-    } catch {
-      showToast('存储空间不足', 'error');
-    }
-  }, [contentId, showToast]);
-
-  const layerLabel = (layer: string) =>
-    layer === 'overall' ? '总榜' : layer === 'new' ? '新作榜' : layer === 'rising' ? '飙升榜' : '完结榜';
+  const cleanText = (value: unknown) => {
+    const text = String(value || '').trim();
+    return text && !hasBrokenText(text) ? text : '';
+  };
+  const cleanList = (values?: string[]) => (values || []).map(cleanText).filter(Boolean);
+  const formatDate = (value?: string) => {
+    if (!value) return '暂无日期';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '暂无日期';
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
   if (loading) {
     return (
@@ -223,6 +110,45 @@ export default function Detail() {
     );
   }
 
+  const displayTitle = cleanText(content.title) || `${CATEGORY_TEXT[content.type]}内容待修复`;
+  const displaySummary = cleanText(content.summary);
+  const displayCharacters = cleanList(content.characters);
+  const displayTags = cleanList(content.tags);
+  const displayAuthor = cleanText(content.author);
+  const displayIpName = cleanText(content.ipName);
+  const displayCover = cleanText(content.cover);
+  const hasContentQualityIssue = hasBrokenText(content.title)
+    || hasBrokenText(content.summary)
+    || (content.tags || []).some(hasBrokenText)
+    || (content.actors || []).some(hasBrokenText)
+    || (content.characters || []).some(hasBrokenText)
+    || hasBrokenText(content.author)
+    || hasBrokenText(content.ipName);
+  const metricRows = buildMetricRows({
+    heatMetric: content.heatMetric,
+    metrics: content.metrics,
+    hotScore: content.hotScore,
+  });
+  const totalScore = getTotalScore({ metrics: content.metrics, hotScore: content.hotScore });
+  const realMetric = formatRealMetricDisplay({ heatMetric: content.heatMetric, metrics: content.metrics });
+  const sourceLabel = content.source?.label || content.source?.provider || '综合榜';
+  const sourceUrl = content.source?.url || content.leaderboardEvidence?.[0]?.sourceUrl || '';
+  const displayUpdatedAt = content.updatedAt || content.cachedAt || content.createdAt;
+  const relationSections = buildRelationSections(content);
+  const hotSignals = (content.hotSignals || [])
+    .filter(signal => !hasBrokenText(signal.keyword) && !hasBrokenText(signal.platformName))
+    .slice(0, 8);
+  const dataSources = (content.fieldSources || [])
+    .map(entry => ({
+      label: `${PUBLIC_FIELD_LABEL[entry.field]} · ${entry.sourceName || '公开报道'}`,
+      url: cleanText(entry.sourceUrl),
+      value: Array.isArray(entry.value) ? entry.value.join(' / ') : cleanText(entry.value),
+    }))
+    .filter((entry, index, list) => entry.label && list.findIndex(item => item.label === entry.label && item.url === entry.url) === index)
+    .slice(0, 8);
+  const publicFactRows = buildPublicFactRows(content);
+  const summarySource = (content.fieldSources || []).find(entry => entry.field === 'summary');
+
   return (
     <div className="relative min-h-screen bg-[var(--bg-primary)] overflow-x-hidden">
       <header className="sticky top-0 z-50 glass-strong">
@@ -235,7 +161,7 @@ export default function Detail() {
             >
               <IconBack size={16} />
             </button>
-            <h1 className="font-semibold text-base truncate flex-1">{content.title}</h1>
+            <h1 className="font-semibold text-base truncate flex-1">{displayTitle}</h1>
           </div>
         </div>
       </header>
@@ -243,261 +169,283 @@ export default function Detail() {
       <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8 relative">
         {/* 主信息卡 */}
         <div className="rounded-2xl p-4 md:p-6 mb-6 animate-fade-in bg-[var(--bg-card)] border border-[var(--border)] shadow-[var(--shadow-card)]">
-          <div className="flex min-w-0 flex-col">
+          <div className="flex min-w-0 flex-col gap-5 md:flex-row">
+            {displayCover && (
+              <a
+                href={displayCover}
+                target="_blank"
+                rel="noreferrer"
+                className="group relative mx-auto w-full max-w-[220px] shrink-0 overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(255,255,255,0.04)] shadow-[0_20px_45px_-30px_rgba(0,0,0,0.75)] md:mx-0"
+                aria-label={`查看 ${displayTitle} 真实封面大图`}
+              >
+                <img
+                  src={displayCover}
+                  alt={`${displayTitle} 封面`}
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                  className="aspect-[3/4] h-auto w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                />
+                <span className="absolute bottom-2 left-2 rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(0,0,0,0.55)] px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur">真实封面</span>
+              </a>
+            )}
+            <div className="min-w-0 flex-1">
             {/* 分类标签 + 状态 */}
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md tracking-[0.02em] text-white" style={{ background: CATEGORY_COLORS[content.type] }}>
-                {CATEGORY_ICONS[content.type]} {CATEGORY_TEXT[content.type]}
+                分类 · {CATEGORY_ICONS[content.type]} {CATEGORY_TEXT[content.type]}
               </span>
               <span className={`px-2.5 py-1 rounded-md text-[11px] font-semibold ${content.status === 'ongoing' ? 'bg-[rgba(34,197,94,0.12)] text-[#4ade80] border border-[rgba(34,197,94,0.2)]' : 'bg-[rgba(161,161,170,0.12)] text-[var(--text-muted)] border border-[rgba(161,161,170,0.15)]'}`}>
                 {content.status === 'ongoing' ? '连载中' : '已完结'}
               </span>
-              <span className="detail-hot-score ml-auto">{formatHotScore(content.hotScore, content.heatMetric)}</span>
+              <span className="detail-hot-score ml-auto">综合分 {totalScore.toFixed(1)}</span>
             </div>
 
             {/* 标题 */}
-            <h2 className="text-2xl md:text-[28px] font-bold -tracking-[0.02em] leading-tight mb-4">{content.title}</h2>
+            <h2 className="text-2xl md:text-[28px] font-bold -tracking-[0.02em] leading-tight mb-3">{displayTitle}</h2>
+            {hasContentQualityIssue && (
+              <div className="mb-4 rounded-xl border border-[rgba(251,146,60,0.26)] bg-[rgba(251,146,60,0.08)] px-3 py-2 text-xs text-[#fed7aa]">
+                该条内容存在乱码字段，已自动隐藏异常文本，可在后台重新编辑修复。
+              </div>
+            )}
+
+            <div className="detail-metric-panel">
+              <div className="detail-total-score">
+                <IconChart size={16} />
+                <span>综合热度</span>
+                <strong>{totalScore.toFixed(1)}</strong>
+              </div>
+              <p className="text-xs text-[var(--text-muted)] mt-2">{realMetric.meta} · 公开来源字段优先</p>
+              <div className="detail-metric-grid">
+                {metricRows.map(row => (
+                  <div key={row.id} className="detail-metric-item">
+                    <div className="detail-metric-head">
+                      <span>{row.label}</span>
+                      <strong>{formatMetricScore(row.score)}</strong>
+                    </div>
+                    <div className="detail-metric-bar">
+                      <span style={{ width: `${row.score}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {hotSignals.length > 0 && (
+              <div className="mb-4 rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.035)] p-3">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <span className="text-xs font-semibold text-[var(--text-muted)]">公开热榜信号</span>
+                  <span className="text-xs text-[var(--text-muted)]">{hotSignals.length} 条命中</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {hotSignals.map(signal => {
+                    const body = (
+                      <>
+                        <span className="font-semibold">{signal.platformName || signal.platform}</span>
+                        <span className="text-[var(--text-muted)]">#{signal.rank || '-'}</span>
+                        <span className="max-w-[180px] truncate">{signal.keyword}</span>
+                        <span className="text-[var(--accent-primary)]">{formatSignalMetric(signal)}</span>
+                      </>
+                    );
+                    return signal.sourceUrl ? (
+                      <a
+                        key={`${signal.platform}-${signal.rank}-${signal.keyword}`}
+                        href={signal.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[rgba(255,255,255,0.04)] px-2.5 py-1 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                      >
+                        {body}
+                      </a>
+                    ) : (
+                      <span
+                        key={`${signal.platform}-${signal.rank}-${signal.keyword}`}
+                        className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[rgba(255,255,255,0.04)] px-2.5 py-1 text-xs text-[var(--text-secondary)]"
+                      >
+                        {body}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {dataSources.length > 0 && (
+              <div className="mb-4 rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.035)] p-3">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <span className="text-xs font-semibold text-[var(--text-muted)]">数据来源</span>
+                  <span className="text-xs text-[var(--text-muted)]">{dataSources.length} 个公开来源</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {dataSources.map(entry => (
+                    <a
+                      key={entry.url}
+                      href={entry.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[rgba(255,255,255,0.04)] px-2.5 py-1 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                      title={entry.value || entry.label}
+                    >
+                      <span className="font-semibold">{entry.label}</span>
+                      {entry.value ? <span className="max-w-[220px] truncate text-[var(--text-muted)]">{entry.value}</span> : null}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* 元信息 */}
             <div className="flex flex-col gap-2.5 mb-4 text-sm">
-              {content.actors && content.actors.length > 0 && (
-                <div className="flex items-start gap-2 min-w-0">
-                  <span className="text-[var(--text-muted)] text-xs font-medium min-w-[36px] shrink-0 pt-0.5">主演</span>
-                  <div className="min-w-0 flex flex-wrap gap-x-1 gap-y-0.5">
-                    {content.actors.map((actor, index) => (
-                      <span key={actor}>
-                        <button
-                          type="button"
-                          onClick={() => navigate(buildTopicPath('actor', actor))}
-                          className="cursor-pointer border-0 bg-transparent p-0 text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)] transition-colors"
-                        >
-                          {actor}
-                        </button>
-                        {index < content.actors.length - 1 ? <span className="text-[var(--text-muted)]"> / </span> : ''}
-                      </span>
-                    ))}
+              {publicFactRows.map(row => (
+                <div key={row.field} className="flex items-start gap-2 min-w-0">
+                  <span className="text-[var(--text-muted)] text-xs font-medium min-w-[48px] shrink-0 pt-0.5">{row.label}</span>
+                  <div className="min-w-0">
+                    <span className="block text-sm text-[var(--text-secondary)] break-words">
+                      {row.value || '未找到公开报道'}
+                    </span>
+                    <span className="block text-[11px] text-[var(--text-muted)] mt-0.5">
+                      {formatFieldSourceLine(row.source)}
+                    </span>
                   </div>
                 </div>
-              )}
-              {content.characters && content.characters.length > 0 && (
+              ))}
+              {displayCharacters.length > 0 && (
                 <div className="flex items-start gap-2 min-w-0">
                   <span className="text-[var(--text-muted)] text-xs font-medium min-w-[36px] shrink-0 pt-0.5">角色</span>
                   <div className="min-w-0 flex flex-wrap gap-x-1 gap-y-0.5">
-                    {content.characters.map((character, index) => (
+                    {displayCharacters.map((character, index) => (
                       <span key={character}>
                         <button
                           type="button"
-                          onClick={() => navigate(buildTopicPath('character', character))}
+                          onClick={() => navigate(buildSearchPath(character))}
                           className="cursor-pointer border-0 bg-transparent p-0 text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)] transition-colors"
                         >
                           {character}
                         </button>
-                        {index < (content.characters?.length || 0) - 1 ? <span className="text-[var(--text-muted)]"> / </span> : ''}
+                        {index < displayCharacters.length - 1 ? <span className="text-[var(--text-muted)]"> / </span> : ''}
                       </span>
                     ))}
                   </div>
                 </div>
               )}
-              {content.author && (
+              {displayAuthor && (
                 <div className="flex items-start gap-2 min-w-0">
                   <span className="text-[var(--text-muted)] text-xs font-medium min-w-[36px] shrink-0 pt-0.5">作者</span>
                   <button
                     type="button"
-                    onClick={() => navigate(buildTopicPath('author', content.author))}
+                    onClick={() => navigate(buildSearchPath(displayAuthor))}
                     className="cursor-pointer border-0 bg-transparent p-0 text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)] transition-colors"
                   >
-                    {content.author}
+                    {displayAuthor}
                   </button>
                 </div>
               )}
-              {content.ipName && (
+              {displayIpName && (
                 <div className="flex items-start gap-2 min-w-0">
                   <span className="text-[var(--text-muted)] text-xs font-medium min-w-[36px] shrink-0 pt-0.5">IP</span>
                   <button
                     type="button"
-                    onClick={() => navigate(buildTopicPath('ip', content.ipName))}
+                    onClick={() => navigate(buildSearchPath(displayIpName))}
                     className="cursor-pointer border-0 bg-transparent p-0 text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)] transition-colors"
                   >
-                    {content.ipName}
+                    {displayIpName}
                   </button>
                 </div>
               )}
+              <div className="flex items-start gap-2 min-w-0">
+                <span className="text-[var(--text-muted)] text-xs font-medium min-w-[36px] shrink-0 pt-0.5">来源</span>
+                {sourceUrl ? (
+                  <a
+                    href={sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)] transition-colors"
+                  >
+                    {sourceLabel}
+                  </a>
+                ) : (
+                  <span className="text-sm text-[var(--text-secondary)]">{sourceLabel}</span>
+                )}
+              </div>
+              <div className="flex items-start gap-2 min-w-0">
+                <span className="text-[var(--text-muted)] text-xs font-medium min-w-[36px] shrink-0 pt-0.5">更新</span>
+                <span className="text-sm text-[var(--text-secondary)]">{formatDate(displayUpdatedAt)}</span>
+              </div>
             </div>
 
             {/* 标签 */}
-            {content.tags && content.tags.length > 0 && (
+            {displayTags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-5">
-                {content.tags.map((tag) => (
-                  <span key={tag} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[rgba(255,255,255,0.06)] text-[var(--text-secondary)] border border-[rgba(255,255,255,0.06)] transition-colors duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-[var(--text-primary)]">#{tag}</span>
+                {displayTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => navigate(buildSearchPath(tag))}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[rgba(255,255,255,0.06)] text-[var(--text-secondary)] border border-[rgba(255,255,255,0.06)] transition-colors duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-[var(--text-primary)] cursor-pointer"
+                  >
+                    #{tag}
+                  </button>
                 ))}
               </div>
             )}
 
             {/* 简介 */}
-            {content.summary && (
-              <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-5 break-words">{content.summary}</p>
+            {displaySummary ? (
+              <div className="mb-5">
+                <p className="text-[var(--text-secondary)] text-sm leading-relaxed break-words">{displaySummary}</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-1">{formatFieldSourceLine(summarySource)}</p>
+              </div>
+            ) : (
+              <p className="text-[var(--text-muted)] text-sm leading-relaxed mb-5">简介未找到公开报道。</p>
             )}
 
-            {/* 主操作区 */}
-            <div className="flex flex-wrap items-center gap-2.5 mb-3">
-              <button
-                type="button"
-                onClick={handleMarkWatched}
-                className={`detail-action-primary ${watched ? 'watched' : ''}`}
-                disabled={watched || actionBusy === 'history'}
-              >
-                <IconHistory size={15} />
-                {watched ? '已看' : user ? '标注已看' : '创建会话后标注'}
-              </button>
-              <button
-                type="button"
-                onClick={handleToggleFavorite}
-                disabled={actionBusy === 'favorite'}
-                className={`detail-action-secondary ${isFavorite ? 'favorite' : ''}`}
-              >
-                <IconHeart size={15} filled={isFavorite} />
-                {isFavorite ? '已收藏' : '加入收藏'}
-              </button>
-              <button
-                type="button"
-                onClick={handleToggleFollow}
-                disabled={actionBusy === 'follow'}
-                className={`detail-action-secondary ${isFollowing ? 'favorite' : ''}`}
-              >
-                {isFollowing ? '追更中' : '加入追更'}
-              </button>
-            </div>
-
-            {/* 辅助操作区 */}
-            <div className="flex flex-wrap items-center gap-2">
-              {content.ipName && (
-                <button type="button" onClick={handleSubscribeIp} disabled={actionBusy === 'subscribe'} className="detail-action-secondary text-xs px-3 py-2">
-                  订阅IP
-                </button>
-              )}
-              <button type="button" onClick={handleAddCompare} className="detail-action-secondary text-xs px-3 py-2">
-                加入对比 {compareCount > 0 ? `(${compareCount})` : ''}
-              </button>
-              {compareCount > 0 && (
-                <button type="button" onClick={() => navigate('/compare')} className="detail-action-secondary text-xs px-3 py-2">
-                  内容对比
-                </button>
-              )}
-            </div>
-
-            {/* 数据来源 */}
-            {content.source && (
-              <div className="mt-4 pt-3 border-t border-[var(--border)] text-xs text-[var(--text-muted)]">
-                数据来源：{content.source.url ? (
-                  <a href={content.source.url} target="_blank" rel="noreferrer" className="text-[var(--accent-primary)] hover:underline">
-                    {content.source.label}
-                  </a>
-                ) : content.source.label}
-                <span className="mx-2">·</span>
-                更新于 {new Date(content.updatedAt).toLocaleDateString('zh-CN')}
+            {relationSections.length > 0 && (
+              <div className="detail-relation-panel">
+                <div className="detail-relation-heading">
+                  <span>数据关联</span>
+                  <strong>{relationSections.reduce((sum, section) => sum + section.items.length, 0)} 条</strong>
+                </div>
+                <div className="detail-relation-sections">
+                  {relationSections.map(section => (
+                    <div key={section.id} className="detail-relation-section">
+                      <div className="detail-relation-section-head">
+                        <div>
+                          <strong>{section.title}</strong>
+                          <span>{section.description}</span>
+                        </div>
+                        <em>{section.items.length}</em>
+                      </div>
+                      <div className="detail-relation-list">
+                        {section.items.map(item => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            className="detail-relation-row"
+                            onClick={() => navigate(`/detail/${item.id}`)}
+                          >
+                            <span className="detail-relation-rank">#{item.rank || '-'}</span>
+                            <span className="detail-relation-main">
+                              <strong>{item.title}</strong>
+                              <span>
+                                {item.sourceName}
+                                {item.matchedText ? ` · ${item.matchedText}` : ''}
+                              </span>
+                            </span>
+                            <span className="detail-relation-heat">{formatRelationHeat(item.hotScore)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
+
+            </div>
           </div>
         </div>
-
-        {/* 热度证据 */}
-        <section className="mb-6 animate-fade-in-up">
-          <div className="flex items-center gap-3 mb-4">
-            <h3 className="text-lg font-semibold">热度证据</h3>
-            <div className="flex-1 h-px bg-gradient-to-r from-[var(--border)] to-transparent" />
-          </div>
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-[var(--shadow-card)]">
-            <div className="mb-4 grid grid-cols-3 gap-3">
-              <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-3">
-                <p className="text-[11px] text-[var(--text-muted)]">口径</p>
-                <p className="mt-1 text-sm font-semibold">{content.heatMetric === 'reading' ? '阅读量' : '播放量'}</p>
-              </div>
-              <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-3">
-                <p className="text-[11px] text-[var(--text-muted)]">热度</p>
-                <p className="mt-1 text-sm font-semibold">{formatHotScore(content.hotScore, content.heatMetric)}</p>
-              </div>
-              <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-3">
-                <p className="text-[11px] text-[var(--text-muted)]">更新</p>
-                <p className="mt-1 text-sm font-semibold">{new Date(content.updatedAt).toLocaleDateString('zh-CN')}</p>
-              </div>
-            </div>
-            {evidenceList.length > 0 ? (
-              <div className="space-y-2">
-                {evidenceList.slice(0, 6).map(item => (
-                  <div key={`${item.captureId}-${item.rank}`} className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-3">
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="gold-surface rounded-md px-2 py-0.5 text-[10px] font-bold text-[#111]">#{item.rank}</span>
-                      <span className="font-semibold text-sm">{layerLabel(item.layer)}</span>
-                      <span className="text-xs text-[var(--text-muted)]">{new Date(item.capturedAt).toLocaleDateString('zh-CN')}</span>
-                      <span className="ml-auto text-xs text-[var(--text-muted)]">{formatHotScore(item.hotScore, item.heatMetric)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <ApiState title="暂无榜单证据" description="该内容还未进入已抓取的榜单快照，可稍后等待自动刷新后再看。" />
-            )}
-          </div>
-        </section>
-
-        {/* 榜单趋势 */}
-        <section className="mb-6 animate-fade-in-up">
-          <div className="flex items-center gap-3 mb-4">
-            <h3 className="text-lg font-semibold">榜单趋势</h3>
-            <div className="flex-1 h-px bg-gradient-to-r from-[var(--border)] to-transparent" />
-          </div>
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-[var(--shadow-card)]">
-            {trendItems.length > 0 ? (
-              <div className="flex h-28 items-end gap-1.5">
-                {trendItems.map((item, index) => {
-                  const score = 'hotScore' in item ? Number(item.hotScore) : Number(item.top?.hotScore || 0);
-                  const max = Math.max(1, ...trendItems.map(entry => ('hotScore' in entry ? Number(entry.hotScore) : Number(entry.top?.hotScore || 0))));
-                  return (
-                    <div key={`${'captureId' in item ? item.captureId : index}-${index}`} className="flex flex-1 flex-col items-center gap-1.5">
-                      <div className="w-full rounded-t-md bg-[var(--accent-primary)] transition-all" style={{ height: `${Math.max(8, (score / max) * 80)}px` }} />
-                      <span className="text-[10px] text-[var(--text-muted)]">{index + 1}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <ApiState title="暂无趋势数据" description="后台抓取榜单快照后，这里会显示热度走势。" />
-            )}
-          </div>
-        </section>
-
-        {/* 同IP其他形式 */}
-        {content.relatedContents && content.relatedContents.length > 0 && (
-          <section className="mb-6 animate-fade-in-up">
-            <div className="flex items-center gap-3 mb-4">
-              <h3 className="text-lg font-semibold">同IP其他形式</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-[var(--border)] to-transparent" />
-            </div>
-            <div className="rounded-2xl p-3 grid grid-cols-1 sm:grid-cols-2 gap-1.5 bg-[var(--bg-card)] border border-[var(--border)]">
-              {content.relatedContents.map((item) => (
-                <RelatedCard key={item.id} content={item} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 相似推荐 */}
-        {content.similarContents && content.similarContents.length > 0 && (
-          <section className="mb-6 animate-fade-in-up">
-            <div className="flex items-center gap-3 mb-4">
-              <h3 className="text-lg font-semibold">相似推荐</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-[var(--border)] to-transparent" />
-            </div>
-            <div className="rounded-2xl p-3 grid grid-cols-1 sm:grid-cols-2 gap-1.5 bg-[var(--bg-card)] border border-[var(--border)]">
-              {content.similarContents.map((item) => (
-                <RelatedCard key={item.id} content={item} />
-              ))}
-            </div>
-          </section>
-        )}
       </main>
 
-      <Toast toast={toast} />
     </div>
   );
 }

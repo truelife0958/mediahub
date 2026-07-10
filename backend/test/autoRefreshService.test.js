@@ -58,10 +58,10 @@ test('refreshAllTypes runs each type and collects failures', async () => {
   const errors = [];
 
   const result = await refreshAllTypes({
-    types: ['drama', 'comic'],
+    types: ['drama', 'novel', 'anime', 'comic'],
     refreshType: async (type) => {
       calls.push(type);
-      if (type === 'comic') throw new Error('upstream timeout');
+      if (type === 'novel') throw new Error('upstream timeout');
       return { count: 7 };
     },
     logger: {
@@ -71,23 +71,37 @@ test('refreshAllTypes runs each type and collects failures', async () => {
     },
   });
 
-  assert.deepEqual(calls, ['drama', 'comic']);
-  assert.equal(result.length, 2);
+  assert.deepEqual(calls, ['drama', 'novel', 'anime', 'comic']);
+  assert.equal(result.length, 4);
   assert.equal(result[0].type, 'drama');
   assert.equal(result[0].status, 'success');
   assert.equal(result[0].count, 7);
-  assert.equal(result[1].type, 'comic');
+  assert.equal(result[1].type, 'novel');
   assert.equal(result[1].status, 'failed');
   assert.equal(result[1].count, 0);
   assert.equal(errors.length, 1);
-  assert.match(errors[0], /comic/);
+  assert.match(errors[0], /novel/);
+});
+
+test('refreshAllTypes defaults to the four user-facing modules', async () => {
+  const calls = [];
+
+  await refreshAllTypes({
+    refreshType: async (type) => {
+      calls.push(type);
+      return { count: 1 };
+    },
+    logger: { error() {} },
+  });
+
+  assert.deepEqual(calls, ['drama', 'novel', 'anime', 'comic']);
 });
 
 test('refreshAllTypes forwards backfill options to refreshType', async () => {
   const received = [];
 
   await refreshAllTypes({
-    types: ['anime'],
+    types: ['novel'],
     refreshType: async (type, options) => {
       received.push({ type, options });
       return { count: 2 };
@@ -101,7 +115,7 @@ test('refreshAllTypes forwards backfill options to refreshType', async () => {
   });
 
   assert.equal(received.length, 1);
-  assert.equal(received[0].type, 'anime');
+  assert.equal(received[0].type, 'novel');
   assert.deepEqual(received[0].options, {
     pageCount: 4,
     pageSize: 20,

@@ -15,7 +15,8 @@ function rowToCursor(row) {
 }
 
 function getIngestionCursor({ type, source }) {
-  const row = getDatabase()
+  const db = getDatabase();
+  const row = db
     .prepare('SELECT * FROM ingestion_cursors WHERE type = ? AND source = ?')
     .get(type, source);
   return rowToCursor(row);

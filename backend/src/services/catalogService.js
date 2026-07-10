@@ -8,9 +8,13 @@ import {
   countCachedContentsByType,
 } from '../repositories/contentRepository.js';
 import { listSnapshotsByContentId } from '../repositories/leaderboardRepository.js';
-import { getAiConfigPrivate } from './aiConfigService.js';
-import { rankContentsWithAi } from './aiRankingService.js';
-import { searchTrendingContentsWithAi } from './aiDiscoveryService.js';
+import { fetchPlatformHotContents } from './platformHotSourceService.js';
+import {
+  getHotDatasetContentById,
+  listHotDatasetContents,
+  listHotDatasetTopicContents,
+} from './hotDatasetService.js';
+import { isJsonHotDataEnabled } from '../store/jsonStore.js';
 import { isCuratedRealSeedEnabled, seedCuratedRealContents } from './curatedRealContentService.js';
 import { formatSearchAliasHints, resolveSearchAliasContext } from './searchAliasService.js';
 import {
@@ -21,10 +25,39 @@ import {
 
 const CACHE_TTL_MS = Math.max(15_000, Number(process.env.CACHE_TTL_MS || 180_000));
 const MAX_CACHE_ENTRIES = Math.max(10, Number(process.env.MEDIAHUB_CATALOG_CACHE_MAX_ENTRIES || 500));
-const INTERACTIVE_AI_SEARCH_TIMEOUT_MS = Math.max(5_000, Number(process.env.MEDIAHUB_INTERACTIVE_AI_SEARCH_TIMEOUT_MS || 30_000));
 const cacheStore = new Map();
 const pendingLoads = new Map();
+const CONTENT_TYPES = ['drama', 'novel', 'anime', 'comic'];
+const MAX_QUERY_PAGE = 1000;
+const MAX_KEYWORD_LENGTH = 80;
+const SUPPORTED_CONTENT_SOURCES = [
+  'hongguo',
+  'fanqie',
+  'qidian',
+  'bilibili',
+  'kuaikan',
+  'tencent_comic',
+  'manual',
+  'curated-cn',
+  'baidu-hot',
+  'weibo-hot',
+  'wechat-hot',
+  'douyin-hot',
+];
+const JSON_FALLBACK_TYPES = new Set(['anime', 'comic']);
 
+function isJsonDatasetExplicitlyDisabled() {
+  const flag = String(process.env.MEDIAHUB_JSON_DATASET_ENABLED || '').trim().toLowerCase();
+  return ['0', 'false', 'no', 'off'].includes(flag);
+}
+
+function shouldReadJsonHotDataset(type) {
+  return isJsonHotDataEnabled() || (!isJsonDatasetExplicitlyDisabled() && JSON_FALLBACK_TYPES.has(type));
+}
+
+function getContentTypeFromId(contentId) {
+  return String(contentId || '').split(':', 1)[0];
+}
 function buildCacheKey(type, params) {
   return `${type}:${JSON.stringify(params)}`;
 }
@@ -114,7 +147,7 @@ async function getOrSetCache(key, loader, ttlMs = CACHE_TTL_MS) {
 }
 
 function ensureType(type) {
-  if (!['drama', 'novel', 'comic', 'anime'].includes(type)) {
+  if (!CONTENT_TYPES.includes(type)) {
     throw createApiError('invalid_request', 'Invalid content type');
   }
 }
@@ -138,7 +171,7 @@ function parseContentId(contentId) {
   if (!type || !provider || !rawId) {
     throw createApiError('invalid_request', 'Invalid content id');
   }
-  if (!['ai-search', 'curated-cn'].includes(provider)) {
+  if (!SUPPORTED_CONTENT_SOURCES.includes(provider)) {
     throw createApiError('invalid_request', 'Unsupported content source');
   }
   return { type, provider, rawId };
@@ -156,16 +189,12 @@ async function fetchBySourceToken({
   timeoutMs,
   abortSignal,
 }) {
-  if (source === 'ai_search') {
-    return searchTrendingContentsWithAi({
+  if (source === 'platform_hot') {
+    return fetchPlatformHotContents({
       type,
-      keyword,
-      searchTerms,
-      aliasHints,
       page,
       limit,
       sort,
-      timeoutMs,
       abortSignal,
     });
   }
@@ -182,16 +211,16 @@ async function fetchListByType({
   limit = 20,
   sort = 'hot',
   sourceChain,
-  aiTimeoutMs,
+  requestTimeoutMs,
   abortSignal,
   __skipLiveFetchForTest = false,
   __bypassCacheFallback = false,
 }) {
   ensureType(type);
 
-  const pageNum = Math.max(1, Number(page) || 1);
+  const pageNum = Math.min(MAX_QUERY_PAGE, Math.max(1, Number(page) || 1));
   const limitNum = Math.min(50, Math.max(1, Number(limit) || 20));
-  const normalizedKeyword = String(keyword || '').trim().slice(0, 80);
+  const normalizedKeyword = String(keyword || '').trim().slice(0, MAX_KEYWORD_LENGTH);
   const searchContext = normalizedKeyword
     ? resolveSearchAliasContext(normalizedKeyword, { type })
     : { searchTerms: [], matchedGroups: [] };
@@ -237,7 +266,7 @@ async function fetchListByType({
           page: pageNum,
           limit: limitNum,
           sort,
-          timeoutMs: aiTimeoutMs,
+          timeoutMs: requestTimeoutMs,
           abortSignal,
         });
         hasReachableSource = true;
@@ -272,32 +301,15 @@ async function fetchListByType({
       throw lastError;
     }
 
-    const sortedList = sortContents(payload.list, sort);
-    const aiConfig = getAiConfigPrivate();
-    const list = await rankContentsWithAi(sortedList, aiConfig, {
-      type,
-      keyword: normalizedKeyword,
-      page: pageNum,
-      limit: limitNum,
-      timeoutMs: aiTimeoutMs,
-      abortSignal,
-    });
-    const withSourceState = list.map(item => ({
-      ...item,
-      source: {
-        ...(item.source || {}),
-        ai: aiConfig.enabled && Boolean(aiConfig.apiKey),
-        model: aiConfig.enabled && aiConfig.apiKey ? aiConfig.model : '',
-      },
-    }));
-    upsertContents(withSourceState);
+    const list = sortContents(payload.list, sort);
+    upsertContents(list);
 
     return {
-      list: withSourceState,
+      list,
       pagination: {
         page: pageNum,
         limit: limitNum,
-        total: Number(payload.total || withSourceState.length),
+        total: Number(payload.total || list.length),
       },
       sourceChain: rankedSourceChain,
       resolvedSource: resolvedSource || null,
@@ -336,18 +348,7 @@ async function ensureContentTypeSeeded({ type, __skipLiveFetchForTest = false })
 async function fetchDetailById(contentId) {
   parseContentId(contentId);
   const content = getCachedContentById(contentId, { stale: false });
-  if (!content) throw createApiError('not_found', '内容详情尚未入库，请先通过 AI 获取/入库');
-
-  const aiConfig = getAiConfigPrivate();
-  const enrichedContent = {
-    ...content,
-    source: {
-      ...(content.source || {}),
-      ai: aiConfig.enabled && Boolean(aiConfig.apiKey),
-      model: aiConfig.enabled && aiConfig.apiKey ? aiConfig.model : '',
-    },
-  };
-  upsertContents([enrichedContent]);
+  if (!content) throw createApiError('not_found', 'Content detail is not cached');
 
   const relatedListResult = await fetchListByType({
     type: content.type,
@@ -370,7 +371,7 @@ async function fetchDetailById(contentId) {
   const leaderboardEvidence = listSnapshotsByContentId(content.id, { limit: 12 });
 
   return {
-    ...enrichedContent,
+    ...content,
     leaderboardEvidence,
     relatedContents,
     similarContents,
@@ -379,7 +380,7 @@ async function fetchDetailById(contentId) {
 
 function parseTopicField(field) {
   const normalized = String(field || '').trim().toLowerCase();
-  if (normalized === 'actor' || normalized === 'character' || normalized === 'author' || normalized === 'ip') return normalized;
+  if (normalized === 'actor' || normalized === 'character' || normalized === 'author' || normalized === 'ip' || normalized === 'category') return normalized;
   throw createApiError('invalid_request', 'Invalid topic field');
 }
 
@@ -407,10 +408,22 @@ async function listContents({
   __bypassCacheFallback = false,
 }) {
   ensureType(type);
-  const pageNum = Math.max(1, Number(page) || 1);
+  const pageNum = Math.min(MAX_QUERY_PAGE, Math.max(1, Number(page) || 1));
   const limitNum = Math.min(50, Math.max(1, Number(limit) || 20));
-  const normalizedKeyword = String(keyword || '').trim();
+  const normalizedKeyword = String(keyword || '').trim().slice(0, MAX_KEYWORD_LENGTH);
   const normalizedSearchMode = normalizeSearchMode(searchMode);
+
+  if (shouldReadJsonHotDataset(type)) {
+    const jsonDataset = await listHotDatasetContents({
+      type,
+      page: pageNum,
+      limit: limitNum,
+      sort,
+      keyword: normalizedKeyword,
+    }).catch(() => null);
+    if (jsonDataset) return jsonDataset;
+  }
+
   const searchContext = normalizedKeyword
     ? resolveSearchAliasContext(normalizedKeyword, { type })
     : { searchTerms: [], matchedGroups: [] };
@@ -424,7 +437,7 @@ async function listContents({
       throw error;
     }
     if (__bypassCacheFallback) {
-      throw createApiError('upstream_unavailable', `上游内容服务不可用: ${error.message}`, { error });
+      throw createApiError('upstream_unavailable', `娑撳﹥鐖堕崘鍛啇閺堝秴濮熸稉宥呭讲閻? ${error.message}`, { error });
     }
   }
 
@@ -449,7 +462,6 @@ async function listContents({
         keyword: normalizedKeyword,
         searchTerms: effectiveSearchTerms,
         aliasHints: effectiveAliasHints,
-        aiTimeoutMs: INTERACTIVE_AI_SEARCH_TIMEOUT_MS,
         __skipLiveFetchForTest,
         __bypassCacheFallback: true,
       });
@@ -521,6 +533,11 @@ async function listContents({
 }
 
 async function getContentById(contentId) {
+  if (shouldReadJsonHotDataset(getContentTypeFromId(contentId))) {
+    const jsonContent = await getHotDatasetContentById(contentId).catch(() => null);
+    if (jsonContent) return jsonContent;
+  }
+
   const cached = getCachedContentById(contentId, { stale: false });
   if (cached) {
     return {
@@ -535,8 +552,47 @@ async function getContentById(contentId) {
     return await fetchDetailById(contentId);
   } catch (error) {
     if (error.publicCode) throw error;
-    throw createApiError('upstream_unavailable', `获取内容详情失败: ${error.message}`, { error });
+    throw createApiError('upstream_unavailable', `閼惧嘲褰囬崘鍛啇鐠囷附鍎忔径杈Е: ${error.message}`, { error });
   }
+}
+
+async function discoverJsonHotDatasetContents({
+  keyword,
+  page,
+  limit,
+  sort,
+  minHotScore,
+}) {
+  const normalizedMinHotScore = parseMinHotScore(minHotScore);
+  const normalizedLimit = Math.min(20, Math.max(1, Number(limit) || 8));
+  const groups = Object.fromEntries(CONTENT_TYPES.map(type => [type, []]));
+  const counts = Object.fromEntries(CONTENT_TYPES.map(type => [type, 0]));
+  let total = 0;
+
+  await Promise.all(CONTENT_TYPES.map(async (type) => {
+    const result = await listHotDatasetContents({
+      type,
+      page: Math.min(MAX_QUERY_PAGE, Math.max(1, Number(page) || 1)),
+      limit: normalizedLimit,
+      sort,
+      keyword,
+    }).catch(() => null);
+    const filtered = (result?.list || [])
+      .filter(item => Number(item.hotScore) >= normalizedMinHotScore);
+    groups[type] = filtered;
+    counts[type] = filtered.length;
+    total += filtered.length;
+  }));
+
+  return {
+    keyword,
+    sort: sort === 'latest' ? 'latest' : 'hot',
+    minHotScore: normalizedMinHotScore,
+    total,
+    counts,
+    groups,
+    stale: false,
+  };
 }
 
 async function discoverContents({
@@ -555,14 +611,24 @@ async function discoverContents({
       sort: sort === 'latest' ? 'latest' : 'hot',
       minHotScore: parseMinHotScore(minHotScore),
       total: 0,
-      counts: { drama: 0, novel: 0, comic: 0, anime: 0 },
-      groups: { drama: [], novel: [], comic: [], anime: [] },
+      counts: Object.fromEntries(CONTENT_TYPES.map(type => [type, 0])),
+      groups: Object.fromEntries(CONTENT_TYPES.map(type => [type, []])),
       stale: false,
     };
   }
 
   const normalizedSearchMode = normalizeSearchMode(searchMode);
-  const types = ['drama', 'novel', 'comic', 'anime'];
+  if (isJsonHotDataEnabled()) {
+    return discoverJsonHotDatasetContents({
+      keyword: normalizedKeyword,
+      page,
+      limit,
+      sort,
+      minHotScore,
+    });
+  }
+
+  const types = CONTENT_TYPES;
   const searchTermsByType = Object.fromEntries(
     types.map(type => [type, resolveSearchAliasContext(normalizedKeyword, { type }).searchTerms]),
   );
@@ -582,7 +648,7 @@ async function discoverContents({
 
   return discoverCachedContents({
     keyword: normalizedKeyword,
-    page: Math.max(1, Number(page) || 1),
+    page: Math.min(MAX_QUERY_PAGE, Math.max(1, Number(page) || 1)),
     limit: Math.min(20, Math.max(1, Number(limit) || 8)),
     sort: sort === 'latest' ? 'latest' : 'hot',
     minHotScore: parseMinHotScore(minHotScore),
@@ -591,7 +657,7 @@ async function discoverContents({
   });
 }
 
-function listTopicContents({
+async function listTopicContents({
   field,
   value,
   type = '',
@@ -600,18 +666,36 @@ function listTopicContents({
   sort = 'hot',
   minHotScore = 0,
 }) {
-  const normalizedValue = String(value || '').trim().slice(0, 80);
+  const normalizedValue = String(value || '').trim().slice(0, MAX_KEYWORD_LENGTH);
   if (!normalizedValue) {
     throw createApiError('invalid_request', 'Topic value is required');
   }
 
+  const normalizedField = parseTopicField(field);
+  const normalizedType = parseOptionalType(type);
+  const normalizedPage = Math.min(MAX_QUERY_PAGE, Math.max(1, Number(page) || 1));
+  const normalizedLimit = Math.min(50, Math.max(1, Number(limit) || 20));
+  const normalizedSort = sort === 'latest' ? 'latest' : 'hot';
+
+  if (shouldReadJsonHotDataset(normalizedType)) {
+    const jsonResult = await listHotDatasetTopicContents({
+      field: normalizedField,
+      value: normalizedValue,
+      type: normalizedType,
+      page: normalizedPage,
+      limit: normalizedLimit,
+      sort: normalizedSort,
+    }).catch(() => null);
+    if (jsonResult?.list?.length > 0) return jsonResult;
+  }
+
   return listCachedContentsByTopic({
-    field: parseTopicField(field),
+    field: normalizedField,
     value: normalizedValue,
-    type: parseOptionalType(type),
-    page: Math.max(1, Number(page) || 1),
-    limit: Math.min(50, Math.max(1, Number(limit) || 20)),
-    sort: sort === 'latest' ? 'latest' : 'hot',
+    type: normalizedType,
+    page: normalizedPage,
+    limit: normalizedLimit,
+    sort: normalizedSort,
     minHotScore: parseMinHotScore(minHotScore),
     stale: false,
   });

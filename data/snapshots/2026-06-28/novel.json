@@ -46,10 +46,6 @@
           "url": "https://www.qidian.com/so/%E8%AF%A1%E7%A7%98%E4%B9%8B%E4%B8%BB.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E8%AF%A1%E7%A7%98%E4%B9%8B%E4%B8%BB.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E8%AF%A1%E7%A7%98%E4%B9%8B%E4%B8%BB.html",
           "value": "诡秘之主 小说公开页面"
@@ -126,7 +122,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1010868264/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -453,10 +449,6 @@
           "url": "https://www.qidian.com/so/%E7%89%A7%E7%A5%9E%E8%AE%B0.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%89%A7%E7%A5%9E%E8%AE%B0.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E7%89%A7%E7%A5%9E%E8%AE%B0.html",
           "value": "牧神记 小说公开页面"
@@ -533,7 +525,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1009704712/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -868,10 +860,6 @@
           "url": "https://www.qidian.com/so/%E4%BF%AE%E7%BD%97%E6%AD%A6%E7%A5%9E.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%BF%AE%E7%BD%97%E6%AD%A6%E7%A5%9E.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E4%BF%AE%E7%BD%97%E6%AD%A6%E7%A5%9E.html",
           "value": "修罗武神 小说公开页面"
@@ -948,7 +936,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1001839295/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -1283,10 +1271,6 @@
           "url": "https://www.qidian.com/so/%E5%84%92%E9%81%93%E8%87%B3%E5%9C%A3.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%84%92%E9%81%93%E8%87%B3%E5%9C%A3.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%84%92%E9%81%93%E8%87%B3%E5%9C%A3.html",
           "value": "儒道至圣 小说公开页面"
@@ -1363,7 +1347,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/3173393/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -1698,10 +1682,6 @@
           "url": "https://www.qidian.com/so/%E5%A4%AA%E8%8D%92%E5%90%9E%E5%A4%A9%E8%AF%80.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%A4%AA%E8%8D%92%E5%90%9E%E5%A4%A9%E8%AF%80.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%A4%AA%E8%8D%92%E5%90%9E%E5%A4%A9%E8%AF%80.html",
           "value": "太荒吞天诀 小说公开页面"
@@ -1778,7 +1758,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1033965370/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -2113,10 +2093,6 @@
           "url": "https://www.qidian.com/so/%E9%9D%92%E5%B1%B1.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%9D%92%E5%B1%B1.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E9%9D%92%E5%B1%B1.html",
           "value": "青山 小说公开页面"
@@ -2193,7 +2169,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1033014772/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -2520,10 +2496,6 @@
           "url": "https://www.qidian.com/so/%E6%9E%81%E5%93%81%E5%AE%B6%E4%B8%81.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%9E%81%E5%93%81%E5%AE%B6%E4%B8%81.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E6%9E%81%E5%93%81%E5%AE%B6%E4%B8%81.html",
           "value": "极品家丁 小说公开页面"
@@ -2600,7 +2572,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/105199/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -2927,10 +2899,6 @@
           "url": "https://www.qidian.com/so/%E6%B7%B1%E7%A9%BA%E5%BD%BC%E5%B2%B8.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%B7%B1%E7%A9%BA%E5%BD%BC%E5%B2%B8.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E6%B7%B1%E7%A9%BA%E5%BD%BC%E5%B2%B8.html",
           "value": "深空彼岸 小说公开页面"
@@ -3007,7 +2975,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1027339371/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -3334,10 +3302,6 @@
           "url": "https://www.qidian.com/so/%E9%81%93%E8%AF%A1%E5%BC%82%E4%BB%99.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%81%93%E8%AF%A1%E5%BC%82%E4%BB%99.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E9%81%93%E8%AF%A1%E5%BC%82%E4%BB%99.html",
           "value": "道诡异仙 小说公开页面"
@@ -3414,7 +3378,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1031794030/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -3749,10 +3713,6 @@
           "url": "https://www.qidian.com/so/%E8%B5%A4%E5%BF%83%E5%B7%A1%E5%A4%A9.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E8%B5%A4%E5%BF%83%E5%B7%A1%E5%A4%A9.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E8%B5%A4%E5%BF%83%E5%B7%A1%E5%A4%A9.html",
           "value": "赤心巡天 小说公开页面"
@@ -3829,7 +3789,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1016530091/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -4156,10 +4116,6 @@
           "url": "https://www.qidian.com/so/%E7%81%B5%E5%A2%83%E8%A1%8C%E8%80%85.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%81%B5%E5%A2%83%E8%A1%8C%E8%80%85.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E7%81%B5%E5%A2%83%E8%A1%8C%E8%80%85.html",
           "value": "灵境行者 小说公开页面"
@@ -4236,7 +4192,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1031940621/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -4563,10 +4519,6 @@
           "url": "https://www.qidian.com/so/%E5%A4%A7%E5%A5%89%E6%89%93%E6%9B%B4%E4%BA%BA.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%A4%A7%E5%A5%89%E6%89%93%E6%9B%B4%E4%BA%BA.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%A4%A7%E5%A5%89%E6%89%93%E6%9B%B4%E4%BA%BA.html",
           "value": "大奉打更人 小说公开页面"
@@ -4643,7 +4595,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1019664125/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -4970,10 +4922,6 @@
           "url": "https://www.qidian.com/so/%E5%A4%9C%E7%9A%84%E5%91%BD%E5%90%8D%E6%9C%AF.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%A4%9C%E7%9A%84%E5%91%BD%E5%90%8D%E6%9C%AF.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%A4%9C%E7%9A%84%E5%91%BD%E5%90%8D%E6%9C%AF.html",
           "value": "夜的命名术 小说公开页面"
@@ -5050,7 +4998,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1021617576/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -5379,10 +5327,6 @@
           "url": "https://www.qidian.com/so/%E7%AC%AC%E4%B8%80%E5%BA%8F%E5%88%97.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%AC%AC%E4%B8%80%E5%BA%8F%E5%88%97.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E7%AC%AC%E4%B8%80%E5%BA%8F%E5%88%97.html",
           "value": "第一序列 小说公开页面"
@@ -5459,7 +5403,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1013562540/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -5788,10 +5732,6 @@
           "url": "https://www.qidian.com/so/%E5%A4%A7%E7%8E%8B%E9%A5%B6%E5%91%BD.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%A4%A7%E7%8E%8B%E9%A5%B6%E5%91%BD.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%A4%A7%E7%8E%8B%E9%A5%B6%E5%91%BD.html",
           "value": "大王饶命 小说公开页面"
@@ -5868,7 +5808,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1010191960/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -6197,10 +6137,6 @@
           "url": "https://www.qidian.com/so/%E4%BB%8E%E7%BA%A2%E6%9C%88%E5%BC%80%E5%A7%8B.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%BB%8E%E7%BA%A2%E6%9C%88%E5%BC%80%E5%A7%8B.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E4%BB%8E%E7%BA%A2%E6%9C%88%E5%BC%80%E5%A7%8B.html",
           "value": "从红月开始 小说公开页面"
@@ -6277,7 +6213,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1024868626/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -6604,10 +6540,6 @@
           "url": "https://www.qidian.com/so/%E4%B9%9D%E6%98%9F%E6%AF%92%E5%A5%B6.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%B9%9D%E6%98%9F%E6%AF%92%E5%A5%B6.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E4%B9%9D%E6%98%9F%E6%AF%92%E5%A5%B6.html",
           "value": "九星毒奶 小说公开页面"
@@ -6684,7 +6616,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1013432302/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -7013,10 +6945,6 @@
           "url": "https://www.qidian.com/so/%E4%BF%AE%E7%9C%9F%E8%81%8A%E5%A4%A9%E7%BE%A4.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%BF%AE%E7%9C%9F%E8%81%8A%E5%A4%A9%E7%BE%A4.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E4%BF%AE%E7%9C%9F%E8%81%8A%E5%A4%A9%E7%BE%A4.html",
           "value": "修真聊天群 小说公开页面"
@@ -7093,7 +7021,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/3602691/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -7422,10 +7350,6 @@
           "url": "https://www.qidian.com/so/%E4%BA%8F%E6%88%90%E9%A6%96%E5%AF%8C%E4%BB%8E%E6%B8%B8%E6%88%8F%E5%BC%80%E5%A7%8B.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%BA%8F%E6%88%90%E9%A6%96%E5%AF%8C%E4%BB%8E%E6%B8%B8%E6%88%8F%E5%BC%80%E5%A7%8B.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E4%BA%8F%E6%88%90%E9%A6%96%E5%AF%8C%E4%BB%8E%E6%B8%B8%E6%88%8F%E5%BC%80%E5%A7%8B.html",
           "value": "亏成首富从游戏开始 小说公开页面"
@@ -7502,7 +7426,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1016150754/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -7831,10 +7755,6 @@
           "url": "https://www.qidian.com/so/%E8%BF%99%E6%B8%B8%E6%88%8F%E4%B9%9F%E5%A4%AA%E7%9C%9F%E5%AE%9E%E4%BA%86.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E8%BF%99%E6%B8%B8%E6%88%8F%E4%B9%9F%E5%A4%AA%E7%9C%9F%E5%AE%9E%E4%BA%86.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E8%BF%99%E6%B8%B8%E6%88%8F%E4%B9%9F%E5%A4%AA%E7%9C%9F%E5%AE%9E%E4%BA%86.html",
           "value": "这游戏也太真实了 小说公开页面"
@@ -7911,7 +7831,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1029391348/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -8238,10 +8158,6 @@
           "url": "https://www.qidian.com/so/%E5%AE%BF%E5%91%BD%E4%B9%8B%E7%8E%AF.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%AE%BF%E5%91%BD%E4%B9%8B%E7%8E%AF.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%AE%BF%E5%91%BD%E4%B9%8B%E7%8E%AF.html",
           "value": "宿命之环 小说公开页面"
@@ -8318,7 +8234,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1036370336/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -8653,10 +8569,6 @@
           "url": "https://www.qidian.com/so/%E7%A5%9E%E7%A7%98%E5%A4%8D%E8%8B%8F.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%A5%9E%E7%A7%98%E5%A4%8D%E8%8B%8F.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E7%A5%9E%E7%A7%98%E5%A4%8D%E8%8B%8F.html",
           "value": "神秘复苏 小说公开页面"
@@ -8733,7 +8645,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1012584111/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -9060,10 +8972,6 @@
           "url": "https://www.qidian.com/so/%E6%B7%B1%E6%B5%B7%E4%BD%99%E7%83%AC.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%B7%B1%E6%B5%B7%E4%BD%99%E7%83%AC.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E6%B7%B1%E6%B5%B7%E4%BD%99%E7%83%AC.html",
           "value": "深海余烬 小说公开页面"
@@ -9140,7 +9048,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1034360760/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -9467,10 +9375,6 @@
           "url": "https://www.qidian.com/so/%E9%BB%8E%E6%98%8E%E4%B9%8B%E5%89%91.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%BB%8E%E6%98%8E%E4%B9%8B%E5%89%91.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E9%BB%8E%E6%98%8E%E4%B9%8B%E5%89%91.html",
           "value": "黎明之剑 小说公开页面"
@@ -9547,7 +9451,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1010400217/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -9874,10 +9778,6 @@
           "url": "https://www.qidian.com/so/%E5%BC%82%E5%B8%B8%E7%94%9F%E7%89%A9%E8%A7%81%E9%97%BB%E5%BD%95.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%BC%82%E5%B8%B8%E7%94%9F%E7%89%A9%E8%A7%81%E9%97%BB%E5%BD%95.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%BC%82%E5%B8%B8%E7%94%9F%E7%89%A9%E8%A7%81%E9%97%BB%E5%BD%95.html",
           "value": "异常生物见闻录 小说公开页面"
@@ -9954,7 +9854,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/3242304/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -10281,10 +10181,6 @@
           "url": "https://www.qidian.com/so/%E5%85%A8%E8%81%8C%E9%AB%98%E6%89%8B.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%85%A8%E8%81%8C%E9%AB%98%E6%89%8B.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%85%A8%E8%81%8C%E9%AB%98%E6%89%8B.html",
           "value": "全职高手 小说公开页面"
@@ -10361,7 +10257,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1887208/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -10688,10 +10584,6 @@
           "url": "https://www.qidian.com/so/%E5%A4%A9%E9%86%92%E4%B9%8B%E8%B7%AF.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%A4%A9%E9%86%92%E4%B9%8B%E8%B7%AF.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%A4%A9%E9%86%92%E4%B9%8B%E8%B7%AF.html",
           "value": "天醒之路 小说公开页面"
@@ -10768,7 +10660,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/3206900/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -11103,10 +10995,6 @@
           "url": "https://www.qidian.com/so/%E7%9B%98%E9%BE%99.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%9B%98%E9%BE%99.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E7%9B%98%E9%BE%99.html",
           "value": "盘龙 小说公开页面"
@@ -11183,7 +11071,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1017141/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -11518,10 +11406,6 @@
           "url": "https://www.qidian.com/so/%E6%98%9F%E8%BE%B0%E5%8F%98.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%98%9F%E8%BE%B0%E5%8F%98.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E6%98%9F%E8%BE%B0%E5%8F%98.html",
           "value": "星辰变 小说公开页面"
@@ -11598,7 +11482,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/118447/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -11925,10 +11809,6 @@
           "url": "https://www.qidian.com/so/%E5%90%9E%E5%99%AC%E6%98%9F%E7%A9%BA.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%90%9E%E5%99%AC%E6%98%9F%E7%A9%BA.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%90%9E%E5%99%AC%E6%98%9F%E7%A9%BA.html",
           "value": "吞噬星空 小说公开页面"
@@ -12005,7 +11885,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1639199/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -12332,10 +12212,6 @@
           "url": "https://www.qidian.com/so/%E8%8E%BD%E8%8D%92%E7%BA%AA.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E8%8E%BD%E8%8D%92%E7%BA%AA.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E8%8E%BD%E8%8D%92%E7%BA%AA.html",
           "value": "莽荒纪 小说公开页面"
@@ -12412,7 +12288,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2502372/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -12739,10 +12615,6 @@
           "url": "https://www.qidian.com/so/%E9%9B%AA%E4%B8%AD%E6%82%8D%E5%88%80%E8%A1%8C.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%9B%AA%E4%B8%AD%E6%82%8D%E5%88%80%E8%A1%8C.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E9%9B%AA%E4%B8%AD%E6%82%8D%E5%88%80%E8%A1%8C.html",
           "value": "雪中悍刀行 小说公开页面"
@@ -12819,7 +12691,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1003766574/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -13146,10 +13018,6 @@
           "url": "https://www.qidian.com/so/%E5%89%91%E6%9D%A5.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%89%91%E6%9D%A5.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%89%91%E6%9D%A5.html",
           "value": "剑来 小说公开页面"
@@ -13226,7 +13094,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1012261200/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -13553,10 +13421,6 @@
           "url": "https://www.qidian.com/so/%E5%BA%86%E4%BD%99%E5%B9%B4.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%BA%86%E4%BD%99%E5%B9%B4.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%BA%86%E4%BD%99%E5%B9%B4.html",
           "value": "庆余年 小说公开页面"
@@ -13633,7 +13497,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/114559/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -13962,10 +13826,6 @@
           "url": "https://www.qidian.com/so/%E5%B0%86%E5%A4%9C.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%B0%86%E5%A4%9C.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%B0%86%E5%A4%9C.html",
           "value": "将夜 小说公开页面"
@@ -14042,7 +13902,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2083259/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -14377,10 +14237,6 @@
           "url": "https://www.qidian.com/so/%E6%8B%A9%E5%A4%A9%E8%AE%B0.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%8B%A9%E5%A4%A9%E8%AE%B0.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E6%8B%A9%E5%A4%A9%E8%AE%B0.html",
           "value": "择天记 小说公开页面"
@@ -14457,7 +14313,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/3347595/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -14792,10 +14648,6 @@
           "url": "https://www.qidian.com/so/%E9%97%B4%E5%AE%A2.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%97%B4%E5%AE%A2.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E9%97%B4%E5%AE%A2.html",
           "value": "间客 小说公开页面"
@@ -14872,7 +14724,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1223147/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -15199,10 +15051,6 @@
           "url": "https://www.qidian.com/so/%E6%9C%B1%E9%9B%80%E8%AE%B0.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%9C%B1%E9%9B%80%E8%AE%B0.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E6%9C%B1%E9%9B%80%E8%AE%B0.html",
           "value": "朱雀记 小说公开页面"
@@ -15279,7 +15127,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/37287/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -15606,10 +15454,6 @@
           "url": "https://www.qidian.com/so/%E6%96%97%E7%BD%97%E5%A4%A7%E9%99%86.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%96%97%E7%BD%97%E5%A4%A7%E9%99%86.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E6%96%97%E7%BD%97%E5%A4%A7%E9%99%86.html",
           "value": "斗罗大陆 小说公开页面"
@@ -15686,7 +15530,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1115277/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -16021,10 +15865,6 @@
           "url": "https://www.qidian.com/so/%E7%BB%9D%E4%B8%96%E5%94%90%E9%97%A8.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%BB%9D%E4%B8%96%E5%94%90%E9%97%A8.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E7%BB%9D%E4%B8%96%E5%94%90%E9%97%A8.html",
           "value": "绝世唐门 小说公开页面"
@@ -16101,7 +15941,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2517792/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -16436,10 +16276,6 @@
           "url": "https://www.qidian.com/so/%E9%BE%99%E7%8E%8B%E4%BC%A0%E8%AF%B4.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%BE%99%E7%8E%8B%E4%BC%A0%E8%AF%B4.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E9%BE%99%E7%8E%8B%E4%BC%A0%E8%AF%B4.html",
           "value": "龙王传说 小说公开页面"
@@ -16516,7 +16352,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1035212205/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -16851,10 +16687,6 @@
           "url": "https://www.qidian.com/so/%E9%85%92%E7%A5%9E.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%85%92%E7%A5%9E.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E9%85%92%E7%A5%9E.html",
           "value": "酒神 小说公开页面"
@@ -16931,7 +16763,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1436015/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -17266,10 +17098,6 @@
           "url": "https://www.qidian.com/so/%E7%90%B4%E5%B8%9D.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%90%B4%E5%B8%9D.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E7%90%B4%E5%B8%9D.html",
           "value": "琴帝 小说公开页面"
@@ -17346,7 +17174,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/173050/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -17681,10 +17509,6 @@
           "url": "https://www.qidian.com/so/%E7%A5%9E%E5%8D%B0%E7%8E%8B%E5%BA%A7.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%A5%9E%E5%8D%B0%E7%8E%8B%E5%BA%A7.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E7%A5%9E%E5%8D%B0%E7%8E%8B%E5%BA%A7.html",
           "value": "神印王座 小说公开页面"
@@ -17761,7 +17585,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2162767/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -18096,10 +17920,6 @@
           "url": "https://www.qidian.com/so/%E9%81%AE%E5%A4%A9.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%81%AE%E5%A4%A9.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E9%81%AE%E5%A4%A9.html",
           "value": "遮天 小说公开页面"
@@ -18176,7 +17996,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1735921/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -18503,10 +18323,6 @@
           "url": "https://www.qidian.com/so/%E5%AE%8C%E7%BE%8E%E4%B8%96%E7%95%8C.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%AE%8C%E7%BE%8E%E4%B8%96%E7%95%8C.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%AE%8C%E7%BE%8E%E4%B8%96%E7%95%8C.html",
           "value": "完美世界 小说公开页面"
@@ -18583,7 +18399,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2952453/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -18918,10 +18734,6 @@
           "url": "https://www.qidian.com/so/%E5%9C%A3%E5%A2%9F.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%9C%A3%E5%A2%9F.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E5%9C%A3%E5%A2%9F.html",
           "value": "圣墟 小说公开页面"
@@ -18998,7 +18810,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1004608738/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -19333,10 +19145,6 @@
           "url": "https://www.qidian.com/so/%E9%95%BF%E7%94%9F%E7%95%8C.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%95%BF%E7%94%9F%E7%95%8C.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E9%95%BF%E7%94%9F%E7%95%8C.html",
           "value": "长生界 小说公开页面"
@@ -19413,7 +19221,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1097850/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -19748,10 +19556,6 @@
           "url": "https://www.qidian.com/so/%E7%A5%9E%E5%A2%93.html"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%A5%9E%E5%A2%93.html"
-        },
-        {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E7%A5%9E%E5%A2%93.html",
           "value": "神墓 小说公开页面"
@@ -19828,7 +19632,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/63856/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -20121,422 +19925,6 @@
       }
     },
     {
-      "id": "novel:baidu_novel:rank051",
-      "title": "长夜余火",
-      "type": "novel",
-      "source": "baidu_novel",
-      "sourceName": "百度小说搜索",
-      "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC",
-      "author": "爱潜水的乌贼",
-      "actors": [],
-      "characters": [],
-      "ipName": "长夜余火",
-      "categories": [
-        "科幻",
-        "真实小说",
-        "公开搜索校验"
-      ],
-      "summary": "公开资料可校验的真实网络小说《长夜余火》，作者：爱潜水的乌贼。",
-      "metrics": {
-        "playOrReadYi": 0.69,
-        "platformHeatWan": 800,
-        "searchIndex": 6900,
-        "topicPlayYi": 0.14,
-        "topicSignalScore": 20,
-        "platformHotRank": 51,
-        "sourceSignalScore": 76,
-        "sourceSignalCount": 5,
-        "authorityRankScore": 0,
-        "platformOriginalRank": 51,
-        "platformRankScore": 50,
-        "sourceConfidenceScore": 86,
-        "playOrReadScore": 7,
-        "platformHeatScore": 10,
-        "searchIndexScore": 69,
-        "topicScore": 4,
-        "rankRecommendationScore": 0,
-        "totalScore": 58.2
-      },
-      "evidence": [
-        {
-          "label": "百度小说搜索公开页面",
-          "url": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC"
-        },
-        {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB.html"
-        },
-        {
-          "label": "百度小说搜索公开页面",
-          "url": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC",
-          "value": "长夜余火 小说公开页面"
-        },
-        {
-          "label": "番茄小说公开检索",
-          "url": "https://fanqienovel.com/search/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
-          "value": "长夜余火 小说"
-        },
-        {
-          "label": "起点中文网公开检索",
-          "url": "https://www.qidian.com/so/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB.html",
-          "value": "长夜余火 小说"
-        },
-        {
-          "label": "纵横中文网公开检索",
-          "url": "https://search.zongheng.com/s?keyword=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
-          "value": "长夜余火 小说"
-        },
-        {
-          "label": "百度小说公开检索",
-          "url": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4",
-          "value": "长夜余火 小说"
-        }
-      ],
-      "rankingEvidence": [
-        {
-          "sourceId": "qidian",
-          "sourceName": "起点中文网榜单",
-          "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC",
-          "capturedAt": "2026-06-27T19:20:00.000Z",
-          "rank": 51,
-          "evidenceType": "platform_rank",
-          "confidence": 0.86,
-          "note": "公开平台榜单或热度入口采集口径"
-        },
-        {
-          "sourceId": "baidu_novel",
-          "sourceName": "百度小说搜索公开页面",
-          "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC",
-          "capturedAt": "2026-06-27T19:20:00.000Z",
-          "rank": 1,
-          "score": 80,
-          "evidenceType": "topic_signal",
-          "confidence": 0.66,
-          "note": "社交搜索热度辅助信号"
-        },
-        {
-          "sourceId": "fanqie_search",
-          "sourceName": "番茄小说公开检索",
-          "sourceUrl": "https://fanqienovel.com/search/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
-          "capturedAt": "2026-06-27T19:20:00.000Z",
-          "rank": 2,
-          "score": 77,
-          "evidenceType": "topic_signal",
-          "confidence": 0.66,
-          "note": "社交搜索热度辅助信号"
-        },
-        {
-          "sourceId": "qidian_search",
-          "sourceName": "起点中文网公开检索",
-          "sourceUrl": "https://www.qidian.com/so/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB.html",
-          "capturedAt": "2026-06-27T19:20:00.000Z",
-          "rank": 3,
-          "score": 75,
-          "evidenceType": "topic_signal",
-          "confidence": 0.66,
-          "note": "社交搜索热度辅助信号"
-        },
-        {
-          "sourceId": "zongheng_search",
-          "sourceName": "纵横中文网公开检索",
-          "sourceUrl": "https://search.zongheng.com/s?keyword=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
-          "capturedAt": "2026-06-27T19:20:00.000Z",
-          "rank": 4,
-          "score": 73,
-          "evidenceType": "topic_signal",
-          "confidence": 0.66,
-          "note": "社交搜索热度辅助信号"
-        },
-        {
-          "sourceId": "baidu_novel_search",
-          "sourceName": "百度小说公开检索",
-          "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4",
-          "capturedAt": "2026-06-27T19:20:00.000Z",
-          "rank": 5,
-          "score": 71,
-          "evidenceType": "topic_signal",
-          "confidence": 0.66,
-          "note": "社交搜索热度辅助信号"
-        }
-      ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1023422452/180",
-      "capturedAt": "2026-06-28T04:30:00.000Z",
-      "status": "ongoing",
-      "hotSignals": [
-        {
-          "platform": "baidu_novel",
-          "platformName": "百度小说搜索公开页面",
-          "keyword": "长夜余火 小说公开页面",
-          "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC",
-          "topicSignalScore": 80,
-          "rank": 1,
-          "capturedAt": "2026-06-28T04:30:00.000Z"
-        },
-        {
-          "platform": "fanqie_search",
-          "platformName": "番茄小说公开检索",
-          "keyword": "长夜余火 小说",
-          "sourceUrl": "https://fanqienovel.com/search/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
-          "topicSignalScore": 77,
-          "rank": 2,
-          "capturedAt": "2026-06-28T04:30:00.000Z"
-        },
-        {
-          "platform": "qidian_search",
-          "platformName": "起点中文网公开检索",
-          "keyword": "长夜余火 小说",
-          "sourceUrl": "https://www.qidian.com/so/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB.html",
-          "topicSignalScore": 75,
-          "rank": 3,
-          "capturedAt": "2026-06-28T04:30:00.000Z"
-        },
-        {
-          "platform": "zongheng_search",
-          "platformName": "纵横中文网公开检索",
-          "keyword": "长夜余火 小说",
-          "sourceUrl": "https://search.zongheng.com/s?keyword=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
-          "topicSignalScore": 73,
-          "rank": 4,
-          "capturedAt": "2026-06-28T04:30:00.000Z"
-        },
-        {
-          "platform": "baidu_novel_search",
-          "platformName": "百度小说公开检索",
-          "keyword": "长夜余火 小说",
-          "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4",
-          "topicSignalScore": 71,
-          "rank": 5,
-          "capturedAt": "2026-06-28T04:30:00.000Z"
-        }
-      ],
-      "rank": 50,
-      "rankingMeta": {
-        "displayRank": 50,
-        "compositeScore": 58.2,
-        "bestPlatformRank": 51,
-        "bestPlatformSource": "起点中文网榜单",
-        "sourceConfidence": "high",
-        "rankingReason": "平台榜「起点中文网榜单」第51名，来源可信度高。",
-        "updatedBy": "seed_backfill"
-      },
-      "relations": {
-        "sameIp": [],
-        "sameActors": [],
-        "sameCategories": [
-          {
-            "id": "novel:qidian:rank001",
-            "type": "novel",
-            "title": "诡秘之主",
-            "rank": 1,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 802000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank002",
-            "type": "novel",
-            "title": "牧神记",
-            "rank": 2,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 797000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank003",
-            "type": "novel",
-            "title": "修罗武神",
-            "rank": 3,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 792000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank004",
-            "type": "novel",
-            "title": "儒道至圣",
-            "rank": 4,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 788000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank005",
-            "type": "novel",
-            "title": "太荒吞天诀",
-            "rank": 5,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 784000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank006",
-            "type": "novel",
-            "title": "青山",
-            "rank": 6,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 779000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank007",
-            "type": "novel",
-            "title": "极品家丁",
-            "rank": 7,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 775000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank008",
-            "type": "novel",
-            "title": "深空彼岸",
-            "rank": 8,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 770000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          }
-        ],
-        "sameCategory": [
-          {
-            "id": "novel:qidian:rank001",
-            "type": "novel",
-            "title": "诡秘之主",
-            "rank": 1,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 802000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank002",
-            "type": "novel",
-            "title": "牧神记",
-            "rank": 2,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 797000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank003",
-            "type": "novel",
-            "title": "修罗武神",
-            "rank": 3,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 792000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank004",
-            "type": "novel",
-            "title": "儒道至圣",
-            "rank": 4,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 788000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank005",
-            "type": "novel",
-            "title": "太荒吞天诀",
-            "rank": 5,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 784000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank006",
-            "type": "novel",
-            "title": "青山",
-            "rank": 6,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 779000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank007",
-            "type": "novel",
-            "title": "极品家丁",
-            "rank": 7,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 775000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          },
-          {
-            "id": "novel:qidian:rank008",
-            "type": "novel",
-            "title": "深空彼岸",
-            "rank": 8,
-            "source": "qidian",
-            "sourceName": "起点中文网",
-            "hotScore": 770000,
-            "matchedBy": "category",
-            "matchedValues": [
-              "真实小说"
-            ]
-          }
-        ]
-      }
-    },
-    {
       "id": "novel:qidian:rank050",
       "title": "一世之尊",
       "type": "novel",
@@ -20577,10 +19965,6 @@
         {
           "label": "起点中文网公开页面",
           "url": "https://www.qidian.com/so/%E4%B8%80%E4%B8%96%E4%B9%8B%E5%B0%8A.html"
-        },
-        {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%B8%80%E4%B8%96%E4%B9%8B%E5%B0%8A.html"
         },
         {
           "label": "起点中文网公开页面",
@@ -20659,7 +20043,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/3249362/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -20700,9 +20084,9 @@
           "capturedAt": "2026-06-28T04:30:00.000Z"
         }
       ],
-      "rank": 51,
+      "rank": 50,
       "rankingMeta": {
-        "displayRank": 51,
+        "displayRank": 50,
         "compositeScore": 57.9,
         "bestPlatformRank": 50,
         "bestPlatformSource": "起点中文网榜单",
@@ -20952,6 +20336,418 @@
       }
     },
     {
+      "id": "novel:baidu_novel:rank051",
+      "title": "长夜余火",
+      "type": "novel",
+      "source": "baidu_novel",
+      "sourceName": "百度小说搜索",
+      "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC",
+      "author": "爱潜水的乌贼",
+      "actors": [],
+      "characters": [],
+      "ipName": "长夜余火",
+      "categories": [
+        "科幻",
+        "真实小说",
+        "公开搜索校验"
+      ],
+      "summary": "公开资料可校验的真实网络小说《长夜余火》，作者：爱潜水的乌贼。",
+      "metrics": {
+        "playOrReadYi": 0.69,
+        "platformHeatWan": 800,
+        "searchIndex": 6900,
+        "topicPlayYi": 0.14,
+        "topicSignalScore": 20,
+        "platformHotRank": 51,
+        "sourceSignalScore": 76,
+        "sourceSignalCount": 5,
+        "authorityRankScore": 0,
+        "platformOriginalRank": 51,
+        "platformRankScore": 50,
+        "sourceConfidenceScore": 86,
+        "playOrReadScore": 7,
+        "platformHeatScore": 10,
+        "searchIndexScore": 69,
+        "topicScore": 4,
+        "rankRecommendationScore": 0,
+        "totalScore": 58.2
+      },
+      "evidence": [
+        {
+          "label": "百度小说搜索公开页面",
+          "url": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC"
+        },
+        {
+          "label": "百度小说搜索公开页面",
+          "url": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC",
+          "value": "长夜余火 小说公开页面"
+        },
+        {
+          "label": "番茄小说公开检索",
+          "url": "https://fanqienovel.com/search/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
+          "value": "长夜余火 小说"
+        },
+        {
+          "label": "起点中文网公开检索",
+          "url": "https://www.qidian.com/so/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB.html",
+          "value": "长夜余火 小说"
+        },
+        {
+          "label": "纵横中文网公开检索",
+          "url": "https://search.zongheng.com/s?keyword=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
+          "value": "长夜余火 小说"
+        },
+        {
+          "label": "百度小说公开检索",
+          "url": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4",
+          "value": "长夜余火 小说"
+        }
+      ],
+      "rankingEvidence": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网榜单",
+          "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC",
+          "capturedAt": "2026-06-27T19:20:00.000Z",
+          "rank": 51,
+          "evidenceType": "platform_rank",
+          "confidence": 0.86,
+          "note": "公开平台榜单或热度入口采集口径"
+        },
+        {
+          "sourceId": "baidu_novel",
+          "sourceName": "百度小说搜索公开页面",
+          "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC",
+          "capturedAt": "2026-06-27T19:20:00.000Z",
+          "rank": 1,
+          "score": 80,
+          "evidenceType": "topic_signal",
+          "confidence": 0.66,
+          "note": "社交搜索热度辅助信号"
+        },
+        {
+          "sourceId": "fanqie_search",
+          "sourceName": "番茄小说公开检索",
+          "sourceUrl": "https://fanqienovel.com/search/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
+          "capturedAt": "2026-06-27T19:20:00.000Z",
+          "rank": 2,
+          "score": 77,
+          "evidenceType": "topic_signal",
+          "confidence": 0.66,
+          "note": "社交搜索热度辅助信号"
+        },
+        {
+          "sourceId": "qidian_search",
+          "sourceName": "起点中文网公开检索",
+          "sourceUrl": "https://www.qidian.com/so/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB.html",
+          "capturedAt": "2026-06-27T19:20:00.000Z",
+          "rank": 3,
+          "score": 75,
+          "evidenceType": "topic_signal",
+          "confidence": 0.66,
+          "note": "社交搜索热度辅助信号"
+        },
+        {
+          "sourceId": "zongheng_search",
+          "sourceName": "纵横中文网公开检索",
+          "sourceUrl": "https://search.zongheng.com/s?keyword=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
+          "capturedAt": "2026-06-27T19:20:00.000Z",
+          "rank": 4,
+          "score": 73,
+          "evidenceType": "topic_signal",
+          "confidence": 0.66,
+          "note": "社交搜索热度辅助信号"
+        },
+        {
+          "sourceId": "baidu_novel_search",
+          "sourceName": "百度小说公开检索",
+          "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4",
+          "capturedAt": "2026-06-27T19:20:00.000Z",
+          "rank": 5,
+          "score": 71,
+          "evidenceType": "topic_signal",
+          "confidence": 0.66,
+          "note": "社交搜索热度辅助信号"
+        }
+      ],
+      "cover": "",
+      "capturedAt": "2026-06-28T04:30:00.000Z",
+      "status": "ongoing",
+      "hotSignals": [
+        {
+          "platform": "baidu_novel",
+          "platformName": "百度小说搜索公开页面",
+          "keyword": "长夜余火 小说公开页面",
+          "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC",
+          "topicSignalScore": 80,
+          "rank": 1,
+          "capturedAt": "2026-06-28T04:30:00.000Z"
+        },
+        {
+          "platform": "fanqie_search",
+          "platformName": "番茄小说公开检索",
+          "keyword": "长夜余火 小说",
+          "sourceUrl": "https://fanqienovel.com/search/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
+          "topicSignalScore": 77,
+          "rank": 2,
+          "capturedAt": "2026-06-28T04:30:00.000Z"
+        },
+        {
+          "platform": "qidian_search",
+          "platformName": "起点中文网公开检索",
+          "keyword": "长夜余火 小说",
+          "sourceUrl": "https://www.qidian.com/so/%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB.html",
+          "topicSignalScore": 75,
+          "rank": 3,
+          "capturedAt": "2026-06-28T04:30:00.000Z"
+        },
+        {
+          "platform": "zongheng_search",
+          "platformName": "纵横中文网公开检索",
+          "keyword": "长夜余火 小说",
+          "sourceUrl": "https://search.zongheng.com/s?keyword=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB",
+          "topicSignalScore": 73,
+          "rank": 4,
+          "capturedAt": "2026-06-28T04:30:00.000Z"
+        },
+        {
+          "platform": "baidu_novel_search",
+          "platformName": "百度小说公开检索",
+          "keyword": "长夜余火 小说",
+          "sourceUrl": "https://www.baidu.com/s?wd=%E9%95%BF%E5%A4%9C%E4%BD%99%E7%81%AB%20%E5%B0%8F%E8%AF%B4",
+          "topicSignalScore": 71,
+          "rank": 5,
+          "capturedAt": "2026-06-28T04:30:00.000Z"
+        }
+      ],
+      "rank": 51,
+      "rankingMeta": {
+        "displayRank": 51,
+        "compositeScore": 58.2,
+        "bestPlatformRank": 51,
+        "bestPlatformSource": "起点中文网榜单",
+        "sourceConfidence": "high",
+        "rankingReason": "平台榜「起点中文网榜单」第51名，来源可信度高。",
+        "updatedBy": "seed_backfill"
+      },
+      "relations": {
+        "sameIp": [],
+        "sameActors": [],
+        "sameCategories": [
+          {
+            "id": "novel:qidian:rank001",
+            "type": "novel",
+            "title": "诡秘之主",
+            "rank": 1,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 802000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank002",
+            "type": "novel",
+            "title": "牧神记",
+            "rank": 2,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 797000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank003",
+            "type": "novel",
+            "title": "修罗武神",
+            "rank": 3,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 792000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank004",
+            "type": "novel",
+            "title": "儒道至圣",
+            "rank": 4,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 788000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank005",
+            "type": "novel",
+            "title": "太荒吞天诀",
+            "rank": 5,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 784000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank006",
+            "type": "novel",
+            "title": "青山",
+            "rank": 6,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 779000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank007",
+            "type": "novel",
+            "title": "极品家丁",
+            "rank": 7,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 775000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank008",
+            "type": "novel",
+            "title": "深空彼岸",
+            "rank": 8,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 770000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          }
+        ],
+        "sameCategory": [
+          {
+            "id": "novel:qidian:rank001",
+            "type": "novel",
+            "title": "诡秘之主",
+            "rank": 1,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 802000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank002",
+            "type": "novel",
+            "title": "牧神记",
+            "rank": 2,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 797000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank003",
+            "type": "novel",
+            "title": "修罗武神",
+            "rank": 3,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 792000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank004",
+            "type": "novel",
+            "title": "儒道至圣",
+            "rank": 4,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 788000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank005",
+            "type": "novel",
+            "title": "太荒吞天诀",
+            "rank": 5,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 784000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank006",
+            "type": "novel",
+            "title": "青山",
+            "rank": 6,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 779000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank007",
+            "type": "novel",
+            "title": "极品家丁",
+            "rank": 7,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 775000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          },
+          {
+            "id": "novel:qidian:rank008",
+            "type": "novel",
+            "title": "深空彼岸",
+            "rank": 8,
+            "source": "qidian",
+            "sourceName": "起点中文网",
+            "hotScore": 770000,
+            "matchedBy": "category",
+            "matchedValues": [
+              "真实小说"
+            ]
+          }
+        ]
+      }
+    },
+    {
       "id": "novel:baidu_novel:rank052",
       "title": "奥术神座",
       "type": "novel",
@@ -20992,10 +20788,6 @@
         {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%A5%A5%E6%9C%AF%E7%A5%9E%E5%BA%A7%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC"
-        },
-        {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%A5%A5%E6%9C%AF%E7%A5%9E%E5%BA%A7.html"
         },
         {
           "label": "百度小说搜索公开页面",
@@ -21090,7 +20882,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2643379/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -21412,10 +21204,6 @@
           "url": "https://www.baidu.com/s?wd=%E7%81%AD%E8%BF%90%E5%9B%BE%E5%BD%95%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%81%AD%E8%BF%90%E5%9B%BE%E5%BD%95.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E7%81%AD%E8%BF%90%E5%9B%BE%E5%BD%95%20%E5%B0%8F%E8%AF%B4%20%E7%88%B1%E6%BD%9C%E6%B0%B4%E7%9A%84%E4%B9%8C%E8%B4%BC",
           "value": "灭运图录 小说公开页面"
@@ -21508,7 +21296,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2182740/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -21828,10 +21616,6 @@
           "url": "https://www.baidu.com/s?wd=%E6%8B%A9%E6%97%A5%E9%A3%9E%E5%8D%87%20%E5%B0%8F%E8%AF%B4%20%E5%AE%85%E7%8C%AA"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%8B%A9%E6%97%A5%E9%A3%9E%E5%8D%87.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E6%8B%A9%E6%97%A5%E9%A3%9E%E5%8D%87%20%E5%B0%8F%E8%AF%B4%20%E5%AE%85%E7%8C%AA",
           "value": "择日飞升 小说公开页面"
@@ -21924,7 +21708,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1032778366/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -22244,10 +22028,6 @@
           "url": "https://www.baidu.com/s?wd=%E4%B8%B4%E6%B8%8A%E8%A1%8C%20%E5%B0%8F%E8%AF%B4%20%E5%AE%85%E7%8C%AA"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%B8%B4%E6%B8%8A%E8%A1%8C.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E4%B8%B4%E6%B8%8A%E8%A1%8C%20%E5%B0%8F%E8%AF%B4%20%E5%AE%85%E7%8C%AA",
           "value": "临渊行 小说公开页面"
@@ -22340,7 +22120,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1017125042/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -22668,10 +22448,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%B8%9D%E5%B0%8A%20%E5%B0%8F%E8%AF%B4%20%E5%AE%85%E7%8C%AA"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%B8%9D%E5%B0%8A.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%B8%9D%E5%B0%8A%20%E5%B0%8F%E8%AF%B4%20%E5%AE%85%E7%8C%AA",
           "value": "帝尊 小说公开页面"
@@ -22764,7 +22540,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2540310/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -23092,10 +22868,6 @@
           "url": "https://www.baidu.com/s?wd=%E4%BA%BA%E9%81%93%E8%87%B3%E5%B0%8A%20%E5%B0%8F%E8%AF%B4%20%E5%AE%85%E7%8C%AA"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%BA%BA%E9%81%93%E8%87%B3%E5%B0%8A.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E4%BA%BA%E9%81%93%E8%87%B3%E5%B0%8A%20%E5%B0%8F%E8%AF%B4%20%E5%AE%85%E7%8C%AA",
           "value": "人道至尊 小说公开页面"
@@ -23188,7 +22960,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/3458639/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -23516,10 +23288,6 @@
           "url": "https://www.baidu.com/s?wd=%E4%BB%99%E9%80%86%20%E5%B0%8F%E8%AF%B4%20%E8%80%B3%E6%A0%B9"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%BB%99%E9%80%86.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E4%BB%99%E9%80%86%20%E5%B0%8F%E8%AF%B4%20%E8%80%B3%E6%A0%B9",
           "value": "仙逆 小说公开页面"
@@ -23612,7 +23380,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1264634/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -23932,10 +23700,6 @@
           "url": "https://www.baidu.com/s?wd=%E6%B1%82%E9%AD%94%20%E5%B0%8F%E8%AF%B4%20%E8%80%B3%E6%A0%B9"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%B1%82%E9%AD%94.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E6%B1%82%E9%AD%94%20%E5%B0%8F%E8%AF%B4%20%E8%80%B3%E6%A0%B9",
           "value": "求魔 小说公开页面"
@@ -24028,7 +23792,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2070910/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -24348,10 +24112,6 @@
           "url": "https://www.baidu.com/s?wd=%E6%88%91%E6%AC%B2%E5%B0%81%E5%A4%A9%20%E5%B0%8F%E8%AF%B4%20%E8%80%B3%E6%A0%B9"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%88%91%E6%AC%B2%E5%B0%81%E5%A4%A9.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E6%88%91%E6%AC%B2%E5%B0%81%E5%A4%A9%20%E5%B0%8F%E8%AF%B4%20%E8%80%B3%E6%A0%B9",
           "value": "我欲封天 小说公开页面"
@@ -24444,7 +24204,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/3106580/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -24764,10 +24524,6 @@
           "url": "https://www.baidu.com/s?wd=%E4%B8%80%E5%BF%B5%E6%B0%B8%E6%81%92%20%E5%B0%8F%E8%AF%B4%20%E8%80%B3%E6%A0%B9"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%B8%80%E5%BF%B5%E6%B0%B8%E6%81%92.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E4%B8%80%E5%BF%B5%E6%B0%B8%E6%81%92%20%E5%B0%8F%E8%AF%B4%20%E8%80%B3%E6%A0%B9",
           "value": "一念永恒 小说公开页面"
@@ -24860,7 +24616,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1003354631/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -25180,10 +24936,6 @@
           "url": "https://www.baidu.com/s?wd=%E4%B8%89%E5%AF%B8%E4%BA%BA%E9%97%B4%20%E5%B0%8F%E8%AF%B4%20%E8%80%B3%E6%A0%B9"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%B8%89%E5%AF%B8%E4%BA%BA%E9%97%B4.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E4%B8%89%E5%AF%B8%E4%BA%BA%E9%97%B4%20%E5%B0%8F%E8%AF%B4%20%E8%80%B3%E6%A0%B9",
           "value": "三寸人间 小说公开页面"
@@ -25276,7 +25028,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1010327039/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -25596,10 +25348,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%85%A8%E7%90%83%E9%AB%98%E6%AD%A6%20%E5%B0%8F%E8%AF%B4%20%E8%80%81%E9%B9%B0%E5%90%83%E5%B0%8F%E9%B8%A1"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%85%A8%E7%90%83%E9%AB%98%E6%AD%A6.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%85%A8%E7%90%83%E9%AB%98%E6%AD%A6%20%E5%B0%8F%E8%AF%B4%20%E8%80%81%E9%B9%B0%E5%90%83%E5%B0%8F%E9%B8%A1",
           "value": "全球高武 小说公开页面"
@@ -25692,7 +25440,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1012237441/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -26014,10 +25762,6 @@
           "url": "https://www.baidu.com/s?wd=%E6%98%9F%E9%97%A8%20%E5%B0%8F%E8%AF%B4%20%E8%80%81%E9%B9%B0%E5%90%83%E5%B0%8F%E9%B8%A1"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%98%9F%E9%97%A8.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E6%98%9F%E9%97%A8%20%E5%B0%8F%E8%AF%B4%20%E8%80%81%E9%B9%B0%E5%90%83%E5%B0%8F%E9%B8%A1",
           "value": "星门 小说公开页面"
@@ -26110,7 +25854,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1027669580/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -26438,10 +26182,6 @@
           "url": "https://www.baidu.com/s?wd=%E4%B8%87%E6%97%8F%E4%B9%8B%E5%8A%AB%20%E5%B0%8F%E8%AF%B4%20%E8%80%81%E9%B9%B0%E5%90%83%E5%B0%8F%E9%B8%A1"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%B8%87%E6%97%8F%E4%B9%8B%E5%8A%AB.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E4%B8%87%E6%97%8F%E4%B9%8B%E5%8A%AB%20%E5%B0%8F%E8%AF%B4%20%E8%80%81%E9%B9%B0%E5%90%83%E5%B0%8F%E9%B8%A1",
           "value": "万族之劫 小说公开页面"
@@ -26534,7 +26274,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1018027842/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -26856,10 +26596,6 @@
           "url": "https://www.baidu.com/s?wd=%E6%AD%A6%E5%8A%A8%E4%B9%BE%E5%9D%A4%20%E5%B0%8F%E8%AF%B4%20%E5%A4%A9%E8%9A%95%E5%9C%9F%E8%B1%86"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%AD%A6%E5%8A%A8%E4%B9%BE%E5%9D%A4.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E6%AD%A6%E5%8A%A8%E4%B9%BE%E5%9D%A4%20%E5%B0%8F%E8%AF%B4%20%E5%A4%A9%E8%9A%95%E5%9C%9F%E8%B1%86",
           "value": "武动乾坤 小说公开页面"
@@ -26952,7 +26688,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2048120/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -27280,10 +27016,6 @@
           "url": "https://www.baidu.com/s?wd=%E6%96%97%E7%A0%B4%E8%8B%8D%E7%A9%B9%20%E5%B0%8F%E8%AF%B4%20%E5%A4%A9%E8%9A%95%E5%9C%9F%E8%B1%86"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%96%97%E7%A0%B4%E8%8B%8D%E7%A9%B9.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E6%96%97%E7%A0%B4%E8%8B%8D%E7%A9%B9%20%E5%B0%8F%E8%AF%B4%20%E5%A4%A9%E8%9A%95%E5%9C%9F%E8%B1%86",
           "value": "斗破苍穹 小说公开页面"
@@ -27376,7 +27108,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1209977/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -27704,10 +27436,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%A4%A7%E4%B8%BB%E5%AE%B0%20%E5%B0%8F%E8%AF%B4%20%E5%A4%A9%E8%9A%95%E5%9C%9F%E8%B1%86"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%A4%A7%E4%B8%BB%E5%AE%B0.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%A4%A7%E4%B8%BB%E5%AE%B0%20%E5%B0%8F%E8%AF%B4%20%E5%A4%A9%E8%9A%95%E5%9C%9F%E8%B1%86",
           "value": "大主宰 小说公开页面"
@@ -27800,7 +27528,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2750457/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -28128,10 +27856,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%85%83%E5%B0%8A%20%E5%B0%8F%E8%AF%B4%20%E5%A4%A9%E8%9A%95%E5%9C%9F%E8%B1%86"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%85%83%E5%B0%8A.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%85%83%E5%B0%8A%20%E5%B0%8F%E8%AF%B4%20%E5%A4%A9%E8%9A%95%E5%9C%9F%E8%B1%86",
           "value": "元尊 小说公开页面"
@@ -28224,7 +27948,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1014920025/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -28552,10 +28276,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%87%A1%E4%BA%BA%E4%BF%AE%E4%BB%99%E4%BC%A0%20%E5%B0%8F%E8%AF%B4%20%E5%BF%98%E8%AF%AD"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%87%A1%E4%BA%BA%E4%BF%AE%E4%BB%99%E4%BC%A0.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%87%A1%E4%BA%BA%E4%BF%AE%E4%BB%99%E4%BC%A0%20%E5%B0%8F%E8%AF%B4%20%E5%BF%98%E8%AF%AD",
           "value": "凡人修仙传 小说公开页面"
@@ -28648,7 +28368,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/107580/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -28968,10 +28688,6 @@
           "url": "https://www.baidu.com/s?wd=%E9%AD%94%E5%A4%A9%E8%AE%B0%20%E5%B0%8F%E8%AF%B4%20%E5%BF%98%E8%AF%AD"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%AD%94%E5%A4%A9%E8%AE%B0.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E9%AD%94%E5%A4%A9%E8%AE%B0%20%E5%B0%8F%E8%AF%B4%20%E5%BF%98%E8%AF%AD",
           "value": "魔天记 小说公开页面"
@@ -29064,7 +28780,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/3022294/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -29384,10 +29100,6 @@
           "url": "https://www.baidu.com/s?wd=%E7%8E%84%E7%95%8C%E4%B9%8B%E9%97%A8%20%E5%B0%8F%E8%AF%B4%20%E5%BF%98%E8%AF%AD"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%8E%84%E7%95%8C%E4%B9%8B%E9%97%A8.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E7%8E%84%E7%95%8C%E4%B9%8B%E9%97%A8%20%E5%B0%8F%E8%AF%B4%20%E5%BF%98%E8%AF%AD",
           "value": "玄界之门 小说公开页面"
@@ -29480,7 +29192,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/3676417/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -29800,10 +29512,6 @@
           "url": "https://www.baidu.com/s?wd=%E8%B5%98%E5%A9%BF%20%E5%B0%8F%E8%AF%B4%20%E6%84%A4%E6%80%92%E7%9A%84%E9%A6%99%E8%95%89"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E8%B5%98%E5%A9%BF.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E8%B5%98%E5%A9%BF%20%E5%B0%8F%E8%AF%B4%20%E6%84%A4%E6%80%92%E7%9A%84%E9%A6%99%E8%95%89",
           "value": "赘婿 小说公开页面"
@@ -29896,7 +29604,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1979049/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -30218,10 +29926,6 @@
           "url": "https://www.baidu.com/s?wd=%E9%9A%90%E6%9D%80%20%E5%B0%8F%E8%AF%B4%20%E6%84%A4%E6%80%92%E7%9A%84%E9%A6%99%E8%95%89"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%9A%90%E6%9D%80.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E9%9A%90%E6%9D%80%20%E5%B0%8F%E8%AF%B4%20%E6%84%A4%E6%80%92%E7%9A%84%E9%A6%99%E8%95%89",
           "value": "隐杀 小说公开页面"
@@ -30314,7 +30018,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1038364236/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -30636,10 +30340,6 @@
           "url": "https://www.baidu.com/s?wd=%E7%BB%8D%E5%AE%8B%20%E5%B0%8F%E8%AF%B4%20%E6%A6%B4%E5%BC%B9%E6%80%95%E6%B0%B4"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%BB%8D%E5%AE%8B.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E7%BB%8D%E5%AE%8B%20%E5%B0%8F%E8%AF%B4%20%E6%A6%B4%E5%BC%B9%E6%80%95%E6%B0%B4",
           "value": "绍宋 小说公开页面"
@@ -30732,7 +30432,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1017281778/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -31054,10 +30754,6 @@
           "url": "https://www.baidu.com/s?wd=%E8%A6%86%E6%B1%89%20%E5%B0%8F%E8%AF%B4%20%E6%A6%B4%E5%BC%B9%E6%80%95%E6%B0%B4"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E8%A6%86%E6%B1%89.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E8%A6%86%E6%B1%89%20%E5%B0%8F%E8%AF%B4%20%E6%A6%B4%E5%BC%B9%E6%80%95%E6%B0%B4",
           "value": "覆汉 小说公开页面"
@@ -31150,7 +30846,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1011526746/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -31472,10 +31168,6 @@
           "url": "https://www.baidu.com/s?wd=%E7%90%85%E7%90%8A%E6%A6%9C%20%E5%B0%8F%E8%AF%B4%20%E6%B5%B7%E5%AE%B4"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%90%85%E7%90%8A%E6%A6%9C.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E7%90%85%E7%90%8A%E6%A6%9C%20%E5%B0%8F%E8%AF%B4%20%E6%B5%B7%E5%AE%B4",
           "value": "琅琊榜 小说公开页面"
@@ -31568,7 +31260,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/86464/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -31888,10 +31580,6 @@
           "url": "https://www.baidu.com/s?wd=%E9%B9%A4%E5%94%B3%E5%8D%8E%E4%BA%AD%20%E5%B0%8F%E8%AF%B4%20%E9%9B%AA%E6%BB%A1%E6%A2%81%E5%9B%AD"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%B9%A4%E5%94%B3%E5%8D%8E%E4%BA%AD.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E9%B9%A4%E5%94%B3%E5%8D%8E%E4%BA%AD%20%E5%B0%8F%E8%AF%B4%20%E9%9B%AA%E6%BB%A1%E6%A2%81%E5%9B%AD",
           "value": "鹤唳华亭 小说公开页面"
@@ -31984,7 +31672,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1049336979/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -32304,10 +31992,6 @@
           "url": "https://www.baidu.com/s?wd=%E7%9F%A5%E5%90%A6%E7%9F%A5%E5%90%A6%E5%BA%94%E6%98%AF%E7%BB%BF%E8%82%A5%E7%BA%A2%E7%98%A6%20%E5%B0%8F%E8%AF%B4%20%E5%85%B3%E5%BF%83%E5%88%99%E4%B9%B1"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%9F%A5%E5%90%A6%E7%9F%A5%E5%90%A6%E5%BA%94%E6%98%AF%E7%BB%BF%E8%82%A5%E7%BA%A2%E7%98%A6.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E7%9F%A5%E5%90%A6%E7%9F%A5%E5%90%A6%E5%BA%94%E6%98%AF%E7%BB%BF%E8%82%A5%E7%BA%A2%E7%98%A6%20%E5%B0%8F%E8%AF%B4%20%E5%85%B3%E5%BF%83%E5%88%99%E4%B9%B1",
           "value": "知否知否应是绿肥红瘦 小说公开页面"
@@ -32400,7 +32084,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1044692372/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -32720,10 +32404,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%BA%B6%E5%A5%B3%E6%94%BB%E7%95%A5%20%E5%B0%8F%E8%AF%B4%20%E5%90%B1%E5%90%B1"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%BA%B6%E5%A5%B3%E6%94%BB%E7%95%A5.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%BA%B6%E5%A5%B3%E6%94%BB%E7%95%A5%20%E5%B0%8F%E8%AF%B4%20%E5%90%B1%E5%90%B1",
           "value": "庶女攻略 小说公开页面"
@@ -32816,7 +32496,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1040358456/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -33136,10 +32816,6 @@
           "url": "https://www.baidu.com/s?wd=%E8%8A%B1%E5%8D%83%E9%AA%A8%20%E5%B0%8F%E8%AF%B4%20Fresh%E6%9E%9C%E6%9E%9C"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E8%8A%B1%E5%8D%83%E9%AA%A8.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E8%8A%B1%E5%8D%83%E9%AA%A8%20%E5%B0%8F%E8%AF%B4%20Fresh%E6%9E%9C%E6%9E%9C",
           "value": "花千骨 小说公开页面"
@@ -33232,7 +32908,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1025375601/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -33552,10 +33228,6 @@
           "url": "https://www.baidu.com/s?wd=%E4%B8%89%E7%94%9F%E4%B8%89%E4%B8%96%E5%8D%81%E9%87%8C%E6%A1%83%E8%8A%B1%20%E5%B0%8F%E8%AF%B4%20%E5%94%90%E4%B8%83"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%B8%89%E7%94%9F%E4%B8%89%E4%B8%96%E5%8D%81%E9%87%8C%E6%A1%83%E8%8A%B1.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E4%B8%89%E7%94%9F%E4%B8%89%E4%B8%96%E5%8D%81%E9%87%8C%E6%A1%83%E8%8A%B1%20%E5%B0%8F%E8%AF%B4%20%E5%94%90%E4%B8%83",
           "value": "三生三世十里桃花 小说公开页面"
@@ -33648,7 +33320,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1001524740/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -33968,10 +33640,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%8D%8E%E8%83%A5%E5%BC%95%20%E5%B0%8F%E8%AF%B4%20%E5%94%90%E4%B8%83"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%8D%8E%E8%83%A5%E5%BC%95.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%8D%8E%E8%83%A5%E5%BC%95%20%E5%B0%8F%E8%AF%B4%20%E5%94%90%E4%B8%83",
           "value": "华胥引 小说公开页面"
@@ -34064,7 +33732,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1002267328/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -34384,10 +34052,6 @@
           "url": "https://www.baidu.com/s?wd=%E4%B8%83%E5%A4%9C%E9%9B%AA%20%E5%B0%8F%E8%AF%B4%20%E6%B2%A7%E6%9C%88"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%B8%83%E5%A4%9C%E9%9B%AA.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E4%B8%83%E5%A4%9C%E9%9B%AA%20%E5%B0%8F%E8%AF%B4%20%E6%B2%A7%E6%9C%88",
           "value": "七夜雪 小说公开页面"
@@ -34480,7 +34144,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1046224152/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -34800,10 +34464,6 @@
           "url": "https://www.baidu.com/s?wd=%E9%95%9C%20%E5%B0%8F%E8%AF%B4%20%E6%B2%A7%E6%9C%88"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%95%9C.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E9%95%9C%20%E5%B0%8F%E8%AF%B4%20%E6%B2%A7%E6%9C%88",
           "value": "镜 小说公开页面"
@@ -34896,7 +34556,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1045336850/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -35224,10 +34884,6 @@
           "url": "https://www.baidu.com/s?wd=%E6%90%9C%E7%A5%9E%E8%AE%B0%20%E5%B0%8F%E8%AF%B4%20%E6%A0%91%E4%B8%8B%E9%87%8E%E7%8B%90"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%90%9C%E7%A5%9E%E8%AE%B0.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E6%90%9C%E7%A5%9E%E8%AE%B0%20%E5%B0%8F%E8%AF%B4%20%E6%A0%91%E4%B8%8B%E9%87%8E%E7%8B%90",
           "value": "搜神记 小说公开页面"
@@ -35320,7 +34976,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1017408618/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -35648,10 +35304,6 @@
           "url": "https://www.baidu.com/s?wd=%E8%9B%AE%E8%8D%92%E8%AE%B0%20%E5%B0%8F%E8%AF%B4%20%E6%A0%91%E4%B8%8B%E9%87%8E%E7%8B%90"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E8%9B%AE%E8%8D%92%E8%AE%B0.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E8%9B%AE%E8%8D%92%E8%AE%B0%20%E5%B0%8F%E8%AF%B4%20%E6%A0%91%E4%B8%8B%E9%87%8E%E7%8B%90",
           "value": "蛮荒记 小说公开页面"
@@ -35744,7 +35396,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1048167239/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -36072,10 +35724,6 @@
           "url": "https://www.baidu.com/s?wd=%E7%B4%AB%E5%B7%9D%20%E5%B0%8F%E8%AF%B4%20%E8%80%81%E7%8C%AA"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%B4%AB%E5%B7%9D.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E7%B4%AB%E5%B7%9D%20%E5%B0%8F%E8%AF%B4%20%E8%80%81%E7%8C%AA",
           "value": "紫川 小说公开页面"
@@ -36168,7 +35816,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/20/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -36490,10 +36138,6 @@
           "url": "https://www.baidu.com/s?wd=%E4%BD%A3%E5%85%B5%E5%A4%A9%E4%B8%8B%20%E5%B0%8F%E8%AF%B4%20%E8%AF%B4%E4%B8%8D%E5%BE%97%E5%A4%A7%E5%B8%88"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%BD%A3%E5%85%B5%E5%A4%A9%E4%B8%8B.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E4%BD%A3%E5%85%B5%E5%A4%A9%E4%B8%8B%20%E5%B0%8F%E8%AF%B4%20%E8%AF%B4%E4%B8%8D%E5%BE%97%E5%A4%A7%E5%B8%88",
           "value": "佣兵天下 小说公开页面"
@@ -36586,7 +36230,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1026121482/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -36908,10 +36552,6 @@
           "url": "https://www.baidu.com/s?wd=%E4%BA%B5%E6%B8%8E%20%E5%B0%8F%E8%AF%B4%20%E7%83%9F%E9%9B%A8%E6%B1%9F%E5%8D%97"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%BA%B5%E6%B8%8E.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E4%BA%B5%E6%B8%8E%20%E5%B0%8F%E8%AF%B4%20%E7%83%9F%E9%9B%A8%E6%B1%9F%E5%8D%97",
           "value": "亵渎 小说公开页面"
@@ -37004,7 +36644,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1041030016/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -37326,10 +36966,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%B0%98%E7%BC%98%20%E5%B0%8F%E8%AF%B4%20%E7%83%9F%E9%9B%A8%E6%B1%9F%E5%8D%97"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%B0%98%E7%BC%98.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%B0%98%E7%BC%98%20%E5%B0%8F%E8%AF%B4%20%E7%83%9F%E9%9B%A8%E6%B1%9F%E5%8D%97",
           "value": "尘缘 小说公开页面"
@@ -37422,7 +37058,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1023828415/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -37742,10 +37378,6 @@
           "url": "https://www.baidu.com/s?wd=%E6%B0%B8%E5%A4%9C%E5%90%9B%E7%8E%8B%20%E5%B0%8F%E8%AF%B4%20%E7%83%9F%E9%9B%A8%E6%B1%9F%E5%8D%97"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E6%B0%B8%E5%A4%9C%E5%90%9B%E7%8E%8B.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E6%B0%B8%E5%A4%9C%E5%90%9B%E7%8E%8B%20%E5%B0%8F%E8%AF%B4%20%E7%83%9F%E9%9B%A8%E6%B1%9F%E5%8D%97",
           "value": "永夜君王 小说公开页面"
@@ -37838,7 +37470,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1046570073/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -38166,10 +37798,6 @@
           "url": "https://www.baidu.com/s?wd=%E7%8B%A9%E9%AD%94%E6%89%8B%E8%AE%B0%20%E5%B0%8F%E8%AF%B4%20%E7%83%9F%E9%9B%A8%E6%B1%9F%E5%8D%97"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E7%8B%A9%E9%AD%94%E6%89%8B%E8%AE%B0.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E7%8B%A9%E9%AD%94%E6%89%8B%E8%AE%B0%20%E5%B0%8F%E8%AF%B4%20%E7%83%9F%E9%9B%A8%E6%B1%9F%E5%8D%97",
           "value": "狩魔手记 小说公开页面"
@@ -38262,7 +37890,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1038677367/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -38582,10 +38210,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%86%92%E7%89%8C%E5%A4%A7%E8%8B%B1%E9%9B%84%20%E5%B0%8F%E8%AF%B4%20%E4%B8%83%E5%8D%81%E4%BA%8C%E7%BC%96"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%86%92%E7%89%8C%E5%A4%A7%E8%8B%B1%E9%9B%84.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%86%92%E7%89%8C%E5%A4%A7%E8%8B%B1%E9%9B%84%20%E5%B0%8F%E8%AF%B4%20%E4%B8%83%E5%8D%81%E4%BA%8C%E7%BC%96",
           "value": "冒牌大英雄 小说公开页面"
@@ -38678,7 +38302,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/131957/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -38998,10 +38622,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%B8%88%E5%A3%AB%E4%BC%A0%E8%AF%B4%20%E5%B0%8F%E8%AF%B4%20%E6%96%B9%E6%83%B3"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%B8%88%E5%A3%AB%E4%BC%A0%E8%AF%B4.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%B8%88%E5%A3%AB%E4%BC%A0%E8%AF%B4%20%E5%B0%8F%E8%AF%B4%20%E6%96%B9%E6%83%B3",
           "value": "师士传说 小说公开页面"
@@ -39094,7 +38714,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/54111/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -39414,10 +39034,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%8D%A1%E5%BE%92%20%E5%B0%8F%E8%AF%B4%20%E6%96%B9%E6%83%B3"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%8D%A1%E5%BE%92.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%8D%A1%E5%BE%92%20%E5%B0%8F%E8%AF%B4%20%E6%96%B9%E6%83%B3",
           "value": "卡徒 小说公开页面"
@@ -39510,7 +39126,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1031950/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -39830,10 +39446,6 @@
           "url": "https://www.baidu.com/s?wd=%E4%BF%AE%E7%9C%9F%E4%B8%96%E7%95%8C%20%E5%B0%8F%E8%AF%B4%20%E6%96%B9%E6%83%B3"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E4%BF%AE%E7%9C%9F%E4%B8%96%E7%95%8C.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E4%BF%AE%E7%9C%9F%E4%B8%96%E7%95%8C%20%E5%B0%8F%E8%AF%B4%20%E6%96%B9%E6%83%B3",
           "value": "修真世界 小说公开页面"
@@ -39926,7 +39538,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1035682022/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -40246,10 +39858,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%A4%A7%E9%81%93%E6%9C%9D%E5%A4%A9%20%E5%B0%8F%E8%AF%B4%20%E7%8C%AB%E8%85%BB"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%A4%A7%E9%81%93%E6%9C%9D%E5%A4%A9.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%A4%A7%E9%81%93%E6%9C%9D%E5%A4%A9%20%E5%B0%8F%E8%AF%B4%20%E7%8C%AB%E8%85%BB",
           "value": "大道朝天 小说公开页面"
@@ -40342,7 +39950,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1010496369/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -40662,10 +40270,6 @@
           "url": "https://www.baidu.com/s?wd=%E5%A4%A7%E9%81%93%E4%BA%89%E9%94%8B%20%E5%B0%8F%E8%AF%B4%20%E8%AF%AF%E9%81%93%E8%80%85"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E5%A4%A7%E9%81%93%E4%BA%89%E9%94%8B.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E5%A4%A7%E9%81%93%E4%BA%89%E9%94%8B%20%E5%B0%8F%E8%AF%B4%20%E8%AF%AF%E9%81%93%E8%80%85",
           "value": "大道争锋 小说公开页面"
@@ -40758,7 +40362,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/2226569/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [
@@ -41078,10 +40682,6 @@
           "url": "https://www.baidu.com/s?wd=%E9%A3%9E%E5%89%91%E9%97%AE%E9%81%93%20%E5%B0%8F%E8%AF%B4%20%E6%88%91%E5%90%83%E8%A5%BF%E7%BA%A2%E6%9F%BF"
         },
         {
-          "label": "?????????",
-          "url": "https://m.qidian.com/soushu/%E9%A3%9E%E5%89%91%E9%97%AE%E9%81%93.html"
-        },
-        {
           "label": "百度小说搜索公开页面",
           "url": "https://www.baidu.com/s?wd=%E9%A3%9E%E5%89%91%E9%97%AE%E9%81%93%20%E5%B0%8F%E8%AF%B4%20%E6%88%91%E5%90%83%E8%A5%BF%E7%BA%A2%E6%9F%BF",
           "value": "飞剑问道 小说公开页面"
@@ -41174,7 +40774,7 @@
           "note": "社交搜索热度辅助信号"
         }
       ],
-      "cover": "https://bookcover.yuewen.com/qdbimg/349573/1010468795/180",
+      "cover": "",
       "capturedAt": "2026-06-28T04:30:00.000Z",
       "status": "ongoing",
       "hotSignals": [

@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { formatHotScore, formatHotScoreShort } from '../src/utils/hotScore.ts';
 
 test('hot score formatter uses playback metric by default', () => {
-  assert.equal(formatHotScore(440000), '全网播放量 440,000 万次');
-  assert.equal(formatHotScore(0), '全网播放量待披露');
+  assert.equal(formatHotScore(44), '热度参考 44');
+  assert.equal(formatHotScore(0), '热度参考待核验');
 });
 
 test('hot score formatter supports reading metric copy', () => {
-  assert.equal(formatHotScore(1660000, 'reading'), '全网阅读量 1,660,000 万次');
-  assert.equal(formatHotScoreShort(1660000, 'reading'), '阅读量 1,660,000 万次');
+  assert.equal(formatHotScore(166, 'reading'), '热度参考 166');
+  assert.equal(formatHotScoreShort(166, 'reading'), '热度参考 166');
 });

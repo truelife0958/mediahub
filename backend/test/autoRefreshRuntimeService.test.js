@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  buildBackfillOptions,
   getAutoRefreshRuntimeStatus,
   refreshAllContentTypesNow,
   resetAutoRefreshRuntimeForTest,
@@ -25,6 +26,17 @@ function withEnv(patch, fn) {
       resetAutoRefreshRuntimeForTest();
     });
 }
+
+
+test('default backend auto refresh targets 100 ranked rows per module', async () => {
+  await withEnv({
+    MEDIAHUB_INGEST_BACKFILL_PAGES: undefined,
+    MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE: undefined,
+    MEDIAHUB_INGEST_BACKFILL_SORTS: undefined,
+  }, async () => {
+    assert.deepEqual(buildBackfillOptions(), { pageCount: 2, pageSize: 50, sortModes: ['hot'] });
+  });
+});
 
 test('auto refresh runtime schedules from current system settings and restarts cleanly', async () => {
   await withEnv({
@@ -82,7 +94,7 @@ test('auto refresh runtime schedules from current system settings and restarts c
   });
 });
 
-test('manual AI refresh uses four isolated content types and current backfill settings', async () => {
+test('manual data refresh uses four visible modules with current backfill settings', async () => {
   await withEnv({
     MEDIAHUB_INGEST_BACKFILL_PAGES: '4',
     MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE: '20',
@@ -98,7 +110,7 @@ test('manual AI refresh uses four isolated content types and current backfill se
       },
     });
 
-    assert.deepEqual(calls[0].types, ['drama', 'novel', 'comic', 'anime']);
+    assert.deepEqual(calls[0].types, ['drama', 'novel', 'anime', 'comic']);
     assert.deepEqual(calls[0].backfill, { pageCount: 4, pageSize: 20, sortModes: ['hot', 'latest'] });
     assert.equal(data.results.length, 4);
     assert.equal(data.status.lastTrigger, 'manual-test');

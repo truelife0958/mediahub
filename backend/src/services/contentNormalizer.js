@@ -1,10 +1,10 @@
 const DEFAULT_COVER = 'https://placehold.co/300x400/111827/ffffff?text=MediaHub';
-const VALID_TYPES = new Set(['drama', 'novel', 'comic', 'anime']);
+const VALID_TYPES = new Set(['drama', 'novel', 'anime', 'comic']);
 const VALID_STATUS = new Set(['ongoing', 'completed']);
 const HEAT_METRIC_BY_TYPE = {
   drama: 'playback',
-  anime: 'playback',
   novel: 'reading',
+  anime: 'playback',
   comic: 'reading',
 };
 
@@ -43,6 +43,26 @@ function normalizeSource(source = {}) {
   };
 }
 
+function normalizeObject(value, fallback = {}) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : fallback;
+}
+
+function normalizeFieldSources(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(item => item && typeof item === 'object')
+    .map(item => ({
+      ...item,
+      field: cleanText(item.field),
+      sourceId: cleanText(item.sourceId, 'public_report').toLowerCase(),
+      sourceName: cleanText(item.sourceName, '????'),
+      sourceUrl: cleanText(item.sourceUrl),
+      capturedAt: cleanText(item.capturedAt),
+    }))
+    .filter(item => item.field && item.sourceName)
+    .slice(0, 20);
+}
+
 function normalizeHeatMetric(metric, type = 'drama') {
   const value = cleanText(metric).toLowerCase();
   if (value === 'playback' || value === 'reading') return value;
@@ -62,6 +82,11 @@ function normalizeContent(content) {
     tags: normalizeStringArray(content?.tags, 8),
     actors: normalizeStringArray(content?.actors, 8),
     characters: normalizeStringArray(content?.characters, 12),
+    contentType: cleanText(content?.contentType),
+    releaseDate: cleanText(content?.releaseDate),
+    copyrightOwner: cleanText(content?.copyrightOwner),
+    fieldSources: normalizeFieldSources(content?.fieldSources),
+    metrics: normalizeObject(content?.metrics),
     author: cleanText(content?.author),
     ipName: cleanText(content?.ipName, title),
     status: normalizeStatus(content?.status),

@@ -1,6 +1,6 @@
 import { refreshContentType } from './ingestionService.js';
 
-const CONTENT_TYPES = ['drama', 'novel', 'comic', 'anime'];
+const CONTENT_TYPES = ['drama', 'novel', 'anime', 'comic'];
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MINUTE_MS = 60 * 1000;
 const MIN_DELAY_MS = 1_000;
@@ -81,6 +81,10 @@ async function refreshAllTypes({
         status: 'success',
         count: Number(response?.count) || 0,
         durationMs: Date.now() - startedAt,
+        warning: response?.warning || response?.leaderboardWarning || null,
+        fallbackUsed: Boolean(response?.fallbackUsed || response?.jsonDataset?.fallbackUsed),
+        jsonDataset: response?.jsonDataset || null,
+        supplementalSignals: response?.supplementalSignals || { count: 0, errors: [] },
       });
     } catch (error) {
       const message = error?.message || '刷新失败';
@@ -108,8 +112,8 @@ function startDailyAutoRefresh({
   failureBackoffMaxMinutes = parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_FAILURE_BACKOFF_MAX_MINUTES, 60, 1, MAX_INTERVAL_MINUTES),
   hour = parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_HOUR, 3, 0, 23),
   minute = parseBoundedInteger(process.env.MEDIAHUB_AUTO_REFRESH_MINUTE, 0, 0, 59),
-  backfillPageCount = parseBoundedInteger(process.env.MEDIAHUB_INGEST_BACKFILL_PAGES, 3, 1, 10),
-  backfillPageSize = parseBoundedInteger(process.env.MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE, 30, 1, 50),
+  backfillPageCount = parseBoundedInteger(process.env.MEDIAHUB_INGEST_BACKFILL_PAGES, 2, 1, 10),
+  backfillPageSize = parseBoundedInteger(process.env.MEDIAHUB_INGEST_BACKFILL_PAGE_SIZE, 50, 1, 50),
   backfillSortModes = parseSortModes(process.env.MEDIAHUB_INGEST_BACKFILL_SORTS, ['hot']),
   nowProvider = () => new Date(),
   setTimeoutFn = setTimeout,

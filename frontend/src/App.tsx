@@ -2,15 +2,12 @@ import { Suspense, lazy, Component, type ReactNode, useEffect, useState } from '
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ScrollToTopButton from './components/ScrollToTopButton';
 import ApiState from './components/ApiState';
-import { UserProvider } from './hooks/useSharedUser';
 
 const Home = lazy(() => import('./pages/Home'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Detail = lazy(() => import('./pages/Detail'));
 const Admin = lazy(() => import('./pages/Admin'));
-const Leaderboards = lazy(() => import('./pages/Leaderboards'));
-const Topics = lazy(() => import('./pages/Topics'));
-const Me = lazy(() => import('./pages/Me'));
-const Compare = lazy(() => import('./pages/Compare'));
+const Search = lazy(() => import('./pages/Search'));
 
 class ErrorBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: ReactNode; fallback?: ReactNode }) {
@@ -90,37 +87,33 @@ export default function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <UserProvider>
-          <RouteLoadingBar />
-          <ScrollToTop />
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Navigate to="/drama" replace />} />
-              <Route path="/detail/:id" element={<Detail />} />
-              <Route path="/leaderboards/:type" element={<Leaderboards />} />
-              <Route path="/topics/:field/:value" element={<Topics />} />
-              <Route path="/compare" element={<Compare />} />
-              <Route path="/me" element={<Me />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/:type" element={<Home />} />
-              <Route
-                path="*"
-                element={(
-                  <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[var(--bg-primary)] px-4">
-                    <div className="text-6xl mb-2 opacity-20">404</div>
-                    <ApiState
-                      title="页面不存在"
-                      description="访问路径无效，请返回首页重新选择内容。"
-                      actionLabel="返回首页"
-                      onAction={() => { window.location.href = '/'; }}
-                    />
-                  </div>
-                )}
-              />
-            </Routes>
-          </Suspense>
-          <ScrollToTopButton />
-        </UserProvider>
+        <RouteLoadingBar />
+        <ScrollToTop />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/detail/:id" element={<Detail />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/:type" element={<Home />} />
+            <Route
+              path="*"
+              element={(
+                <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[var(--bg-primary)] px-4">
+                  <div className="text-6xl mb-2 opacity-20">404</div>
+                  <ApiState
+                    title="页面不存在"
+                    description="访问路径无效，请返回首页重新选择内容。"
+                    actionLabel="返回首页"
+                    onAction={() => { window.location.href = '/'; }}
+                  />
+                </div>
+              )}
+            />
+          </Routes>
+        </Suspense>
+        <ScrollToTopButton />
       </BrowserRouter>
     </ErrorBoundary>
   );

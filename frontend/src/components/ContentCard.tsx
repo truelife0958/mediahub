@@ -2,20 +2,19 @@ import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CATEGORY_COLORS, CATEGORY_TEXT } from '../constants';
 import type { Content } from '../types';
-import { formatHotScoreShort } from '../utils/hotScore';
+import { formatRealMetricDisplay, getTotalScore } from '../utils/contentMetrics';
 
 interface ContentCardProps {
   content: Content;
   size?: 'large' | 'medium' | 'small';
-  showReason?: boolean;
   keyword?: string;
   onClick?: (content: Content) => void;
 }
 
 const HEIGHTS: Record<string, string> = {
-  large: 'min-h-[180px]',
-  medium: 'min-h-[160px]',
-  small: 'min-h-[140px]',
+  large: 'min-h-[160px]',
+  medium: 'min-h-[132px]',
+  small: 'min-h-[116px]',
 };
 
 function getMatchFields(content: Content, keyword = '') {
@@ -36,7 +35,7 @@ function getMatchFields(content: Content, keyword = '') {
     .slice(0, 3);
 }
 
-const ContentCard = memo(function ContentCard({ content, size = 'medium', showReason, keyword = '', onClick }: ContentCardProps) {
+const ContentCard = memo(function ContentCard({ content, size = 'medium', keyword = '', onClick }: ContentCardProps) {
   const navigate = useNavigate();
 
   const handleClick = useCallback(() => {
@@ -51,6 +50,8 @@ const ContentCard = memo(function ContentCard({ content, size = 'medium', showRe
   const displayAuthor = content.actors?.length > 0 ? content.actors.slice(0, 2).join(' / ') : content.author;
   const paddingClass = size === 'large' ? 'p-4' : 'p-3';
   const matchFields = getMatchFields(content, keyword);
+  const totalScore = getTotalScore({ metrics: content.metrics, hotScore: content.hotScore });
+  const realMetric = formatRealMetricDisplay({ heatMetric: content.heatMetric, metrics: content.metrics });
 
   return (
     <button
@@ -61,7 +62,7 @@ const ContentCard = memo(function ContentCard({ content, size = 'medium', showRe
     >
       <div className={`relative z-10 flex h-full flex-col ${paddingClass}`}>
         {/* 顶部标签行 */}
-        <div className="flex items-center gap-1.5 mb-2">
+        <div className="flex items-center gap-1.5 mb-1.5">
           <span
             className="text-[10px] font-semibold px-2 py-0.5 rounded-md tracking-[0.02em] text-white shrink-0"
             style={{ background: CATEGORY_COLORS[content.type] }}
@@ -73,9 +74,6 @@ const ContentCard = memo(function ContentCard({ content, size = 'medium', showRe
           >
             {statusText}
           </span>
-          {(showReason && content.reason) && (
-            <span className="reason-badge ml-auto">推荐 · {content.reason}</span>
-          )}
           {matchFields.length > 0 && (
             <span className="reason-badge ml-auto">命中 · {matchFields.join(' / ')}</span>
           )}
@@ -85,14 +83,15 @@ const ContentCard = memo(function ContentCard({ content, size = 'medium', showRe
         <h3 className="card-meta-title line-clamp-2">{content.title}</h3>
 
         {/* 作者/演员 */}
-        {displayAuthor && <p className="text-xs text-[var(--text-muted)] mt-1 mb-1 truncate">{displayAuthor}</p>}
+        {displayAuthor && <p className="text-xs text-[var(--text-muted)] mt-1 truncate">{displayAuthor}</p>}
 
         {/* 简介 */}
-        <p className="mb-auto line-clamp-2 text-xs text-[var(--text-secondary)] mt-1">{content.summary || '暂无简介'}</p>
+        <p className="mb-auto line-clamp-2 text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">{content.summary || '暂无简介'}</p>
 
         {/* 底部热度 */}
-        <div className="card-meta-bottom mt-2 pt-2 border-t border-[rgba(255,255,255,0.06)]">
-          <span className="hot-score">{formatHotScoreShort(content.hotScore, content.heatMetric)}</span>
+        <div className="card-meta-bottom mt-2 pt-1.5 border-t border-[rgba(255,255,255,0.06)]">
+          <span className="hot-score">{realMetric.label} {realMetric.value}</span>
+          <span className="text-[10px] text-[var(--text-muted)]">综合分 {totalScore.toFixed(1)}</span>
         </div>
       </div>
     </button>

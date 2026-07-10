@@ -4,6 +4,9 @@ import { Readable } from 'node:stream';
 import { EventEmitter } from 'node:events';
 import { resetDatabaseForTest } from '../../src/db/database.js';
 import { createApp } from '../../src/app.js';
+import { resetLoginRateLimit } from '../../src/routes/admin.js';
+
+const ADMIN_HEADERS = { origin: 'http://127.0.0.1:5174', 'x-mediahub-admin-action': 'true' };
 
 function createMockResponse(resolve) {
   const chunks = [];
@@ -79,6 +82,7 @@ async function sendRequest(app, { method = 'GET', pathname, headers = {}, body }
 
 function createTestClient() {
   resetDatabaseForTest(':memory:');
+  resetLoginRateLimit();
   const app = createApp();
   return {
     request(options) {
@@ -100,6 +104,7 @@ async function loginAdmin(client) {
   const response = await client.request({
     method: 'POST',
     pathname: '/api/admin/login',
+    headers: ADMIN_HEADERS,
     body: { password: process.env.MEDIAHUB_ADMIN_PASSWORD || 'MediaHub@2026' },
   });
   assert.equal(response.status, 200);
@@ -112,6 +117,7 @@ async function adminRequest(client, options) {
     ...options,
     headers: {
       ...(options.headers || {}),
+      ...(!['GET', 'HEAD'].includes(String(options.method || 'GET').toUpperCase()) ? ADMIN_HEADERS : {}),
       cookie: [options.headers?.cookie, adminCookie].filter(Boolean).join('; '),
     },
   });
@@ -142,7 +148,7 @@ test('API contract: GET /api/categories success envelope', async () => {
   assert.equal(response.data.data.length, 4);
   assert.deepEqual(
     response.data.data.map(item => item.id),
-    ['drama', 'novel', 'comic', 'anime'],
+    ['drama', 'novel', 'anime', 'comic'],
   );
 });
 
@@ -158,16 +164,80 @@ test('API contract: GET /api/contents missing type error envelope', async () => 
   });
 });
 
-test('API contract: GET /api/users/history unauthorized envelope', async () => {
+
+test('API contract: public content query validation rejects unsafe parameters', async () => {
+  const client = createTestClient();
+  const longKeyword = encodeURIComponent('?'.repeat(81));
+  const cases = [
+    ['/api/contents?type=drama&keyword=' + longKeyword, 'keyword must be 80 characters or fewer'],
+    ['/api/contents?type=drama&page=1001', 'page must be between 1 and 1000'],
+    ['/api/contents?type=drama&limit=51', 'limit must be between 1 and 50'],
+    ['/api/contents?type=drama&page=0', 'page must be between 1 and 1000'],
+    ['/api/contents?type=drama&sort=random', 'Invalid sort'],
+    ['/api/contents/discover/grouped?keyword=' + longKeyword, 'keyword must be 80 characters or fewer'],
+  ];
+
+  for (const [pathname, message] of cases) {
+    const response = await client.request({ pathname });
+    assert.equal(response.status, 400, pathname);
+    assertErrorEnvelope(response.data, {
+      code: 1001,
+      error: 'invalid_request',
+      message,
+    });
+  }
+});
+
+test('API contract: user-space routes are offline', async () => {
   const client = createTestClient();
   const response = await client.request({ pathname: '/api/users/history' });
 
-  assert.equal(response.status, 401);
+  assert.equal(response.status, 404);
   assertErrorEnvelope(response.data, {
-    code: 1004,
-    error: 'unauthorized',
-    message: 'Unauthorized',
+    code: 1002,
+    error: 'not_found',
+    message: 'Not Found',
   });
+});
+
+test('API contract: complex admin management routes are offline', async () => {
+  const client = createTestClient();
+  const adminCookie = await loginAdmin(client);
+  const retiredRoutes = [
+    { method: 'GET', pathname: '/api/system/settings' },
+    { method: 'PUT', pathname: '/api/system/settings', body: { autoRefresh: { enabled: false } } },
+    { method: 'GET', pathname: '/api/system/search-aliases' },
+    { method: 'POST', pathname: '/api/system/search-aliases', body: { canonicalKeyword: 'test' } },
+    { method: 'GET', pathname: '/api/system/source-routing' },
+    { method: 'PUT', pathname: '/api/system/source-routing', body: { type: 'drama', chain: ['platform_hot'] } },
+    { method: 'GET', pathname: '/api/system/admin-contents?type=drama' },
+    { method: 'POST', pathname: '/api/system/admin-contents', body: { type: 'drama', title: 'test' } },
+    { method: 'GET', pathname: '/api/system/leaderboard-anomalies' },
+    { method: 'POST', pathname: '/api/system/leaderboards/capture' },
+    { method: 'GET', pathname: '/api/system/subscriptions' },
+    { method: 'POST', pathname: '/api/system/subscriptions', body: { keyword: 'test' } },
+    { method: 'GET', pathname: '/api/system/subscription-hits' },
+    { method: 'GET', pathname: '/api/system/audit-logs' },
+    { method: 'GET', pathname: '/api/system/content-revisions/drama%3Atest' },
+    { method: 'GET', pathname: '/api/sources/health?type=drama' },
+  ];
+
+  for (const route of retiredRoutes) {
+    const response = await client.request({
+      ...route,
+      headers: {
+        ...(route.headers || {}),
+        ...(!['GET', 'HEAD'].includes(String(route.method || 'GET').toUpperCase()) ? ADMIN_HEADERS : {}),
+        cookie: adminCookie,
+      },
+    });
+    assert.equal(response.status, 404, `${route.method} ${route.pathname}`);
+    assertErrorEnvelope(response.data, {
+      code: 1002,
+      error: 'not_found',
+      message: 'Not Found',
+    });
+  }
 });
 
 test('API contract: unknown route envelope', async () => {
@@ -182,30 +252,26 @@ test('API contract: unknown route envelope', async () => {
   });
 });
 
-test('API contract: GET /api/system/settings envelope shape', async () => {
+test('API contract: GET /api/system/json-data-status envelope shape', async () => {
   const client = createTestClient();
-  const response = await adminRequest(client, { pathname: '/api/system/settings' });
+  const response = await adminRequest(client, { pathname: '/api/system/json-data-status' });
 
   assert.equal(response.status, 200);
-  assertSuccessEnvelope(response.data, 'system/settings');
-  assert.equal(typeof response.data.data.autoRefresh.enabled, 'boolean');
-  assert.equal(typeof response.data.data.autoRefresh.failureBackoffEnabled, 'boolean');
-  assert.equal(typeof response.data.data.autoRefresh.failureBackoffMultiplier, 'number');
-  assert.equal(typeof response.data.data.autoRefresh.failureBackoffMaxMinutes, 'number');
-  assert.equal(typeof response.data.data.ingestBackfill.pages, 'number');
-  assert.ok(Array.isArray(response.data.data.ingestBackfill.sorts));
-  assert.equal(typeof response.data.data.cache.ttlMs, 'number');
-  assert.equal(typeof response.data.data.notifications.webhookEnabled, 'boolean');
-  assert.equal(typeof response.data.data.notifications.webhookTimeoutMs, 'number');
-  assert.equal(typeof response.data.data.sourceRouting, 'object');
-  assert.ok(Array.isArray(response.data.data.sourceRouting.effective.drama));
+  assertSuccessEnvelope(response.data, 'system/json-data-status');
+  assert.ok(Array.isArray(response.data.data.types));
+  assert.equal(typeof response.data.data.indexes.actor, 'number');
+  assert.equal(typeof response.data.data.indexes.ip, 'number');
+  assert.equal(typeof response.data.data.indexes.category, 'number');
 });
 
-test('API contract: GET /api/system/search-aliases envelope shape', async () => {
+test('API contract: GET /api/system/admin-summary envelope shape', async () => {
   const client = createTestClient();
-  const response = await adminRequest(client, { pathname: '/api/system/search-aliases' });
+  const response = await adminRequest(client, { pathname: '/api/system/admin-summary' });
 
   assert.equal(response.status, 200);
-  assertSuccessEnvelope(response.data, 'system/search-aliases');
-  assert.ok(Array.isArray(response.data.data));
+  assertSuccessEnvelope(response.data, 'system/admin-summary');
+  assert.equal(typeof response.data.data.totalContents, 'number');
+  assert.equal(typeof response.data.data.countsByType, 'object');
+  assert.ok(Array.isArray(response.data.data.sourceStatuses));
+  assert.equal(typeof response.data.data.runStats.successRate, 'number');
 });

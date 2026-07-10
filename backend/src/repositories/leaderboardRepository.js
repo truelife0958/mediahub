@@ -2,12 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { getDatabase } from '../db/database.js';
 import { createApiError } from '../utils/apiErrors.js';
 
-const CONTENT_TYPES = ['drama', 'novel', 'comic', 'anime'];
+const CONTENT_TYPES = ['drama', 'novel', 'anime', 'comic'];
 const LAYERS = ['overall', 'new', 'rising', 'completed'];
 
 function ensureType(type) {
   const normalized = String(type || '').trim().toLowerCase();
-  if (!CONTENT_TYPES.includes(normalized)) throw createApiError('invalid_request', 'type must be one of drama/novel/comic/anime');
+  if (!CONTENT_TYPES.includes(normalized)) throw createApiError('invalid_request', 'type must be one of drama/novel/anime/comic');
   return normalized;
 }
 
@@ -536,7 +536,7 @@ function captureLeaderboardSnapshot({ type, layer = 'overall', contents = [], ca
       const contentId = String(item?.id || '').trim();
       const title = String(item?.title || '').trim() || contentId;
       const hotScore = Number(item?.hotScore) || 0;
-      const heatMetric = item?.heatMetric || (normalizedType === 'novel' || normalizedType === 'comic' ? 'reading' : 'playback');
+      const heatMetric = item?.heatMetric || (normalizedType === 'novel' ? 'reading' : 'playback');
       const status = String(item?.status || 'completed').trim() || 'completed';
       const tags = Array.isArray(item?.tags) ? item.tags : [];
       const sourceUrl = String(item?.source?.url || '').trim();

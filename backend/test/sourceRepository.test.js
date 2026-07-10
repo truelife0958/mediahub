@@ -5,15 +5,15 @@ import { recordSourceRun, getSourceStatuses } from '../src/repositories/sourceRe
 
 test('recordSourceRun stores latest source status by type', () => {
   resetDatabaseForTest(':memory:');
-  recordSourceRun({ type: 'anime', source: 'ai_search', status: 'success', count: 12, error: null });
-  recordSourceRun({ type: 'novel', source: 'ai_search', status: 'failed', count: 0, error: 'timeout' });
+  recordSourceRun({ type: 'drama', source: 'platform_hot', status: 'success', count: 12, error: null });
+  recordSourceRun({ type: 'novel', source: 'qidian', status: 'failed', count: 0, error: 'timeout' });
 
   const statuses = getSourceStatuses();
-  const anime = statuses.find(item => item.type === 'anime');
+  const drama = statuses.find(item => item.type === 'drama');
   const novel = statuses.find(item => item.type === 'novel');
 
-  assert.equal(anime.status, 'success');
-  assert.equal(anime.count, 12);
+  assert.equal(drama.status, 'success');
+  assert.equal(drama.count, 12);
   assert.equal(novel.status, 'failed');
   assert.equal(novel.error, 'timeout');
 });

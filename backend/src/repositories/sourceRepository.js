@@ -1,6 +1,18 @@
 import { getDatabase } from '../db/database.js';
 
-const AI_RUN_SOURCES = ['ai_search', 'ai-search'];
+const VISIBLE_RUN_SOURCES = [
+  'platform_hot',
+  'json_hot_dataset',
+  'hongguo',
+  'fanqie',
+  'qidian',
+  'baidu-hot',
+  'weibo-hot',
+  'wechat-hot',
+  'douyin-hot',
+];
+
+const VISIBLE_SOURCE_PLACEHOLDERS = VISIBLE_RUN_SOURCES.map(() => '?').join(', ');
 
 function recordSourceRun({ type, source, status, count = 0, error = null, startedAt, finishedAt }) {
   const now = new Date().toISOString();
@@ -17,12 +29,12 @@ function getSourceStatuses() {
     INNER JOIN (
       SELECT type, MAX(id) as id
       FROM source_runs
-      WHERE source IN ('ai_search', 'ai-search')
+      WHERE source IN (${VISIBLE_SOURCE_PLACEHOLDERS})
       GROUP BY type
     ) latest ON latest.id = sr.id
-    WHERE sr.source IN ('ai_search', 'ai-search')
+    WHERE sr.source IN (${VISIBLE_SOURCE_PLACEHOLDERS})
     ORDER BY sr.type ASC
-  `).all();
+  `).all(...VISIBLE_RUN_SOURCES, ...VISIBLE_RUN_SOURCES);
 
   return rows.map(row => ({
     type: row.type,
@@ -40,10 +52,10 @@ function listSourceRuns({ limit = 50 } = {}) {
   const rows = getDatabase().prepare(`
     SELECT *
     FROM source_runs
-    WHERE source IN ('ai_search', 'ai-search')
+    WHERE source IN (${VISIBLE_SOURCE_PLACEHOLDERS})
     ORDER BY finished_at DESC, id DESC
     LIMIT ?
-  `).all(limitNum);
+  `).all(...VISIBLE_RUN_SOURCES, limitNum);
 
   return rows.map(row => ({
     id: row.id,

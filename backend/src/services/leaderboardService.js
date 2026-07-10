@@ -29,7 +29,7 @@ import {
 function ensureType(type) {
   const normalized = String(type || '').trim().toLowerCase();
   if (!CONTENT_TYPES.includes(normalized)) {
-    throw createApiError('invalid_request', 'type must be one of drama/novel/comic/anime');
+    throw createApiError('invalid_request', 'type must be one of drama/novel');
   }
   return normalized;
 }
@@ -324,7 +324,7 @@ function getLeaderboardAnomalies({ type = '', layer = '' } = {}) {
         type: item.type,
         layer: '',
         source: item.source,
-        message: `${item.type} 源 ${item.source} 已连续失败 ${item.consecutiveFailures} 次`,
+        message: `${item.type} 源 ${item.source} 已连续失败 ${item.consecutiveFailures} 轮`,
         detail: {
           consecutiveFailures: item.consecutiveFailures,
           lastStatus: item.lastStatus,

@@ -3,6 +3,7 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 import {
   clearAdminCookie,
   isAdminAuthenticated,
+  resetAdminSessions,
   setAdminCookie,
   verifyAdminPassword,
 } from '../middleware/adminAuth.js';
@@ -50,6 +51,7 @@ setInterval(() => {
 
 function resetLoginRateLimit() {
   loginAttempts.clear();
+  resetAdminSessions();
 }
 
 router.post('/login', asyncHandler(async (req, res) => {
@@ -61,12 +63,13 @@ router.post('/login', asyncHandler(async (req, res) => {
   if (!verifyAdminPassword(password)) {
     throw createApiError('unauthorized', 'Admin password is incorrect');
   }
+  loginAttempts.delete(ip);
   setAdminCookie(res);
   res.json({ code: 0, data: { authenticated: true } });
 }));
 
-router.post('/logout', (_req, res) => {
-  clearAdminCookie(res);
+router.post('/logout', (req, res) => {
+  clearAdminCookie(res, req);
   res.json({ code: 0, data: { loggedOut: true } });
 });
 

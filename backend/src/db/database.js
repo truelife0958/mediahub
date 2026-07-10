@@ -9,6 +9,19 @@ let database;
 let databasePath = process.env.MEDIAHUB_DB_PATH || DEFAULT_DB_PATH;
 let initializing = false;
 
+function isDatabaseDisabled() {
+  const value = String(process.env.MEDIAHUB_DB_DISABLED || '').trim().toLowerCase();
+  return ['1', 'true', 'yes', 'on'].includes(value);
+}
+
+function createDatabaseDisabledError() {
+  const error = new Error('SQLite database is disabled in JSON-only mode');
+  error.statusCode = 503;
+  error.code = 2002;
+  error.publicCode = 'upstream_unavailable';
+  return error;
+}
+
 function openDatabase(filePath = databasePath) {
   if (filePath !== ':memory:') {
     mkdirSync(path.dirname(filePath), { recursive: true });
@@ -22,9 +35,7 @@ function openDatabase(filePath = databasePath) {
 }
 
 const ALLOWED_PRAGMA_TABLES = new Set([
-  'contents', 'source_runs', 'ai_runtime_config', 'users',
-  'watch_history', 'favorites', 'user_follows', 'user_keyword_subscriptions',
-  'ingestion_cursors', 'admin_reference_settings',
+  'contents', 'source_runs', 'ingestion_cursors',
   'leaderboard_snapshots', 'leaderboard_events', 'keyword_subscriptions',
   'keyword_subscription_hits', 'content_revisions', 'audit_logs',
   'search_alias_groups',
@@ -71,6 +82,21 @@ function ensureContentColumns(db) {
   if (!hasColumn(db, 'contents', 'characters_json')) {
     db.exec("ALTER TABLE contents ADD COLUMN characters_json TEXT NOT NULL DEFAULT '[]'");
   }
+  if (!hasColumn(db, 'contents', 'metrics_json')) {
+    db.exec("ALTER TABLE contents ADD COLUMN metrics_json TEXT NOT NULL DEFAULT '{}'");
+  }
+  if (!hasColumn(db, 'contents', 'field_sources_json')) {
+    db.exec("ALTER TABLE contents ADD COLUMN field_sources_json TEXT NOT NULL DEFAULT '[]'");
+  }
+  if (!hasColumn(db, 'contents', 'release_date')) {
+    db.exec('ALTER TABLE contents ADD COLUMN release_date TEXT');
+  }
+  if (!hasColumn(db, 'contents', 'content_type')) {
+    db.exec('ALTER TABLE contents ADD COLUMN content_type TEXT');
+  }
+  if (!hasColumn(db, 'contents', 'copyright_owner')) {
+    db.exec('ALTER TABLE contents ADD COLUMN copyright_owner TEXT');
+  }
 }
 
 function ensureContentIndexes(db) {
@@ -96,9 +122,12 @@ function ensureContentFts(db) {
     `);
   }
 
-  if (!hasTrigger(db, 'contents_ai_fts')) {
+  if (hasTrigger(db, 'contents_ai_fts')) {
+    db.exec('DROP TRIGGER contents_ai_fts');
+  }
+  if (!hasTrigger(db, 'contents_insert_fts')) {
     db.exec(`
-      CREATE TRIGGER contents_ai_fts AFTER INSERT ON contents BEGIN
+      CREATE TRIGGER contents_insert_fts AFTER INSERT ON contents BEGIN
         INSERT INTO contents_fts(rowid, id, title, summary, author, ip_name)
         VALUES (new.rowid, new.id, new.title, new.summary, new.author, new.ip_name);
       END
@@ -108,8 +137,11 @@ function ensureContentFts(db) {
   if (hasTrigger(db, 'contents_ad_fts')) {
     db.exec('DROP TRIGGER contents_ad_fts');
   }
+  if (hasTrigger(db, 'contents_delete_fts')) {
+    db.exec('DROP TRIGGER contents_delete_fts');
+  }
   db.exec(`
-    CREATE TRIGGER contents_ad_fts AFTER DELETE ON contents BEGIN
+    CREATE TRIGGER contents_delete_fts AFTER DELETE ON contents BEGIN
       DELETE FROM contents_fts WHERE rowid = old.rowid;
     END
   `);
@@ -117,8 +149,11 @@ function ensureContentFts(db) {
   if (hasTrigger(db, 'contents_au_fts')) {
     db.exec('DROP TRIGGER contents_au_fts');
   }
+  if (hasTrigger(db, 'contents_update_fts')) {
+    db.exec('DROP TRIGGER contents_update_fts');
+  }
   db.exec(`
-    CREATE TRIGGER contents_au_fts AFTER UPDATE ON contents BEGIN
+    CREATE TRIGGER contents_update_fts AFTER UPDATE ON contents BEGIN
       DELETE FROM contents_fts WHERE rowid = old.rowid;
       INSERT INTO contents_fts(rowid, id, title, summary, author, ip_name)
       VALUES (new.rowid, new.id, new.title, new.summary, new.author, new.ip_name);
@@ -155,18 +190,6 @@ function ensureIngestionCursors(db) {
     )
   `);
   db.exec('CREATE INDEX IF NOT EXISTS idx_ingestion_cursors_type_refreshed ON ingestion_cursors(type, refreshed_at DESC)');
-}
-
-function ensureAdminReferenceSettings(db) {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS admin_reference_settings (
-      id INTEGER PRIMARY KEY CHECK (id = 1),
-      prompt_templates_json TEXT NOT NULL,
-      keyword_presets_json TEXT NOT NULL,
-      recommendation_rules_json TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    )
-  `);
 }
 
 function ensureLeaderboardInsightsSchema(db) {
@@ -314,7 +337,12 @@ function initializeSchema(db) {
       source_json TEXT NOT NULL,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
-      cached_at TEXT NOT NULL
+      cached_at TEXT NOT NULL,
+      metrics_json TEXT NOT NULL DEFAULT '{}',
+      field_sources_json TEXT NOT NULL DEFAULT '[]',
+      release_date TEXT,
+      content_type TEXT,
+      copyright_owner TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_contents_type_hot ON contents(type, hot_score DESC);
     CREATE INDEX IF NOT EXISTS idx_contents_type_updated ON contents(type, updated_at DESC);
@@ -331,77 +359,19 @@ function initializeSchema(db) {
     );
     CREATE INDEX IF NOT EXISTS idx_source_runs_type_finished ON source_runs(type, finished_at DESC);
 
-    CREATE TABLE IF NOT EXISTS ai_runtime_config (
-      id INTEGER PRIMARY KEY CHECK (id = 1),
-      enabled INTEGER,
-      model TEXT,
-      base_url TEXT,
-      api_key TEXT,
-      updated_at TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      username TEXT UNIQUE NOT NULL,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS watch_history (
-      user_id TEXT NOT NULL,
-      content_id TEXT NOT NULL,
-      watched_at TEXT NOT NULL,
-      PRIMARY KEY (user_id, content_id),
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS favorites (
-      user_id TEXT NOT NULL,
-      content_id TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      PRIMARY KEY (user_id, content_id),
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS user_follows (
-      user_id TEXT NOT NULL,
-      content_id TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      PRIMARY KEY (user_id, content_id),
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS user_keyword_subscriptions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id TEXT NOT NULL,
-      keyword TEXT NOT NULL,
-      type TEXT,
-      created_at TEXT NOT NULL,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-    CREATE INDEX IF NOT EXISTS idx_user_keyword_subscriptions_user ON user_keyword_subscriptions(user_id, created_at DESC);
-  `);
-  db.exec(`
-    DELETE FROM user_keyword_subscriptions
-    WHERE id NOT IN (
-      SELECT MIN(id)
-      FROM user_keyword_subscriptions
-      GROUP BY user_id, lower(keyword), COALESCE(type, '')
-    )
-  `);
-  db.exec(`
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_keyword_subscriptions_dedupe
-    ON user_keyword_subscriptions(user_id, lower(keyword), COALESCE(type, ''))
   `);
 
   ensureContentColumns(db);
   ensureContentIndexes(db);
   ensureContentFts(db);
   ensureIngestionCursors(db);
-  ensureAdminReferenceSettings(db);
   ensureLeaderboardInsightsSchema(db);
 }
 
 function getDatabase() {
+  if (isDatabaseDisabled()) {
+    throw createDatabaseDisabledError();
+  }
   if (!database) {
     database = openDatabase();
     initializeSchema(database);
@@ -410,6 +380,7 @@ function getDatabase() {
 }
 
 function initializeDatabase() {
+  if (isDatabaseDisabled()) return null;
   const db = getDatabase();
   if (initializing) return;
   initializing = true;
@@ -428,4 +399,4 @@ function resetDatabaseForTest(filePath = ':memory:') {
   initializeDatabase();
 }
 
-export { getDatabase, initializeDatabase, resetDatabaseForTest };
+export { getDatabase, initializeDatabase, resetDatabaseForTest, isDatabaseDisabled };

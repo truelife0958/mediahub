@@ -1,3 +1,6 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resetDatabaseForTest } from '../src/db/database.js';
@@ -5,6 +8,7 @@ import { refreshContentType } from '../src/services/ingestionService.js';
 import { listCachedContents } from '../src/repositories/contentRepository.js';
 import { getSourceStatuses } from '../src/repositories/sourceRepository.js';
 import { getIngestionCursor } from '../src/utils/ingestionCursor.js';
+import { readCurrentDataset } from '../src/store/jsonStore.js';
 
 function makeItem(id, title, updatedAt = '2026-05-12T00:00:00.000Z') {
   return {
@@ -12,40 +16,149 @@ function makeItem(id, title, updatedAt = '2026-05-12T00:00:00.000Z') {
     title,
     cover: 'https://example.com/c.jpg',
     summary: 'Real loaded content.',
-    type: 'anime',
+    type: 'drama',
     tags: [],
     actors: [],
-    author: 'AI Discovery',
+    author: 'Hongguo',
     ipName: title,
     status: 'completed',
     hotScore: 99,
     createdAt: '2020-01-01T00:00:00.000Z',
     updatedAt,
-    source: { provider: 'ai-search', label: 'AI Trending Search', url: `https://example.com/ai-search/${encodeURIComponent(id)}` },
+    source: { provider: 'hongguo', label: 'Hongguo', url: `https://www.hongguoduanju.com/${encodeURIComponent(id)}` },
   };
 }
 
 test('refreshContentType stores provided loader results and records source run', async () => {
   resetDatabaseForTest(':memory:');
-  const result = await refreshContentType('anime', {
+  const result = await refreshContentType('drama', {
     loader: async () => ({
-      list: [makeItem('anime:ai-search:99', 'Manual Refresh Anime')],
+      list: [makeItem('drama:hongguo:99', 'Manual Refresh Drama')],
       pagination: { page: 1, limit: 1, total: 1 },
     }),
   });
 
-  const cached = listCachedContents({ type: 'anime', page: 1, limit: 10 });
+  const cached = listCachedContents({ type: 'drama', page: 1, limit: 10 });
   assert.equal(result.count, 1);
-  assert.equal(cached.list[0].title, 'Manual Refresh Anime');
+  assert.equal(cached.list[0].title, 'Manual Refresh Drama');
+});
+
+test('refreshContentType uses target platform loader by default', async () => {
+  resetDatabaseForTest(':memory:');
+  const dataDir = await mkdtemp(join(tmpdir(), 'mediahub-target-refresh-'));
+  const previousDataDir = process.env.MEDIAHUB_JSON_DATA_DIR;
+  const previousFetch = globalThis.fetch;
+  process.env.MEDIAHUB_JSON_DATA_DIR = dataDir;
+  globalThis.fetch = async () => {
+    throw new Error('network disabled in test');
+  };
+
+  try {
+    const result = await refreshContentType('drama', {
+      targetLoader: async () => ({
+        list: [
+          {
+            id: 'drama:hongguo:xuniwanzhangguangmanghao',
+            type: 'drama',
+            title: '许你万丈光芒好',
+            source: 'hongguo',
+            sourceName: '红果短剧',
+            sourceUrl: 'https://www.hongguoduanju.com/',
+            actors: ['马小宇', '余茵'],
+            ipName: '许你万丈光芒好',
+            categories: ['真千金复仇', '霸总甜宠'],
+            summary: '红果短剧公开热榜数据。',
+            metrics: {
+              playOrReadYi: 10,
+              platformHeatWan: 7445,
+              searchIndex: 0,
+              topicPlayYi: 3.2,
+            },
+            capturedAt: '2026-06-20T08:00:00.000Z',
+          },
+        ],
+      }),
+    });
+
+    const cached = listCachedContents({ type: 'drama', page: 1, limit: 10, stale: false });
+    const statuses = getSourceStatuses();
+
+    assert.equal(result.count, 1);
+    assert.equal(result.source, 'hongguo');
+    assert.equal(cached.list[0].title, '许你万丈光芒好');
+    assert.equal(cached.list[0].source.provider, 'hongguo');
+    assert.ok(cached.list[0].tags.includes('真千金复仇'));
+    assert.equal(statuses[0].source, 'hongguo');
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousDataDir === undefined) delete process.env.MEDIAHUB_JSON_DATA_DIR;
+    else process.env.MEDIAHUB_JSON_DATA_DIR = previousDataDir;
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});
+
+test('refreshContentType enriches target platform items with supplemental hot signals', async () => {
+  resetDatabaseForTest(':memory:');
+  const dataDir = await mkdtemp(join(tmpdir(), 'mediahub-signal-refresh-'));
+  const previousDataDir = process.env.MEDIAHUB_JSON_DATA_DIR;
+  process.env.MEDIAHUB_JSON_DATA_DIR = dataDir;
+
+  try {
+    const result = await refreshContentType('drama', {
+      incremental: false,
+      targetLoader: async () => ({
+        list: [
+          {
+            id: 'drama:hongguo:xuniwanzhang',
+            type: 'drama',
+            title: '许你万丈光芒好',
+            source: 'hongguo',
+            sourceName: '红果短剧',
+            sourceUrl: 'https://www.hongguoduanju.com/',
+            actors: ['马小宇', '余茵'],
+            ipName: '许你万丈光芒好',
+            categories: ['复仇', '甜宠'],
+            summary: '红果短剧公开榜单作品。',
+            metrics: {
+              playOrReadYi: 10,
+              platformHeatWan: 7445,
+            },
+            capturedAt: '2026-06-20T08:00:00.000Z',
+          },
+        ],
+      }),
+      signalLoader: async () => ({
+        signals: [
+          { platform: 'baidu', platformName: '百度热搜', keyword: '许你万丈光芒好', rank: 1, searchIndex: 9820 },
+          { platform: 'weibo', platformName: '微博热搜', keyword: '余茵 新剧', rank: 2, heatValue: 368000, topicSignalScore: 92 },
+          { platform: 'douyin', platformName: '抖音热点', keyword: '许你万丈光芒好', rank: 3, topicPlayYi: 3.2 },
+        ],
+      }),
+    });
+
+    const dataset = await readCurrentDataset('drama', { dataDir });
+    const item = dataset.items[0];
+
+    assert.equal(result.count, 1);
+    assert.equal(item.metrics.searchIndex, 9820);
+    assert.equal(item.metrics.topicPlayYi, 3.2);
+    assert.equal(item.metrics.topicSignalScore, 92);
+    assert.ok(item.evidence.some(entry => entry.label === '百度热搜 #1'));
+    assert.ok(item.evidence.some(entry => entry.label === '抖音热点 #3'));
+  } finally {
+    if (previousDataDir === undefined) delete process.env.MEDIAHUB_JSON_DATA_DIR;
+    else process.env.MEDIAHUB_JSON_DATA_DIR = previousDataDir;
+    await rm(dataDir, { recursive: true, force: true });
+  }
 });
 
 test('refreshContentType dedupes duplicated ids across multi-page backfill', async () => {
   resetDatabaseForTest(':memory:');
 
-  const duplicated = makeItem('anime:ai-search:dedupe-1', 'Duplicated Anime');
-  const unique = makeItem('anime:ai-search:dedupe-2', 'Unique Anime');
+  const duplicated = makeItem('drama:hongguo:dedupe-1', 'Duplicated Drama');
+  const unique = makeItem('drama:hongguo:dedupe-2', 'Unique Drama');
 
-  const result = await refreshContentType('anime', {
+  const result = await refreshContentType('drama', {
     pageCount: 2,
     pageSize: 2,
     sortModes: ['hot', 'latest'],
@@ -57,22 +170,22 @@ test('refreshContentType dedupes duplicated ids across multi-page backfill', asy
     },
   });
 
-  const cached = listCachedContents({ type: 'anime', page: 1, limit: 10, sort: 'hot', stale: false });
+  const cached = listCachedContents({ type: 'drama', page: 1, limit: 10, sort: 'hot', stale: false });
   assert.equal(result.count, 2);
   assert.equal(cached.list.length, 2);
   assert.deepEqual(
     cached.list.map(item => item.id).sort(),
-    ['anime:ai-search:dedupe-1', 'anime:ai-search:dedupe-2']
+    ['drama:hongguo:dedupe-1', 'drama:hongguo:dedupe-2']
   );
 });
 
 test('refreshContentType keeps successful pages when some pages timeout', async () => {
   resetDatabaseForTest(':memory:');
 
-  const a = makeItem('anime:ai-search:partial-1', 'Partial A');
-  const b = makeItem('anime:ai-search:partial-2', 'Partial B');
+  const a = makeItem('drama:hongguo:partial-1', 'Partial A');
+  const b = makeItem('drama:hongguo:partial-2', 'Partial B');
 
-  const result = await refreshContentType('anime', {
+  const result = await refreshContentType('drama', {
     pageCount: 2,
     pageSize: 2,
     sortModes: ['hot', 'latest'],
@@ -84,7 +197,7 @@ test('refreshContentType keeps successful pages when some pages timeout', async 
     },
   });
 
-  const cached = listCachedContents({ type: 'anime', page: 1, limit: 10, stale: false });
+  const cached = listCachedContents({ type: 'drama', page: 1, limit: 10, stale: false });
   const statuses = getSourceStatuses();
 
   // 第 1 页仅 1 条，小于 pageSize=2，会提前终止该 sort，不会请求 hot/page=2
@@ -102,7 +215,7 @@ test('refreshContentType fails when all pages fail', async () => {
   resetDatabaseForTest(':memory:');
 
   await assert.rejects(
-    () => refreshContentType('anime', {
+    () => refreshContentType('drama', {
       pageCount: 2,
       pageSize: 2,
       sortModes: ['hot', 'latest'],
@@ -126,11 +239,11 @@ test('refreshContentType fails when all pages fail', async () => {
 test('refreshContentType marks partial success when middle page fails but other pages succeed', async () => {
   resetDatabaseForTest(':memory:');
 
-  const item1 = makeItem('anime:ai-search:partial-mid-1', 'Partial Mid 1');
-  const item2 = makeItem('anime:ai-search:partial-mid-2', 'Partial Mid 2');
-  const item3 = makeItem('anime:ai-search:partial-mid-3', 'Partial Mid 3');
+  const item1 = makeItem('drama:hongguo:partial-mid-1', 'Partial Mid 1');
+  const item2 = makeItem('drama:hongguo:partial-mid-2', 'Partial Mid 2');
+  const item3 = makeItem('drama:hongguo:partial-mid-3', 'Partial Mid 3');
 
-  const result = await refreshContentType('anime', {
+  const result = await refreshContentType('drama', {
     pageCount: 3,
     pageSize: 2,
     sortModes: ['hot'],
@@ -156,33 +269,33 @@ test('refreshContentType marks partial success when middle page fails but other 
 test('refreshContentType uses incremental cursor to skip old pages', async () => {
   resetDatabaseForTest(':memory:');
 
-  await refreshContentType('anime', {
+  await refreshContentType('drama', {
     loader: async () => ({
       list: [
-        makeItem('anime:ai-search:old-1', 'Old 1', '2026-05-12T00:00:00.000Z'),
-        makeItem('anime:ai-search:old-2', 'Old 2', '2026-05-11T00:00:00.000Z'),
+        makeItem('drama:hongguo:old-1', 'Old 1', '2026-05-12T00:00:00.000Z'),
+        makeItem('drama:hongguo:old-2', 'Old 2', '2026-05-11T00:00:00.000Z'),
       ],
     }),
   });
 
-  const second = await refreshContentType('anime', {
+  const second = await refreshContentType('drama', {
     pageCount: 1,
     pageSize: 20,
     sortModes: ['latest'],
     pageLoader: async () => ({
       list: [
-        makeItem('anime:ai-search:old-1', 'Old 1', '2026-05-12T00:00:00.000Z'),
-        makeItem('anime:ai-search:new-1', 'New 1', '2026-05-13T00:00:00.000Z'),
+        makeItem('drama:hongguo:old-1', 'Old 1', '2026-05-12T00:00:00.000Z'),
+        makeItem('drama:hongguo:new-1', 'New 1', '2026-05-13T00:00:00.000Z'),
       ],
     }),
   });
 
-  const cursor = getIngestionCursor({ type: 'anime', source: 'ai_search' });
-  const cached = listCachedContents({ type: 'anime', page: 1, limit: 20, sort: 'latest', stale: false });
+  const cursor = getIngestionCursor({ type: 'drama', source: 'platform_hot' });
+  const cached = listCachedContents({ type: 'drama', page: 1, limit: 20, sort: 'latest', stale: false });
 
   assert.equal(second.count, 1);
   assert.equal(second.incremental.enabled, true);
   assert.equal(second.incremental.filteredCount, 1);
-  assert.equal(cursor?.cursor, 'anime:ai-search:new-1');
+  assert.equal(cursor?.cursor, 'drama:hongguo:new-1');
   assert.equal(cached.list.length, 3);
 });

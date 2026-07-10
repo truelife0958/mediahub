@@ -114,21 +114,60 @@ describe('four-module dashboard pages', () => {
 
 
 
-  it('shows source-backed ranking evidence in rows and inline detail', () => {
+  it('does not display estimated play/read inputs as real volume', () => {
     const rankTableSource = readFileSync(new URL('../src/components/dashboard/DashboardRankTable.tsx', import.meta.url), 'utf8');
+    const metricSource = readFileSync(new URL('../src/components/dashboard/MetricQuad.tsx', import.meta.url), 'utf8');
+    const cardSource = readFileSync(new URL('../src/components/ContentCard.tsx', import.meta.url), 'utf8');
+    const relatedSource = readFileSync(new URL('../src/components/RelatedCard.tsx', import.meta.url), 'utf8');
+    const detailSource = readFileSync(new URL('../src/pages/Detail.tsx', import.meta.url), 'utf8');
     const platformRankSource = readFileSync(new URL('../src/components/PlatformRankList.tsx', import.meta.url), 'utf8');
+    const adminSource = readFileSync(new URL('../src/pages/Admin.tsx', import.meta.url), 'utf8');
+
+    assert.doesNotMatch(rankTableSource, /formatYiMetric\(item\.metrics\?\.playOrReadYi\)/);
+    assert.doesNotMatch(metricSource, /CONTENT_HEAT_LABEL/);
+    assert.doesNotMatch(metricSource, /formatYiMetric\(metrics\.playOrReadYi\)/);
+    assert.match(metricSource, /id: 'contentIndex'/);
+    assert.match(cardSource, /getTotalScore/);
+    assert.match(relatedSource, /getTotalScore/);
+    assert.doesNotMatch(detailSource, /formatHotScore\(content\.metrics\?\.playOrReadYi/);
+    assert.doesNotMatch(platformRankSource, /formatHotScoreShort\(item\.metrics\?\.playOrReadYi/);
+    assert.doesNotMatch(adminSource, /formatYiValue\(item\.metrics\?\.playOrReadYi\)/);
+  });
+
+
+  it('shows real play read metrics from realMetric fields only', () => {
+    const metricSource = readFileSync(new URL('../src/components/dashboard/MetricQuad.tsx', import.meta.url), 'utf8');
+    const rankSource = readFileSync(new URL('../src/components/dashboard/DashboardRankTable.tsx', import.meta.url), 'utf8');
+    const cardSource = readFileSync(new URL('../src/components/ContentCard.tsx', import.meta.url), 'utf8');
+    const relatedSource = readFileSync(new URL('../src/components/RelatedCard.tsx', import.meta.url), 'utf8');
+    const platformSource = readFileSync(new URL('../src/components/PlatformRankList.tsx', import.meta.url), 'utf8');
+    const detailSource = readFileSync(new URL('../src/pages/Detail.tsx', import.meta.url), 'utf8');
+    const adminSource = readFileSync(new URL('../src/pages/Admin.tsx', import.meta.url), 'utf8');
+
+    for (const source of [metricSource, rankSource, cardSource, relatedSource, platformSource, detailSource, adminSource]) {
+      assert.match(source, /formatRealMetricDisplay/);
+      assert.doesNotMatch(source, /formatYiMetric\([^)]*playOrReadYi/);
+    }
+  });
+
+  it('keeps ranking evidence secondary so pages focus on precise data display', () => {
+    const dashboardSource = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+    const rankTableSource = readFileSync(new URL('../src/components/dashboard/DashboardRankTable.tsx', import.meta.url), 'utf8');
     const detailSource = readFileSync(new URL('../src/components/dashboard/InlineContentDetail.tsx', import.meta.url), 'utf8');
+    const metricSource = readFileSync(new URL('../src/components/dashboard/MetricQuad.tsx', import.meta.url), 'utf8');
     const cssSource = readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
 
-    assert.match(rankTableSource, /ranking-confidence-badge/);
-    assert.match(rankTableSource, /rankingMeta\?\.bestPlatformRank/);
-    assert.match(platformRankSource, /rankingEvidence\?: Content\['rankingEvidence'\]/);
-    assert.match(platformRankSource, /ranking-confidence-badge/);
-    assert.match(detailSource, />排名依据</);
-    assert.match(detailSource, />来源证据</);
-    assert.match(detailSource, /rankingEvidence\.length > 0/);
-    assert.match(cssSource, /\.ranking-confidence-badge/);
-    assert.match(cssSource, /\.inline-detail-evidence a/);
+    assert.doesNotMatch(dashboardSource, /TodayChangesPanel/);
+    assert.match(rankTableSource, /dashboard-rank-data/);
+    assert.doesNotMatch(rankTableSource, /ranking-confidence-badge/);
+    assert.doesNotMatch(rankTableSource, /ranking-reason/);
+    assert.match(detailSource, /<details className="inline-detail-notes"/);
+    assert.match(detailSource, /inline-detail-note-list/);
+    assert.doesNotMatch(detailSource, /inline-detail-ranking/);
+    assert.doesNotMatch(detailSource, /inline-detail-evidence/);
+    assert.doesNotMatch(detailSource, /inline-detail-signals/);
+    assert.match(metricSource, /id: 'platformIndex'/);
+    assert.match(cssSource, /\.inline-detail-notes/);
   });
 
   it('does not ship visible unicode escape strings in dashboard components', () => {

@@ -1,99 +1,104 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { resetDatabaseForTest } from '../src/db/database.js';
 import { upsertContents } from '../src/repositories/contentRepository.js';
 import { recordSourceRun } from '../src/repositories/sourceRepository.js';
-import { _setMockRequestFn, _clearMockRequestFn } from '../src/services/aiChatClient.js';
 import {
   buildAdminSummary,
+  resolveAdminSummary,
   getAdminLogs,
   getAdminQuality,
-  listAdminContents,
-  updateAdminContent,
 } from '../src/services/adminService.js';
 
 const sample = {
-  id: 'anime:ai-search:admin-1',
-  title: 'Admin Anime',
+  id: 'drama:hongguo:admin-1',
+  title: 'Admin Drama',
   cover: 'https://example.com/c.jpg',
   summary: 'Admin quality summary.',
-  type: 'anime',
-  tags: ['Action'],
-  actors: ['Studio'],
-  author: 'AI Discovery',
+  type: 'drama',
+  tags: ['Short Drama'],
+  actors: ['Actor A'],
+  author: 'Hongguo',
   ipName: 'Admin IP',
   status: 'completed',
   hotScore: 500,
   createdAt: '2020-01-01T00:00:00.000Z',
   updatedAt: '2026-05-12T00:00:00.000Z',
-  source: { provider: 'ai-search', label: 'AI Discovery', url: 'https://example.com/ai-search/admin-1' },
+  source: { provider: 'hongguo', label: 'Hongguo', url: 'https://www.hongguoduanju.com/' },
 };
 
-test('admin service summarizes AI-only cached content and runs', () => {
+test('admin service summarizes cached content without legacy source controls', () => {
   resetDatabaseForTest(':memory:');
   upsertContents([sample]);
-  recordSourceRun({ type: 'anime', source: 'ai_search', status: 'success', count: 1, error: null });
+  recordSourceRun({ type: 'drama', source: 'platform_hot', status: 'success', count: 1, error: null });
 
   const summary = buildAdminSummary();
   assert.equal(summary.totalContents, 1);
-  assert.equal(summary.countsByType.anime, 1);
-  assert.equal(summary.routing.effective.anime[0], 'ai_search');
+  assert.deepEqual(summary.countsByType, { drama: 1, novel: 0, anime: 0, comic: 0 });
   assert.equal(summary.runStats.totalRuns, 1);
   assert.equal(summary.runStats.successRate, 100);
   assert.equal(summary.quality.qualityScore, 100);
+  assert.equal('routing' in summary, false);
+  assert.equal('sourceHealth' in summary, false);
+  assert.equal('aiConfig' in summary, false);
+  assert.equal('cost' in summary, false);
 });
 
-test('admin service lists and updates cached content safely', () => {
-  resetDatabaseForTest(':memory:');
-  upsertContents([sample]);
+test('admin service summarizes JSON-only datasets without legacy source controls', async () => {
+  const previousDisabled = process.env.MEDIAHUB_DB_DISABLED;
+  const previousDir = process.env.MEDIAHUB_JSON_DATA_DIR;
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), 'mediahub-admin-json-'));
 
-  const before = listAdminContents({ type: 'anime', limit: 10 });
-  assert.equal(before.list.length, 1);
+  try {
+    process.env.MEDIAHUB_DB_DISABLED = 'true';
+    process.env.MEDIAHUB_JSON_DATA_DIR = dataDir;
+    await mkdir(path.join(dataDir, 'current'), { recursive: true });
+    await writeFile(path.join(dataDir, 'current', 'drama.json'), JSON.stringify({
+      date: '2026-06-25',
+      capturedAt: '2026-06-25T00:00:00.000Z',
+      items: [{
+        id: 'drama:json:admin-1',
+        title: 'JSON Admin Drama',
+        cover: 'https://example.com/json.jpg',
+        summary: 'JSON admin summary',
+        type: 'drama',
+        categories: ['复仇'],
+        metrics: { totalScore: 8800 },
+      }],
+    }), 'utf8');
 
-  const updated = updateAdminContent(sample.id, {
-    title: 'Updated Admin Anime',
-    tags: '热血, 冒险',
-    hotScore: 777,
-    status: 'ongoing',
-  });
+    const summary = await resolveAdminSummary();
 
-  assert.equal(updated.title, 'Updated Admin Anime');
-  assert.deepEqual(updated.tags, ['热血', '冒险']);
-  assert.equal(updated.hotScore, 777);
-  assert.equal(updated.status, 'ongoing');
+    assert.equal(summary.totalContents, 1);
+    assert.deepEqual(summary.countsByType, { drama: 1, novel: 0, anime: 0, comic: 0 });
+    assert.equal('routing' in summary, false);
+    assert.equal('sourceHealth' in summary, false);
+  } finally {
+    if (previousDisabled === undefined) delete process.env.MEDIAHUB_DB_DISABLED;
+    else process.env.MEDIAHUB_DB_DISABLED = previousDisabled;
+    if (previousDir === undefined) delete process.env.MEDIAHUB_JSON_DATA_DIR;
+    else process.env.MEDIAHUB_JSON_DATA_DIR = previousDir;
+    await rm(dataDir, { recursive: true, force: true });
+  }
 });
 
-test('admin service stores all-network volume metrics above legacy heat caps', () => {
-  resetDatabaseForTest(':memory:');
-  upsertContents([sample]);
-
-  const updated = updateAdminContent(sample.id, {
-    hotScore: 5_380_000,
-  });
-
-  assert.equal(updated.hotScore, 5_380_000);
-});
-
-test('admin service creates manual content with all-network volume metrics intact', async () => {
-  resetDatabaseForTest(':memory:');
-  const { createAdminContent } = await import('../src/services/adminService.js');
-
-  const created = createAdminContent({
-    type: 'anime',
-    title: '大体量动漫样本',
-    hotScore: 17_000_000,
-  });
-
-  assert.equal(created.hotScore, 17_000_000);
+test('admin service no longer exports cached content editing helpers', async () => {
+  const service = await import('../src/services/adminService.js');
+  for (const name of ['listAdminContents', 'createAdminContent', 'updateAdminContent']) {
+    assert.equal(name in service, false);
+  }
 });
 
 test('admin quality and logs expose duplicate candidates and error categories', () => {
   resetDatabaseForTest(':memory:');
   upsertContents([
     sample,
-    { ...sample, id: 'anime:ai-search:admin-2', title: ' Admin-Anime ', source: { provider: 'manual', label: 'Manual' } },
+    { ...sample, id: 'drama:manual:admin-2', title: ' Admin Drama ', source: { provider: 'manual', label: 'Manual' } },
   ]);
-  recordSourceRun({ type: 'anime', source: 'ai_search', status: 'failed', count: 0, error: 'upstream timeout' });
+  recordSourceRun({ type: 'drama', source: 'platform_hot', status: 'failed', count: 0, error: 'upstream timeout' });
 
   const quality = getAdminQuality();
   const logs = getAdminLogs({ limit: 10 });
@@ -103,72 +108,28 @@ test('admin quality and logs expose duplicate candidates and error categories', 
   assert.equal(logs.errorSummary['超时'], 1);
 });
 
-test('admin service creates manual content and fills missing fields with AI without overwriting existing data', async () => {
+test('admin quality suggestions avoid AI wording in JSON-first mode', () => {
   resetDatabaseForTest(':memory:');
-  const { createAdminContent, fillMissingAdminContentWithAi } = await import('../src/services/adminService.js');
-
-  const created = createAdminContent({
-    type: 'comic',
-    title: '补录漫画',
+  upsertContents([{
+    ...sample,
+    id: 'novel:manual:missing-fields',
+    type: 'novel',
+    title: '缺字段小说',
     summary: '',
     tags: [],
-    actors: '',
-    author: '',
-    ipName: '',
-    hotScore: 0,
-  });
+    source: { provider: 'manual', label: 'Manual' },
+  }]);
 
-  assert.equal(created.type, 'comic');
-  assert.equal(created.title, '补录漫画');
-  assert.equal(created.source.provider, 'manual');
+  const quality = getAdminQuality();
+  const suggestion = quality.reviewQueue.find(item => item.id === 'novel:manual:missing-fields')?.suggestion || '';
 
-  const previous = {
-    MEDIAHUB_AI_ENABLED: process.env.MEDIAHUB_AI_ENABLED,
-    MEDIAHUB_AI_API_KEY: process.env.MEDIAHUB_AI_API_KEY,
-    MEDIAHUB_AI_MODEL: process.env.MEDIAHUB_AI_MODEL,
-    MEDIAHUB_AI_BASE_URL: process.env.MEDIAHUB_AI_BASE_URL,
-  };
-  process.env.MEDIAHUB_AI_ENABLED = 'true';
-  process.env.MEDIAHUB_AI_API_KEY = 'sk-fill-missing';
-  process.env.MEDIAHUB_AI_MODEL = 'gpt-5-mini';
-  process.env.MEDIAHUB_AI_BASE_URL = 'https://example.com/v1';
-  const calls = [];
-  _setMockRequestFn(async ({ url, body, headers }) => {
-    const parsedBody = JSON.parse(String(body || '{}'));
-    calls.push({ url: String(url), body: parsedBody, headers });
-    assert.match(String(url), /\/chat\/completions$/);
-    assert.ok(Array.isArray(parsedBody.messages));
-    return {
-      status: 200,
-      statusText: 'OK',
-      payload: {
-        choices: [{ message: { content: JSON.stringify({
-          summary: 'AI 补全后的简介，长度足够用于质量检测。',
-          tags: ['奇幻', '冒险'],
-          actors: ['角色A'],
-          author: 'AI 作者',
-          ipName: 'AI 补全 IP',
-          status: 'ongoing',
-          hotScore: 6543,
-        }) } }],
-      },
-    };
-  });
+  assert.ok(suggestion);
+  assert.doesNotMatch(suggestion, /AI|模型|Prompt/i);
+  assert.match(suggestion, /平台|人工|补全/);
+});
 
-  try {
-    const filled = await fillMissingAdminContentWithAi(created.id);
-    assert.equal(filled.title, '补录漫画');
-    assert.equal(filled.summary, 'AI 补全后的简介，长度足够用于质量检测。');
-    assert.deepEqual(filled.tags, ['奇幻', '冒险']);
-    assert.equal(filled.author, 'AI 作者');
-    assert.equal(filled.ipName, 'AI 补全 IP');
-    assert.equal(filled.status, 'ongoing');
-    assert.equal(filled.hotScore, 6543);
-  } finally {
-    _clearMockRequestFn();
-    for (const [key, value] of Object.entries(previous)) {
-      if (value === undefined) delete process.env[key];
-      else process.env[key] = value;
-    }
-  }
+test('admin service no longer exports AI fill-missing helper', async () => {
+  resetDatabaseForTest(':memory:');
+  const service = await import('../src/services/adminService.js');
+  assert.equal('fillMissingAdminContentWithAi' in service, false);
 });

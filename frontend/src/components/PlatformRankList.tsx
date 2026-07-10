@@ -1,14 +1,13 @@
 import ApiState from './ApiState';
 import { CATEGORY_TEXT } from '../constants';
 import type { Content } from '../types';
-import { buildMetricRows, formatMetricScore, getTotalScore, type HotMetrics } from '../utils/contentMetrics';
+import { buildMetricRows, formatMetricScore, formatRealMetricDisplay, getTotalScore, type HotMetrics } from '../utils/contentMetrics';
 import TrendSparkline from './dashboard/TrendSparkline';
-import { formatHotScoreShort } from '../utils/hotScore';
 import {
   buildRankItemContext,
   formatRankDate,
   getRankSourceDisplayName,
-  sortRankItemsByScore,
+  sortRankItemsByRank,
   type RankBoardItemLike,
 } from '../utils/rankBoard';
 
@@ -63,7 +62,7 @@ export default function PlatformRankList({
   onRetry,
   loadingCount = 10,
 }: PlatformRankListProps) {
-  const visibleItems = sortRankItemsByScore(items);
+  const visibleItems = sortRankItemsByRank(items);
 
   return (
     <>
@@ -110,6 +109,7 @@ export default function PlatformRankList({
                 hotScore: item.hotScore,
               });
               const totalScore = getTotalScore({ metrics: item.metrics, hotScore: item.hotScore });
+              const realMetric = formatRealMetricDisplay({ heatMetric: item.heatMetric, metrics: item.metrics });
               const context = buildRankItemContext(item);
               const sourceName = getRankSourceDisplayName(item);
               const metaParts = [
@@ -165,9 +165,9 @@ export default function PlatformRankList({
                     <small className="ranking-reason">{getRankingReason(item)}</small>
                   </span>
                   <span className="rank-table-score">
-                    <strong>{totalScore.toFixed(1)}</strong>
+                    <strong>{realMetric.value}</strong>
                     <TrendSparkline points={item.trend} compact />
-                    <span>{formatHotScoreShort(item.metrics?.playOrReadYi, item.heatMetric)}</span>
+                    <span>综合分 {totalScore.toFixed(1)}</span>
                     <em>更新 {formatRankDate(item.updatedAt)}</em>
                   </span>
                 </button>

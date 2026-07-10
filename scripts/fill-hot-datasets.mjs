@@ -1,4 +1,4 @@
-﻿import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -7,7 +7,7 @@ import { REAL_HOT_DATASET_CATALOG } from './real-hot-dataset-catalog.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dataDir = resolve(__dirname, '..', 'data');
-const now = new Date(process.env.MEDIAHUB_DATASET_NOW || '2026-06-28T04:30:00.000Z');
+const now = process.env.MEDIAHUB_DATASET_NOW ? new Date(process.env.MEDIAHUB_DATASET_NOW) : new Date();
 
 const HONGGUO = {
   id: 'hongguo',
@@ -837,10 +837,13 @@ function sourceForRealItem(type, item, index = 0) {
 
 function buildRealMetrics(rank, type, item = {}) {
   const fallback = buildMetrics(rank, type);
-  if (type === 'novel' && Number(item.hotScore) > 0) {
-    const hot = Number(item.hotScore);
+  if (type === 'novel' && (Number(item.readCount) > 0 || Number(item.readCountWan) > 0 || Number(item.hotScore) > 0)) {
+    const hot = Number(item.hotScore || 0);
+    const readCount = Number(item.readCount || 0) || Math.round(Number(item.readCountWan || 0) * 10000);
     return {
-      playOrReadYi: Number(Math.max(0.5, hot / 10000).toFixed(2)),
+      playOrReadYi: readCount > 0 ? Number((readCount / 100000000).toFixed(2)) : Number(Math.max(0.5, hot / 10000).toFixed(2)),
+      realReadCount: readCount || undefined,
+      realMetricStatus: readCount > 0 ? 'official' : undefined,
       platformHeatWan: Math.round(Math.max(800, hot / 10)),
       searchIndex: Math.round(Math.min(10000, hot)),
       topicPlayYi: Number(Math.max(0.12, hot / 50000).toFixed(2)),
@@ -849,8 +852,11 @@ function buildRealMetrics(rank, type, item = {}) {
     };
   }
   if (type === 'anime' && Number(item.view) > 0) {
+    const view = Number(item.view || 0);
     return {
-      playOrReadYi: Number(Math.max(0.01, Number(item.view) / 100000000).toFixed(2)),
+      playOrReadYi: Number(Math.max(0.01, view / 100000000).toFixed(2)),
+      realPlayCount: view,
+      realMetricStatus: 'official',
       platformHeatWan: Math.round(Number(item.follow || 0) / 10000),
       searchIndex: Math.round(Math.min(10000, Number(item.danmaku || 0) / 100)),
       topicPlayYi: Number(Math.max(0.01, Number(item.danmaku || 0) / 100000000).toFixed(2)),
@@ -859,11 +865,14 @@ function buildRealMetrics(rank, type, item = {}) {
     };
   }
   if (type === 'comic' && Number(item.heatWan) > 0) {
+    const heatWan = Number(item.heatWan || 0);
     return {
-      playOrReadYi: Number(Math.max(0.01, Number(item.heatWan) / 10000).toFixed(2)),
-      platformHeatWan: Math.round(Math.min(12000, Number(item.heatWan))),
+      playOrReadYi: Number(Math.max(0.01, heatWan / 10000).toFixed(2)),
+      realReadCount: Math.round(heatWan * 10000),
+      realMetricStatus: 'official',
+      platformHeatWan: Math.round(Math.min(12000, heatWan)),
       searchIndex: Math.round(Math.max(360, 10000 - (rank - 1) * 76)),
-      topicPlayYi: Number(Math.max(0.12, Number(item.heatWan) / 250000).toFixed(2)),
+      topicPlayYi: Number(Math.max(0.12, heatWan / 250000).toFixed(2)),
       topicSignalScore: Math.round(Math.max(14, 96 - (rank - 1) * 0.62)),
       platformHotRank: rank,
     };
@@ -874,6 +883,8 @@ function buildRealMetrics(rank, type, item = {}) {
     const rating = Number(item.rating || 0);
     return {
       playOrReadYi: Number(Math.max(0.01, viewWan / 10000).toFixed(2)),
+      realPlayCount: viewWan > 0 ? Math.round(viewWan * 10000) : undefined,
+      realMetricStatus: viewWan > 0 ? 'official' : undefined,
       platformHeatWan: Math.round(Math.max(heatWan, viewWan, 1)),
       searchIndex: Math.round(Math.min(10000, Math.max(360, heatWan / 8 || viewWan / 2 || rating * 800 || fallback.searchIndex))),
       topicPlayYi: Number(Math.max(0.01, heatWan / 10000).toFixed(2)),

@@ -29,7 +29,7 @@ export async function getIpUniverse(ipName) {
     throw error;
   }
   const groups = {};
-  for (const type of ['drama', 'novel', 'comic', 'anime']) {
+  for (const type of ['drama', 'novel', 'anime', 'comic']) {
     const data = await listRemoteTopicContents({ field: 'ip', value, type, limit: 20, sort: 'hot' });
     groups[type] = data.list || [];
   }
@@ -43,10 +43,10 @@ export async function getIpUniverse(ipName) {
 }
 
 export async function getEntityProfile({ field, value }) {
-  const normalizedField = field === 'actor' || field === 'character' || field === 'author' || field === 'ip' ? field : 'ip';
+  const normalizedField = ['actor', 'character', 'author', 'ip', 'category'].includes(field) ? field : 'ip';
   const normalizedValue = String(value || '').trim().slice(0, 80);
   const groups = {};
-  for (const type of ['drama', 'novel', 'comic', 'anime']) {
+  for (const type of ['drama', 'novel', 'anime', 'comic']) {
     const data = await listRemoteTopicContents({ field: normalizedField, value: normalizedValue, type, limit: 20, sort: 'hot' });
     groups[type] = data.list || [];
   }
@@ -62,31 +62,6 @@ export async function getEntityProfile({ field, value }) {
     groups,
     top: [...all].sort((a, b) => b.hotScore - a.hotScore).slice(0, 8),
     tags: [...tags.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 12),
-  };
-}
-
-export async function compareContents(ids = []) {
-  const contents = [];
-  for (const id of [...new Set(ids)].slice(0, 4)) {
-    try {
-      contents.push(await getRemoteContentById(id));
-    } catch {
-      // 对比页允许部分内容失效。
-    }
-  }
-  return {
-    ids,
-    list: contents,
-    metrics: contents.map(item => ({
-      id: item.id,
-      title: item.title,
-      type: item.type,
-      hotScore: item.hotScore,
-      heatMetric: item.heatMetric,
-      status: item.status,
-      tagCount: item.tags?.length || 0,
-      actorCount: item.actors?.length || 0,
-    })),
   };
 }
 

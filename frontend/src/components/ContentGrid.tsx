@@ -9,7 +9,6 @@ interface ContentGridProps {
   page?: number;
   skeletonCount?: number;
   cardSize?: 'large' | 'medium' | 'small';
-  showReason?: boolean;
   keyword?: string;
   emptyTitle: string;
   emptyDesc: string;
@@ -24,7 +23,6 @@ export default function ContentGrid({
   page = 1,
   skeletonCount = 10,
   cardSize = 'medium',
-  showReason,
   keyword = '',
   emptyTitle,
   emptyDesc,
@@ -60,7 +58,7 @@ export default function ContentGrid({
       )}
       <div className="content-grid">
         {items.map(item => (
-          <ContentCard key={item.id} content={item} size={cardSize} showReason={showReason} keyword={keyword} onClick={onItemClick} />
+          <ContentCard key={item.id} content={item} size={cardSize} keyword={keyword} onClick={onItemClick} />
         ))}
       </div>
     </>

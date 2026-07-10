@@ -17,6 +17,9 @@ import {
 } from '../store/jsonStore.js';
 
 const VALID_TYPES = new Set(['drama', 'novel', 'anime', 'comic']);
+const MAX_QUERY_PAGE = 1000;
+const MAX_KEYWORD_LENGTH = 80;
+const DAILY_REFRESH_ITEM_TARGET = 100;
 const HEAT_METRIC_BY_TYPE = {
   drama: 'playback',
   novel: 'reading',
@@ -130,18 +133,26 @@ function sortItems(items, sort = 'hot') {
   const list = [...items];
   list.sort((a, b) => {
     if (sort === 'latest') return Date.parse(b.capturedAt || '') - Date.parse(a.capturedAt || '');
+
     const aAuthorityRank = positiveRank(a.metrics?.authorityOriginalRank || a.metrics?.annualRank);
     const bAuthorityRank = positiveRank(b.metrics?.authorityOriginalRank || b.metrics?.annualRank);
     if (aAuthorityRank && bAuthorityRank && aAuthorityRank !== bAuthorityRank) return aAuthorityRank - bAuthorityRank;
     if (aAuthorityRank && !bAuthorityRank) return -1;
     if (!aAuthorityRank && bAuthorityRank) return 1;
+
+    const aPlatformRank = positiveRank(a.metrics?.platformOriginalRank || a.metrics?.platformRank);
+    const bPlatformRank = positiveRank(b.metrics?.platformOriginalRank || b.metrics?.platformRank);
+    if (aPlatformRank && bPlatformRank && aPlatformRank !== bPlatformRank) return aPlatformRank - bPlatformRank;
+    if (aPlatformRank && !bPlatformRank) return -1;
+    if (!aPlatformRank && bPlatformRank) return 1;
+
     return (Number(b.metrics?.totalScore) || 0) - (Number(a.metrics?.totalScore) || 0);
   });
   return list;
 }
 
 function matchesKeyword(item, keyword = '') {
-  const normalized = String(keyword || '').trim().toLowerCase();
+  const normalized = String(keyword || '').trim().slice(0, MAX_KEYWORD_LENGTH).toLowerCase();
   if (!normalized) return true;
   const fields = [
     item.title,
@@ -157,7 +168,7 @@ function matchesKeyword(item, keyword = '') {
 }
 
 function paginate(list, page = 1, limit = 20) {
-  const pageNum = Math.max(1, Number(page) || 1);
+  const pageNum = Math.min(MAX_QUERY_PAGE, Math.max(1, Number(page) || 1));
   const limitNum = Math.min(50, Math.max(1, Number(limit) || 20));
   const start = (pageNum - 1) * limitNum;
   return {
@@ -203,7 +214,7 @@ function buildDataset(type, rawItems, { now = new Date() } = {}) {
     seen.add(item.id);
     unique.push(item);
   }
-  const sortedItems = sortItems(unique).map((item, index) => {
+  const sortedItems = sortItems(unique).slice(0, DAILY_REFRESH_ITEM_TARGET).map((item, index) => {
     const ranked = { ...item, rank: index + 1 };
     return {
       ...ranked,
@@ -249,7 +260,7 @@ async function rebuildIndexes({ dataDir, types = [...VALID_TYPES] } = {}) {
 
 async function refreshHotDataset(type, { dataDir, seeds, extraItems = [], now = new Date() } = {}) {
   ensureType(type);
-  const previousDataset = await readCurrentDataset(type, { dataDir });
+  const previousDataset = await readCurrentOrLatestSnapshotDataset(type, { dataDir });
   const seedItems = Array.isArray(seeds) ? seeds : await readSeedItems(type, { dataDir });
   const dataset = buildDataset(type, [...seedItems, ...extraItems], { now });
   const fallbackUsed = dataset.items.length === 0 && previousDataset?.items?.length > 0;
@@ -270,18 +281,34 @@ async function refreshHotDataset(type, { dataDir, seeds, extraItems = [], now = 
 
 async function ensureHotDataset(type, { dataDir, now = new Date() } = {}) {
   ensureType(type);
-  const existing = await readCurrentDataset(type, { dataDir });
+  const existing = await readCurrentOrLatestSnapshotDataset(type, { dataDir });
   if (existing?.items?.length > 0) return existing;
   return (await refreshHotDataset(type, { dataDir, now })).dataset;
 }
 
+async function readCurrentOrLatestSnapshotDataset(type, { dataDir } = {}) {
+  const current = await readCurrentDataset(type, { dataDir });
+  if (current?.items?.length > 0) return current;
+  const snapshotDates = await listSnapshotDates({ dataDir, limit: 12 });
+  for (const date of [...snapshotDates].reverse()) {
+    const snapshot = await readSnapshotDatasetByDate(type, date, { dataDir });
+    if (snapshot?.items?.length > 0) {
+      return {
+        ...snapshot,
+        fallbackUsed: true,
+        fallbackSource: `snapshots/${date}/${type}.json`,
+      };
+    }
+  }
+  return null;
+}
 
 async function readSnapshotDatasetByDate(type, date, { dataDir } = {}) {
   try {
     const root = resolveDataDir(dataDir);
     return JSON.parse(await readFile(join(root, 'snapshots', date, `${type}.json`), 'utf8'));
   } catch (error) {
-    if (error?.code === 'ENOENT') return null;
+    if (error?.code === 'ENOENT' || error instanceof SyntaxError) return null;
     throw error;
   }
 }
@@ -409,7 +436,7 @@ async function listHotDatasetTopicContents({
   dataDir,
 } = {}) {
   const normalizedField = String(field || '').trim();
-  const normalizedValue = String(value || '').trim();
+  const normalizedValue = String(value || '').trim().slice(0, MAX_KEYWORD_LENGTH);
   if (!normalizedValue) throw createApiError('invalid_request', 'Topic value is required');
   if (!['actor', 'character', 'author', 'ip', 'category'].includes(normalizedField)) {
     throw createApiError('invalid_request', 'Invalid topic field');

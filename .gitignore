@@ -7,6 +7,7 @@ dist
 .vscode
 *.local
 backend/data/
+data/logs/
 .superpowers/
 .codegraph/
 .reasonix/
@@ -15,11 +16,14 @@ backend/data/
 .agents/
 .github/
 tmp-lighthouse-report.json
+tmp/
 test-results/
-e2e/
+/e2e/
 docs/
 frontend/dist/
 audit-*.png
 audit-*.html
 nul
 cookies.txt
+.tmp/
+playwright-report/
