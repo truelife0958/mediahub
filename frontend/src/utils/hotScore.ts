@@ -16,7 +16,3 @@ export function formatHotScore(value?: number, metric?: HeatMetric) {
   if (!formattedValue) return '热度参考待核验';
   return `热度参考 ${formattedValue}`;
 }
-
-export function formatHotScoreShort(value?: number, metric?: HeatMetric) {
-  return formatHotScore(value, metric);
-}
