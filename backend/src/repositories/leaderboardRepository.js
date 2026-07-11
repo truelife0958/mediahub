@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { getDatabase } from '../db/database.js';
 import { createApiError } from '../utils/apiErrors.js';
+import { CONTENT_TYPES } from '../constants/contentTypes.js';
 
-const CONTENT_TYPES = ['drama', 'novel', 'anime', 'comic'];
 const LAYERS = ['overall', 'new', 'rising', 'completed'];
 
 function ensureType(type) {

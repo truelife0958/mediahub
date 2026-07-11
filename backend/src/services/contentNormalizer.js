@@ -1,5 +1,7 @@
+import { CONTENT_TYPES } from '../constants/contentTypes.js';
+
 const DEFAULT_COVER = 'https://placehold.co/300x400/111827/ffffff?text=MediaHub';
-const VALID_TYPES = new Set(['drama', 'novel', 'anime', 'comic']);
+const VALID_TYPES = new Set(CONTENT_TYPES);
 const VALID_STATUS = new Set(['ongoing', 'completed']);
 const HEAT_METRIC_BY_TYPE = {
   drama: 'playback',

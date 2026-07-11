@@ -1,6 +1,6 @@
 import { refreshContentType } from './ingestionService.js';
+import { CONTENT_TYPES } from '../constants/contentTypes.js';
 
-const CONTENT_TYPES = ['drama', 'novel', 'anime', 'comic'];
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MINUTE_MS = 60 * 1000;
 const MIN_DELAY_MS = 1_000;

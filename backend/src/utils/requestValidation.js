@@ -1,6 +1,7 @@
 ﻿import { createApiError } from './apiErrors.js';
+import { CONTENT_TYPES } from '../constants/contentTypes.js';
 
-const CONTENT_TYPES = new Set(['drama', 'novel', 'anime', 'comic']);
+const CONTENT_TYPE_SET = new Set(CONTENT_TYPES);
 const MAX_KEYWORD_LENGTH = 80;
 const MAX_QUERY_PAGE = 1000;
 const MAX_QUERY_LIMIT = 50;
@@ -17,7 +18,7 @@ function validateContentType(value, { required = true, field = 'type' } = {}) {
     if (required) throw createApiError('invalid_request', 'Invalid content type');
     return '';
   }
-  if (!CONTENT_TYPES.has(normalized)) {
+  if (!CONTENT_TYPE_SET.has(normalized)) {
     throw createApiError('invalid_request', 'Invalid content type');
   }
   return normalized;
