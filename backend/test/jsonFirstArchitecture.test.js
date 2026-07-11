@@ -234,7 +234,7 @@ test('runtime scripts default to JSON-only storage for the data app', () => {
   assert.match(runnerSource, /MEDIAHUB_DB_DISABLED:\s*process\.env\.MEDIAHUB_DB_DISABLED\s*\?\?\s*'true'/);
   assert.match(runnerSource, /MEDIAHUB_JSON_DATASET_ENABLED:\s*process\.env\.MEDIAHUB_JSON_DATASET_ENABLED\s*\?\?\s*'true'/);
   assert.match(runnerSource, /MEDIAHUB_AUTO_REFRESH_ENABLED:\s*process\.env\.MEDIAHUB_AUTO_REFRESH_ENABLED\s*\?\?\s*'true'/);
-  assert.match(runnerSource, /MEDIAHUB_AUTO_REFRESH_ON_STARTUP:\s*process\.env\.MEDIAHUB_AUTO_REFRESH_ON_STARTUP\s*\?\?\s*'true'/);
+  assert.match(runnerSource, /MEDIAHUB_AUTO_REFRESH_ON_STARTUP:\s*process\.env\.MEDIAHUB_AUTO_REFRESH_ON_STARTUP\s*\?\?\s*'false'/);
   assert.match(runnerSource, /MEDIAHUB_AUTO_REFRESH_MODE:\s*process\.env\.MEDIAHUB_AUTO_REFRESH_MODE\s*\?\?\s*'daily'/);
   assert.match(entrySource, /isDatabaseDisabled\(\)/);
   assert.match(entrySource, /seedAllCuratedRealContents/);

@@ -52,6 +52,8 @@ $env:MEDIAHUB_DATASET_NOW='2026-07-10T00:00:00.000+08:00'
 npm run crawl:real
 ```
 
+> **说明**：`npm run dev` 默认不自动采集（`MEDIAHUB_AUTO_REFRESH_ON_STARTUP` 默认为 `false`），避免每次启动都触发真实外部爬虫。需要更新数据时，可在 `/admin` 后台手动点击刷新，或设置环境变量 `MEDIAHUB_AUTO_REFRESH_ON_STARTUP=true` 以恢复启动自动采集；生产环境通过该变量按需覆盖。
+
 如需调整爬虫单请求超时：
 
 ```powershell
