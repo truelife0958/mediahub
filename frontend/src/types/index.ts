@@ -18,11 +18,15 @@ export interface RankingEvidence {
 }
 
 export interface RankingMeta {
+  displayRank: number;
+  compositeScore: number;
+  authorityRank?: number;
+  authoritySource?: string;
+  bestPlatformRank?: number;
+  bestPlatformSource?: string;
   sourceConfidence: SourceConfidence;
   rankingReason: string;
-  bestPlatformRank?: number;
-  authorityRank?: number;
-  sourceNames: string[];
+  updatedBy: string;
 }
 
 export interface HotTrendPoint {
@@ -112,6 +116,7 @@ export interface Content {
     platformRankScore?: number;
     platformOriginalRank?: number;
     authorityRankScore?: number;
+    rankRecommendationScore?: number;
     authorityOriginalRank?: number;
     totalScore?: number;
   };
