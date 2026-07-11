@@ -6,8 +6,8 @@ import {
   listSearchAliasGroups as listSearchAliasGroupRecords,
   updateSearchAliasGroup as updateSearchAliasGroupRecord,
 } from '../repositories/searchAliasRepository.js';
+import { CONTENT_TYPES } from '../constants/contentTypes.js';
 
-const CONTENT_TYPES = ['drama', 'novel', 'anime', 'comic'];
 const MAX_ALIAS_TERMS = 12;
 const MAX_TERM_LENGTH = 80;
 

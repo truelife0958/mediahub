@@ -4,6 +4,7 @@ import {
   discoverContents as discoverRemoteContents,
   listTopicContents as listRemoteTopicContents,
 } from './catalogService.js';
+import { CONTENT_TYPES } from '../constants/contentTypes.js';
 
 export async function listContents({ type, page = 1, limit = 20, sort = 'hot', keyword = '', searchMode = 'hybrid' }) {
   return listRemoteContents({ type, page, limit, sort, keyword, searchMode });
@@ -29,7 +30,7 @@ export async function getIpUniverse(ipName) {
     throw error;
   }
   const groups = {};
-  for (const type of ['drama', 'novel', 'anime', 'comic']) {
+  for (const type of CONTENT_TYPES) {
     const data = await listRemoteTopicContents({ field: 'ip', value, type, limit: 20, sort: 'hot' });
     groups[type] = data.list || [];
   }
@@ -46,7 +47,7 @@ export async function getEntityProfile({ field, value }) {
   const normalizedField = ['actor', 'character', 'author', 'ip', 'category'].includes(field) ? field : 'ip';
   const normalizedValue = String(value || '').trim().slice(0, 80);
   const groups = {};
-  for (const type of ['drama', 'novel', 'anime', 'comic']) {
+  for (const type of CONTENT_TYPES) {
     const data = await listRemoteTopicContents({ field: normalizedField, value: normalizedValue, type, limit: 20, sort: 'hot' });
     groups[type] = data.list || [];
   }

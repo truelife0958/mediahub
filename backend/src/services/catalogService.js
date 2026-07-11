@@ -22,12 +22,12 @@ import {
   rankSourceChainByHealth,
   recordSourceOutcome,
 } from './sourceStrategyService.js';
+import { CONTENT_TYPES } from '../constants/contentTypes.js';
 
 const CACHE_TTL_MS = Math.max(15_000, Number(process.env.CACHE_TTL_MS || 180_000));
 const MAX_CACHE_ENTRIES = Math.max(10, Number(process.env.MEDIAHUB_CATALOG_CACHE_MAX_ENTRIES || 500));
 const cacheStore = new Map();
 const pendingLoads = new Map();
-const CONTENT_TYPES = ['drama', 'novel', 'anime', 'comic'];
 const MAX_QUERY_PAGE = 1000;
 const MAX_KEYWORD_LENGTH = 80;
 const SUPPORTED_CONTENT_SOURCES = [

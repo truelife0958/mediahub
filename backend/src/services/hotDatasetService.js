@@ -15,8 +15,9 @@ import {
   writeIndexes,
   writeSnapshotDataset,
 } from '../store/jsonStore.js';
+import { CONTENT_TYPES } from '../constants/contentTypes.js';
 
-const VALID_TYPES = new Set(['drama', 'novel', 'anime', 'comic']);
+const VALID_TYPES = new Set(CONTENT_TYPES);
 const MAX_QUERY_PAGE = 1000;
 const MAX_KEYWORD_LENGTH = 80;
 const DAILY_REFRESH_ITEM_TARGET = 100;

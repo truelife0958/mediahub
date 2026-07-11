@@ -6,14 +6,7 @@ import { getSourceStatuses, listSourceRuns } from '../repositories/sourceReposit
 import { getHotDatasetPreview, getHotDatasetStatus } from './hotDatasetService.js';
 import { readCurrentDataset } from '../store/jsonStore.js';
 import { isDatabaseDisabled } from '../db/database.js';
-
-const CONTENT_TYPES = ['drama', 'novel', 'anime', 'comic'];
-const TYPE_LABELS = {
-  drama: '短剧',
-  novel: '小说',
-  anime: '动漫',
-  comic: '漫画',
-};
+import { CONTENT_TYPES, TYPE_LABELS } from '../constants/contentTypes.js';
 
 function classifyRun(run) {
   if (run.status === 'success') return '成功';
