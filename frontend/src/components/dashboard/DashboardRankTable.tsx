@@ -33,10 +33,16 @@ export default function DashboardRankTable({
   emptyTitle = '暂无榜单数据',
 }: DashboardRankTableProps) {
   const sortedItems = sortRankItemsByRank(items);
-  const renderHead = (count?: number) => (
+  const latestUpdate = sortedItems
+    .map(item => item.updatedAt || item.cachedAt || item.createdAt || '')
+    .filter(Boolean)
+    .sort((a, b) => b.localeCompare(a))[0];
+  const latestUpdateText = latestUpdate ? latestUpdate.slice(0, 10) : '';
+  const renderHead = (count?: number, latestUpdate?: string) => (
     <div className="dashboard-panel-head">
       <h2>{title}</h2>
       <div className="dashboard-panel-head-actions">
+        {latestUpdate && <span className="dashboard-panel-updated">榜单更新于 {latestUpdate}</span>}
         {typeof count === 'number' && <span>{count} 条</span>}
         {onMore && <button type="button" className="dashboard-panel-more" onClick={onMore} aria-label={`${title} 更多`}>更多</button>}
       </div>
@@ -51,10 +57,10 @@ export default function DashboardRankTable({
           {Array.from({ length: compact ? 6 : 10 }, (_, index) => (
             <div key={index} className="dashboard-rank-row is-loading">
               <span>#{index + 1}</span>
-              <span />
-              <span />
-              <span />
-              <span />
+              <span className="h-8 rounded-xl bg-[rgba(255,255,255,0.06)]" />
+              {!compact && <span className="h-8 rounded-xl bg-[rgba(255,255,255,0.06)]" />}
+              <span className="h-8 rounded-xl bg-[rgba(255,255,255,0.06)]" />
+              <span className="h-8 rounded-xl bg-[rgba(255,255,255,0.06)]" />
             </div>
           ))}
         </div>
@@ -73,7 +79,7 @@ export default function DashboardRankTable({
 
   return (
     <section className={compact ? 'dashboard-panel is-compact' : 'dashboard-panel'}>
-      {renderHead(sortedItems.length)}
+      {renderHead(sortedItems.length, latestUpdateText)}
       <div className="dashboard-rank-head">
         <span>序号</span>
         <span>作品</span>

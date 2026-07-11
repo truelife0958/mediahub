@@ -216,6 +216,13 @@ export default function Home() {
           <p>
             {copy.subtitle} · 展示 {displayTotal} 条 · 平均综合分 {formatScore(dashboardSummary.averageScore)}
             {filteredCount > 0 ? ` · 已过滤异常 ${filteredCount} 条` : ''}
+            {(() => {
+              const latest = contents
+                .map(item => item.updatedAt || item.cachedAt || item.createdAt || '')
+                .filter(Boolean)
+                .sort((a, b) => b.localeCompare(a))[0];
+              return latest ? ` · 榜单更新于 ${latest.slice(0, 10)}` : '';
+            })()}
           </p>
         </div>
         <SearchBar value={keyword} onChange={handleKeywordChange} placeholder={copy.searchHint} variant="compact" />

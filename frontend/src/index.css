@@ -2693,6 +2693,12 @@ input:focus-visible {
   min-width: 0;
 }
 
+.dashboard-panel-updated {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
 .dashboard-panel-more {
   border: 1px solid rgba(251, 146, 60, 0.38);
   border-radius: 4px;
