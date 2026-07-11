@@ -3883,3 +3883,53 @@ input:focus-visible {
     max-width: 100%;
   }
 }
+
+/* ── ≤480px small phone breakpoint ── */
+@media (max-width: 480px) {
+  .module-dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .module-detail-pane {
+    position: static;
+  }
+
+  .inline-detail-panel {
+    position: static;
+    max-height: none;
+  }
+
+  .dashboard-panel.is-compact .dashboard-rank-head,
+  .dashboard-panel.is-compact .dashboard-rank-row,
+  .dashboard-rank-row {
+    grid-template-columns: 36px minmax(0, 1fr) 60px;
+    gap: 6px;
+    min-height: 64px;
+    padding: 8px 10px;
+  }
+
+  .dashboard-rank-metrics,
+  .dashboard-rank-data {
+    display: none;
+  }
+
+  .dashboard-rank-title strong {
+    font-size: 13px;
+  }
+
+  .dashboard-rank-title em {
+    font-size: 10px;
+  }
+
+  .dashboard-rank-score strong {
+    font-size: 15px;
+  }
+
+  .dashboard-panel-updated {
+    display: none;
+  }
+
+  .dashboard-panel-head-actions span:not(.dashboard-panel-updated) {
+    font-size: 11px;
+  }
+}
