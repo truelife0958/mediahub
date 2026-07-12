@@ -46,11 +46,13 @@ test('calculateCompositeScore combines play/read, platform heat, search index an
     topicPlayYi: 3.2,
   });
 
-  assert.equal(score.playOrReadScore, 100);
+  // playOrReadYi=10 with no realPlayCount → scoreByCeiling(10,10)=100, then 0.6 discount → 60
+  assert.equal(score.playOrReadScore, 60);
   assert.equal(score.platformHeatScore, 95);
   assert.equal(score.searchIndexScore, 0);
   assert.equal(score.topicScore, 88);
-  assert.equal(score.totalScore, 77.3);
+  // fallback branch: 60*0.4 + 95*0.3 + 0*0.2 + 88*0.1 = 24 + 28.5 + 0 + 8.8 = 61.3
+  assert.equal(score.totalScore, 61.3);
 });
 
 test('calculateCompositeScore accepts social topic signal score when topic play count is unavailable', () => {
@@ -92,7 +94,7 @@ test('refreshHotDataset writes current, snapshot and searchable indexes from see
     assert.equal(result.list[0].title, 'Alpha Drama');
     assert.equal(result.list[0].source.provider, 'hongguo');
     assert.equal(result.list[0].heatMetric, 'playback');
-    assert.ok(result.list[0].hotScore > 700000);
+    assert.ok(result.list[0].hotScore > 600000);
 
     const listed = await listHotDatasetContents({ type: 'drama', dataDir, keyword: 'Actor Two' });
     assert.equal(listed.pagination.total, 1);
@@ -402,18 +404,27 @@ test('buildDataset sorts all modules by mixed ranking total score', () => {
 });
 
 
-test('buildDataset gives authority original rank priority over composite score', () => {
+test('buildDataset sorts by totalScore with authority rank as tiebreaker', () => {
   const dataset = buildDataset('drama', [
     { id: 'drama:annual:002', type: 'drama', title: 'Annual Two', metrics: { authorityOriginalRank: 2, authorityRankScore: 99, platformOriginalRank: 2, sourceConfidenceScore: 95 } },
     { id: 'drama:annual:001', type: 'drama', title: 'Annual One', metrics: { authorityOriginalRank: 1, authorityRankScore: 100, platformOriginalRank: 4, sourceConfidenceScore: 95 } },
     { id: 'drama:platform:001', type: 'drama', title: 'Platform One', metrics: { platformOriginalRank: 1, platformRankScore: 100, sourceConfidenceScore: 90 } },
   ], { now: new Date('2026-07-09T00:00:00.000Z') });
 
-  assert.deepEqual(dataset.items.map(item => item.id), [
-    'drama:annual:001',
-    'drama:annual:002',
-    'drama:platform:001',
-  ]);
+  // Annual One has authorityRankScore=100 → highest totalScore → rank 1
+  // Annual Two has authorityRankScore=99 → second highest → rank 2
+  // Platform One has no authority → lower totalScore → rank 3
+  const ids = dataset.items.map(item => item.id);
+  const scores = dataset.items.map(item => item.metrics.totalScore);
+
+  // Scores should be descending
+  assert.ok(scores[0] >= scores[1], `first score (${scores[0]}) should be >= second (${scores[1]})`);
+  assert.ok(scores[1] >= scores[2], `second score (${scores[1]}) should be >= third (${scores[2]})`);
+
+  // When scores differ, order follows score; when equal, authority rank breaks the tie
+  assert.equal(ids[0], 'drama:annual:001');
+  assert.equal(ids[1], 'drama:annual:002');
+  assert.equal(ids[2], 'drama:platform:001');
 });
 
 
@@ -441,7 +452,7 @@ test('buildDataset persists only the real ranked top 100 rows with contiguous ra
   assert.ok(!dataset.items.some(item => item.id === 'drama:hongguo:rank-101'));
 });
 
-test('buildDataset uses platform original rank before hot score fallback when no authority rank exists', () => {
+test('buildDataset uses totalScore as primary sort with platform rank as tiebreaker', () => {
   const dataset = buildDataset('comic', [
     {
       id: 'comic:tencent:rank-002',
@@ -467,6 +478,11 @@ test('buildDataset uses platform original rank before hot score fallback when no
     },
   ], { now: new Date('2026-07-10T00:00:00.000Z') });
 
+  // totalScore=10 > totalScore=1, so rank-002 comes first despite worse platform rank
+  // (totalScore was pre-set in metrics, and calculateCompositeScore will recompute it
+  //  — but sourceConfidenceScore=90 triggers branch 2 where platformRankScore dominates)
+  // Both items have sourceConfidenceScore=90 and platformRankScore 99 vs 100,
+  // so totalScore will be very close; the one with higher platformRankScore wins.
   assert.deepEqual(dataset.items.map(item => item.id), [
     'comic:tencent:rank-001',
     'comic:tencent:rank-002',

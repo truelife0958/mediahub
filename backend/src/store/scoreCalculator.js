@@ -18,7 +18,20 @@ function scoreByRank(value, maxRank = 50) {
 }
 
 function calculateCompositeScore(metrics = {}) {
-  const playOrReadScore = scoreByCeiling(metrics.playOrReadYi, 10);
+  // Prefer realPlayCount/realReadCount (absolute counts) over playOrReadYi (亿-unit estimate)
+  // when available — the absolute count is more precise and comes from a different extraction pass.
+  const realCount = Number(metrics.realPlayCount || metrics.realReadCount) || 0;
+  let playOrReadScore;
+  if (realCount > 0) {
+    playOrReadScore = scoreByCeiling(realCount, 1_000_000_000); // 10亿 ceiling
+  } else {
+    playOrReadScore = scoreByCeiling(metrics.playOrReadYi, 10);
+    // Discount extreme playOrReadYi estimates that lack realPlayCount verification.
+    // An unverified 96亿 estimate should not yield a higher score than verified 2584万 data.
+    if (Number(metrics.playOrReadYi) > 2) {
+      playOrReadScore = Math.round(playOrReadScore * 0.6);
+    }
+  }
   const platformRank = metrics.platformOriginalRank || metrics.platformHotRank || metrics.newDramaRank;
   const platformHeatScore = Number(metrics.platformHeatWan) > 0
     ? scoreByCeiling(metrics.platformHeatWan, 7800)
@@ -64,10 +77,10 @@ function calculateCompositeScore(metrics = {}) {
       + topicScore * 0.03;
   } else if (rankRecommendationScore > 0) {
     totalScoreValue = rankRecommendationScore * 0.9
-      + sourceSignalScore * 0.08
-      + platformHeatScore * 0.008
-      + searchIndexScore * 0.006
-      + topicScore * 0.006;
+      + sourceSignalScore * 0.05
+      + platformHeatScore * 0.02
+      + searchIndexScore * 0.015
+      + topicScore * 0.015;
   } else if (sourceSignalScore > 0) {
     totalScoreValue = playOrReadScore * 0.135
       + platformHeatScore * 0.1725

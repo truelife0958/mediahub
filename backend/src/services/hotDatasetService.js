@@ -135,19 +135,26 @@ function sortItems(items, sort = 'hot') {
   list.sort((a, b) => {
     if (sort === 'latest') return Date.parse(b.capturedAt || '') - Date.parse(a.capturedAt || '');
 
+    // Primary: totalScore descending — the composite score reflects real heat
+    const aScore = Number(a.metrics?.totalScore) || 0;
+    const bScore = Number(b.metrics?.totalScore) || 0;
+    if (aScore !== bScore) return bScore - aScore;
+
+    // Tiebreaker 1: authority rank ascending (lower rank = higher priority)
     const aAuthorityRank = positiveRank(a.metrics?.authorityOriginalRank || a.metrics?.annualRank);
     const bAuthorityRank = positiveRank(b.metrics?.authorityOriginalRank || b.metrics?.annualRank);
     if (aAuthorityRank && bAuthorityRank && aAuthorityRank !== bAuthorityRank) return aAuthorityRank - bAuthorityRank;
     if (aAuthorityRank && !bAuthorityRank) return -1;
     if (!aAuthorityRank && bAuthorityRank) return 1;
 
+    // Tiebreaker 2: platform rank ascending
     const aPlatformRank = positiveRank(a.metrics?.platformOriginalRank || a.metrics?.platformRank);
     const bPlatformRank = positiveRank(b.metrics?.platformOriginalRank || b.metrics?.platformRank);
     if (aPlatformRank && bPlatformRank && aPlatformRank !== bPlatformRank) return aPlatformRank - bPlatformRank;
     if (aPlatformRank && !bPlatformRank) return -1;
     if (!aPlatformRank && bPlatformRank) return 1;
 
-    return (Number(b.metrics?.totalScore) || 0) - (Number(a.metrics?.totalScore) || 0);
+    return 0;
   });
   return list;
 }

@@ -112,7 +112,7 @@ describe('content metrics helpers', () => {
         totalScore: 77,
       },
     }), {
-      label: '真实播放量',
+      label: '播放量参考',
       value: '未公开',
       meta: '真实数据未公开',
       status: 'unavailable',

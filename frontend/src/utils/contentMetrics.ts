@@ -95,7 +95,11 @@ export function formatRealMetricDisplay({
     ? 'trusted_third_party'
     : (metrics?.realMetricStatus === 'official' && Number(count) > 0 ? 'official' : 'unavailable');
   const baseLabel = metricType === 'read' ? '阅读量' : '播放量';
-  const label = status === 'trusted_third_party' ? `第三方${baseLabel}` : `真实${baseLabel}`;
+  const label = status === 'unavailable'
+    ? `${baseLabel}参考`
+    : status === 'trusted_third_party'
+      ? `第三方${baseLabel}`
+      : `真实${baseLabel}`;
   const source = metrics?.realMetricSources?.find(item => item.metricType === metricType && item.value === count)
     || metrics?.realMetricSources?.find(item => item.metricType === metricType);
   const date = formatCapturedDate(metrics?.realMetricCapturedAt || source?.capturedAt);

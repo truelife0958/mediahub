@@ -1,18 +1,18 @@
 {
-  "家里家外": [
-    {
-      "id": "drama:baike_public:rank001",
-      "type": "drama",
-      "title": "家里家外",
-      "hotScore": 952000
-    }
-  ],
   "今人不见古时玥": [
     {
       "id": "drama:public_search:rank002",
       "type": "drama",
       "title": "今人不见古时玥",
       "hotScore": 963000
+    }
+  ],
+  "家里家外": [
+    {
+      "id": "drama:baike_public:rank001",
+      "type": "drama",
+      "title": "家里家外",
+      "hotScore": 952000
     }
   ],
   "冒姓琅琊": [
@@ -23,14 +23,6 @@
       "hotScore": 943000
     }
   ],
-  "盛夏芬德拉": [
-    {
-      "id": "drama:duanjubaike:rank004",
-      "type": "drama",
-      "title": "盛夏芬德拉",
-      "hotScore": 933000
-    }
-  ],
   "唐诡奇谭": [
     {
       "id": "drama:iqiyi_public:rank005",
@@ -39,28 +31,20 @@
       "hotScore": 938000
     }
   ],
+  "盛夏芬德拉": [
+    {
+      "id": "drama:duanjubaike:rank004",
+      "type": "drama",
+      "title": "盛夏芬德拉",
+      "hotScore": 933000
+    }
+  ],
   "以她之韧": [
     {
       "id": "drama:iqiyi_public:rank006",
       "type": "drama",
       "title": "以她之韧",
       "hotScore": 929000
-    }
-  ],
-  "十八岁太奶奶驾到": [
-    {
-      "id": "drama:duanjubaike:rank007",
-      "type": "drama",
-      "title": "十八岁太奶奶驾到",
-      "hotScore": 855000
-    }
-  ],
-  "一品布衣": [
-    {
-      "id": "drama:duanjubaike:rank008",
-      "type": "drama",
-      "title": "一品布衣",
-      "hotScore": 907000
     }
   ],
   "正义之刃": [
@@ -79,12 +63,28 @@
       "hotScore": 911000
     }
   ],
+  "一品布衣": [
+    {
+      "id": "drama:duanjubaike:rank008",
+      "type": "drama",
+      "title": "一品布衣",
+      "hotScore": 907000
+    }
+  ],
   "无双": [
     {
       "id": "drama:hongguo_public:rank011",
       "type": "drama",
       "title": "无双",
       "hotScore": 887000
+    }
+  ],
+  "十八岁太奶奶驾到": [
+    {
+      "id": "drama:duanjubaike:rank007",
+      "type": "drama",
+      "title": "十八岁太奶奶驾到",
+      "hotScore": 855000
     }
   ],
   "夫人她专治不服3之将门捉婿": [
@@ -1197,20 +1197,20 @@
       "hotScore": 583000
     }
   ],
-  "一世之尊": [
-    {
-      "id": "novel:qidian:rank050",
-      "type": "novel",
-      "title": "一世之尊",
-      "hotScore": 579000
-    }
-  ],
   "长夜余火": [
     {
       "id": "novel:baidu_novel:rank051",
       "type": "novel",
       "title": "长夜余火",
       "hotScore": 582000
+    }
+  ],
+  "一世之尊": [
+    {
+      "id": "novel:qidian:rank050",
+      "type": "novel",
+      "title": "一世之尊",
+      "hotScore": 579000
     }
   ],
   "奥术神座": [
@@ -1605,12 +1605,20 @@
       "hotScore": 362000
     }
   ],
-  "假面骑士ZZZ": [
+  "名侦探柯南": [
     {
-      "id": "anime:bilibili:rank001",
+      "id": "anime:bilibili:rank006",
       "type": "anime",
-      "title": "假面骑士ZZZ",
-      "hotScore": 772000
+      "title": "名侦探柯南",
+      "hotScore": 805000
+    }
+  ],
+  "名侦探柯南（中配）": [
+    {
+      "id": "anime:bilibili:rank004",
+      "type": "anime",
+      "title": "名侦探柯南（中配）",
+      "hotScore": 787000
     }
   ],
   "神奇数字马戏团 中文配音": [
@@ -1629,44 +1637,20 @@
       "hotScore": 783000
     }
   ],
-  "名侦探柯南（中配）": [
+  "假面骑士ZZZ": [
     {
-      "id": "anime:bilibili:rank004",
+      "id": "anime:bilibili:rank001",
       "type": "anime",
-      "title": "名侦探柯南（中配）",
-      "hotScore": 787000
+      "title": "假面骑士ZZZ",
+      "hotScore": 772000
     }
   ],
-  "假面骑士ZZZ（中配）": [
+  "鬼灭之刃 刀匠村篇": [
     {
-      "id": "anime:bilibili:rank005",
+      "id": "anime:bilibili:rank013",
       "type": "anime",
-      "title": "假面骑士ZZZ（中配）",
-      "hotScore": 730000
-    }
-  ],
-  "名侦探柯南": [
-    {
-      "id": "anime:bilibili:rank006",
-      "type": "anime",
-      "title": "名侦探柯南",
-      "hotScore": 805000
-    }
-  ],
-  "间谍过家家 第三季": [
-    {
-      "id": "anime:bilibili:rank007",
-      "type": "anime",
-      "title": "间谍过家家 第三季",
-      "hotScore": 737000
-    }
-  ],
-  "BanG Dream! 梦想协奏曲 第三季": [
-    {
-      "id": "anime:bilibili:rank008",
-      "type": "anime",
-      "title": "BanG Dream! 梦想协奏曲 第三季",
-      "hotScore": 729000
+      "title": "鬼灭之刃 刀匠村篇",
+      "hotScore": 763000
     }
   ],
   "蜡笔小新 第二季（中文）": [
@@ -1685,6 +1669,22 @@
       "hotScore": 760000
     }
   ],
+  "鬼灭之刃 柱训练篇": [
+    {
+      "id": "anime:bilibili:rank015",
+      "type": "anime",
+      "title": "鬼灭之刃 柱训练篇",
+      "hotScore": 756000
+    }
+  ],
+  "咒术回战": [
+    {
+      "id": "anime:bilibili:rank014",
+      "type": "anime",
+      "title": "咒术回战",
+      "hotScore": 755000
+    }
+  ],
   "蜡笔小新 第一季（中文）": [
     {
       "id": "anime:bilibili:rank011",
@@ -1701,52 +1701,20 @@
       "hotScore": 750000
     }
   ],
-  "鬼灭之刃 刀匠村篇": [
-    {
-      "id": "anime:bilibili:rank013",
-      "type": "anime",
-      "title": "鬼灭之刃 刀匠村篇",
-      "hotScore": 763000
-    }
-  ],
-  "咒术回战": [
-    {
-      "id": "anime:bilibili:rank014",
-      "type": "anime",
-      "title": "咒术回战",
-      "hotScore": 755000
-    }
-  ],
-  "鬼灭之刃 柱训练篇": [
-    {
-      "id": "anime:bilibili:rank015",
-      "type": "anime",
-      "title": "鬼灭之刃 柱训练篇",
-      "hotScore": 756000
-    }
-  ],
-  "蜡笔小新 第三季（中文）": [
-    {
-      "id": "anime:bilibili:rank016",
-      "type": "anime",
-      "title": "蜡笔小新 第三季（中文）",
-      "hotScore": 717000
-    }
-  ],
-  "蜡笔小新 第七季（中文）": [
-    {
-      "id": "anime:bilibili:rank017",
-      "type": "anime",
-      "title": "蜡笔小新 第七季（中文）",
-      "hotScore": 684000
-    }
-  ],
   "间谍过家家": [
     {
       "id": "anime:bilibili:rank018",
       "type": "anime",
       "title": "间谍过家家",
       "hotScore": 738000
+    }
+  ],
+  "间谍过家家 第三季": [
+    {
+      "id": "anime:bilibili:rank007",
+      "type": "anime",
+      "title": "间谍过家家 第三季",
+      "hotScore": 737000
     }
   ],
   "鬼灭之刃 无限列车篇": [
@@ -1765,12 +1733,20 @@
       "hotScore": 732000
     }
   ],
-  "蜡笔小新 第四季（中文）": [
+  "假面骑士ZZZ（中配）": [
     {
-      "id": "anime:bilibili:rank021",
+      "id": "anime:bilibili:rank005",
       "type": "anime",
-      "title": "蜡笔小新 第四季（中文）",
-      "hotScore": 690000
+      "title": "假面骑士ZZZ（中配）",
+      "hotScore": 730000
+    }
+  ],
+  "BanG Dream! 梦想协奏曲 第三季": [
+    {
+      "id": "anime:bilibili:rank008",
+      "type": "anime",
+      "title": "BanG Dream! 梦想协奏曲 第三季",
+      "hotScore": 729000
     }
   ],
   "鬼灭之刃 游郭篇": [
@@ -1781,12 +1757,12 @@
       "hotScore": 723000
     }
   ],
-  "蜡笔小新 第六季（中文）": [
+  "蜡笔小新 第三季（中文）": [
     {
-      "id": "anime:bilibili:rank023",
+      "id": "anime:bilibili:rank016",
       "type": "anime",
-      "title": "蜡笔小新 第六季（中文）",
-      "hotScore": 700000
+      "title": "蜡笔小新 第三季（中文）",
+      "hotScore": 717000
     }
   ],
   "咒术回战 第二季": [
@@ -1797,12 +1773,12 @@
       "hotScore": 712000
     }
   ],
-  "小马国女孩系列 中文配音": [
+  "蜡笔小新 第六季（中文）": [
     {
-      "id": "anime:bilibili:rank025",
+      "id": "anime:bilibili:rank023",
       "type": "anime",
-      "title": "小马国女孩系列 中文配音",
-      "hotScore": 656000
+      "title": "蜡笔小新 第六季（中文）",
+      "hotScore": 700000
     }
   ],
   "葬送的芙莉莲": [
@@ -1813,6 +1789,14 @@
       "hotScore": 694000
     }
   ],
+  "蜡笔小新 第四季（中文）": [
+    {
+      "id": "anime:bilibili:rank021",
+      "type": "anime",
+      "title": "蜡笔小新 第四季（中文）",
+      "hotScore": 690000
+    }
+  ],
   "JOJO的奇妙冒险 黄金之风": [
     {
       "id": "anime:bilibili:rank027",
@@ -1821,12 +1805,12 @@
       "hotScore": 690000
     }
   ],
-  "迷宫饭": [
+  "蜡笔小新 第七季（中文）": [
     {
-      "id": "anime:bilibili:rank028",
+      "id": "anime:bilibili:rank017",
       "type": "anime",
-      "title": "迷宫饭",
-      "hotScore": 678000
+      "title": "蜡笔小新 第七季（中文）",
+      "hotScore": 684000
     }
   ],
   "JOJO的奇妙冒险": [
@@ -1837,12 +1821,12 @@
       "hotScore": 684000
     }
   ],
-  "不时用俄语小声说真心话的邻桌艾莉同学": [
+  "迷宫饭": [
     {
-      "id": "anime:bilibili:rank030",
+      "id": "anime:bilibili:rank028",
       "type": "anime",
-      "title": "不时用俄语小声说真心话的邻桌艾莉同学",
-      "hotScore": 669000
+      "title": "迷宫饭",
+      "hotScore": 678000
     }
   ],
   "百变小樱": [
@@ -1853,20 +1837,20 @@
       "hotScore": 670000
     }
   ],
+  "不时用俄语小声说真心话的邻桌艾莉同学": [
+    {
+      "id": "anime:bilibili:rank030",
+      "type": "anime",
+      "title": "不时用俄语小声说真心话的邻桌艾莉同学",
+      "hotScore": 669000
+    }
+  ],
   "家庭教师HITMAN REBORN!": [
     {
       "id": "anime:bilibili:rank032",
       "type": "anime",
       "title": "家庭教师HITMAN REBORN!",
       "hotScore": 665000
-    }
-  ],
-  "银魂 第二季": [
-    {
-      "id": "anime:bilibili:rank033",
-      "type": "anime",
-      "title": "银魂 第二季",
-      "hotScore": 655000
     }
   ],
   "Re：从零开始的异世界生活 新编集版": [
@@ -1877,12 +1861,20 @@
       "hotScore": 662000
     }
   ],
-  "蜡笔小新 第五季（中文）": [
+  "小马国女孩系列 中文配音": [
     {
-      "id": "anime:bilibili:rank035",
+      "id": "anime:bilibili:rank025",
       "type": "anime",
-      "title": "蜡笔小新 第五季（中文）",
-      "hotScore": 641000
+      "title": "小马国女孩系列 中文配音",
+      "hotScore": 656000
+    }
+  ],
+  "银魂 第二季": [
+    {
+      "id": "anime:bilibili:rank033",
+      "type": "anime",
+      "title": "银魂 第二季",
+      "hotScore": 655000
     }
   ],
   "迪迦奥特曼（中配）": [
@@ -1893,20 +1885,20 @@
       "hotScore": 648000
     }
   ],
-  "蜡笔小新 第八季（中文）": [
-    {
-      "id": "anime:bilibili:rank037",
-      "type": "anime",
-      "title": "蜡笔小新 第八季（中文）",
-      "hotScore": 599000
-    }
-  ],
   "EVA 新世纪福音战士": [
     {
       "id": "anime:bilibili:rank038",
       "type": "anime",
       "title": "EVA 新世纪福音战士",
       "hotScore": 643000
+    }
+  ],
+  "蜡笔小新 第五季（中文）": [
+    {
+      "id": "anime:bilibili:rank035",
+      "type": "anime",
+      "title": "蜡笔小新 第五季（中文）",
+      "hotScore": 641000
     }
   ],
   "鬼灭之刃 中配版": [
@@ -1917,44 +1909,12 @@
       "hotScore": 636000
     }
   ],
-  "金牌得主": [
-    {
-      "id": "anime:bilibili:rank040",
-      "type": "anime",
-      "title": "金牌得主",
-      "hotScore": 587000
-    }
-  ],
-  "间谍过家家 第二季": [
-    {
-      "id": "anime:bilibili:rank041",
-      "type": "anime",
-      "title": "间谍过家家 第二季",
-      "hotScore": 612000
-    }
-  ],
   "碧蓝之海": [
     {
       "id": "anime:bilibili:rank042",
       "type": "anime",
       "title": "碧蓝之海",
       "hotScore": 627000
-    }
-  ],
-  "明日之丈 第二季": [
-    {
-      "id": "anime:bilibili:rank043",
-      "type": "anime",
-      "title": "明日之丈 第二季",
-      "hotScore": 568000
-    }
-  ],
-  "坂本日常": [
-    {
-      "id": "anime:bilibili:rank044",
-      "type": "anime",
-      "title": "坂本日常",
-      "hotScore": 575000
     }
   ],
   "JOJO的奇妙冒险 星尘远征军 埃及篇": [
@@ -1965,28 +1925,20 @@
       "hotScore": 613000
     }
   ],
-  "我独自升级 第二季 -起于暗影-": [
+  "间谍过家家 第二季": [
     {
-      "id": "anime:bilibili:rank046",
+      "id": "anime:bilibili:rank041",
       "type": "anime",
-      "title": "我独自升级 第二季 -起于暗影-",
-      "hotScore": 573000
+      "title": "间谍过家家 第二季",
+      "hotScore": 612000
     }
   ],
-  "正相反的你与我": [
+  "蜡笔小新 第八季（中文）": [
     {
-      "id": "anime:bilibili:rank047",
+      "id": "anime:bilibili:rank037",
       "type": "anime",
-      "title": "正相反的你与我",
-      "hotScore": 561000
-    }
-  ],
-  "致不灭的你 第三季": [
-    {
-      "id": "anime:bilibili:rank048",
-      "type": "anime",
-      "title": "致不灭的你 第三季",
-      "hotScore": 553000
+      "title": "蜡笔小新 第八季（中文）",
+      "hotScore": 599000
     }
   ],
   "JOJO的奇妙冒险 星尘远征军": [
@@ -2013,12 +1965,92 @@
       "hotScore": 592000
     }
   ],
+  "金牌得主": [
+    {
+      "id": "anime:bilibili:rank040",
+      "type": "anime",
+      "title": "金牌得主",
+      "hotScore": 587000
+    }
+  ],
   "黑色四叶草": [
     {
       "id": "anime:bilibili:rank052",
       "type": "anime",
       "title": "黑色四叶草",
       "hotScore": 583000
+    }
+  ],
+  "坂本日常": [
+    {
+      "id": "anime:bilibili:rank044",
+      "type": "anime",
+      "title": "坂本日常",
+      "hotScore": 575000
+    }
+  ],
+  "某科学的超电磁炮": [
+    {
+      "id": "anime:bilibili:rank055",
+      "type": "anime",
+      "title": "某科学的超电磁炮",
+      "hotScore": 575000
+    }
+  ],
+  "我独自升级 第二季 -起于暗影-": [
+    {
+      "id": "anime:bilibili:rank046",
+      "type": "anime",
+      "title": "我独自升级 第二季 -起于暗影-",
+      "hotScore": 573000
+    }
+  ],
+  "明日之丈 第二季": [
+    {
+      "id": "anime:bilibili:rank043",
+      "type": "anime",
+      "title": "明日之丈 第二季",
+      "hotScore": 568000
+    }
+  ],
+  "Re：从零开始的异世界生活 第二季 后半": [
+    {
+      "id": "anime:bilibili:rank057",
+      "type": "anime",
+      "title": "Re：从零开始的异世界生活 第二季 后半",
+      "hotScore": 568000
+    }
+  ],
+  "正相反的你与我": [
+    {
+      "id": "anime:bilibili:rank047",
+      "type": "anime",
+      "title": "正相反的你与我",
+      "hotScore": 561000
+    }
+  ],
+  "JOJO的奇妙冒险 石之海": [
+    {
+      "id": "anime:bilibili:rank059",
+      "type": "anime",
+      "title": "JOJO的奇妙冒险 石之海",
+      "hotScore": 559000
+    }
+  ],
+  "致不灭的你 第三季": [
+    {
+      "id": "anime:bilibili:rank048",
+      "type": "anime",
+      "title": "致不灭的你 第三季",
+      "hotScore": 553000
+    }
+  ],
+  "夏日重现": [
+    {
+      "id": "anime:bilibili:rank061",
+      "type": "anime",
+      "title": "夏日重现",
+      "hotScore": 547000
     }
   ],
   "Ｄｒ．ＳＴＯＮＥ 石纪元 (第四季)": [
@@ -2037,14 +2069,6 @@
       "hotScore": 542000
     }
   ],
-  "某科学的超电磁炮": [
-    {
-      "id": "anime:bilibili:rank055",
-      "type": "anime",
-      "title": "某科学的超电磁炮",
-      "hotScore": 575000
-    }
-  ],
   "薰香花朵凛然绽放": [
     {
       "id": "anime:bilibili:rank056",
@@ -2053,12 +2077,36 @@
       "hotScore": 533000
     }
   ],
-  "Re：从零开始的异世界生活 第二季 后半": [
+  "Ｄｒ．ＳＴＯＮＥ 石纪元": [
     {
-      "id": "anime:bilibili:rank057",
+      "id": "anime:bilibili:rank064",
       "type": "anime",
-      "title": "Re：从零开始的异世界生活 第二季 后半",
-      "hotScore": 568000
+      "title": "Ｄｒ．ＳＴＯＮＥ 石纪元",
+      "hotScore": 532000
+    }
+  ],
+  "齐木楠雄的灾难（日播&精选版）": [
+    {
+      "id": "anime:bilibili:rank066",
+      "type": "anime",
+      "title": "齐木楠雄的灾难（日播&精选版）",
+      "hotScore": 522000
+    }
+  ],
+  "堀与宫村": [
+    {
+      "id": "anime:bilibili:rank068",
+      "type": "anime",
+      "title": "堀与宫村",
+      "hotScore": 522000
+    }
+  ],
+  "甘城光辉游乐园": [
+    {
+      "id": "anime:bilibili:rank067",
+      "type": "anime",
+      "title": "甘城光辉游乐园",
+      "hotScore": 519000
     }
   ],
   "碧蓝之海 第二季": [
@@ -2069,14 +2117,6 @@
       "hotScore": 517000
     }
   ],
-  "JOJO的奇妙冒险 石之海": [
-    {
-      "id": "anime:bilibili:rank059",
-      "type": "anime",
-      "title": "JOJO的奇妙冒险 石之海",
-      "hotScore": 559000
-    }
-  ],
   "关于我转生变成史莱姆这档事 第三季": [
     {
       "id": "anime:bilibili:rank060",
@@ -2085,12 +2125,36 @@
       "hotScore": 516000
     }
   ],
-  "夏日重现": [
+  "关于我转生变成史莱姆这档事": [
     {
-      "id": "anime:bilibili:rank061",
+      "id": "anime:bilibili:rank069",
       "type": "anime",
-      "title": "夏日重现",
-      "hotScore": 547000
+      "title": "关于我转生变成史莱姆这档事",
+      "hotScore": 516000
+    }
+  ],
+  "关于我转生变成史莱姆这档事 第二季": [
+    {
+      "id": "anime:bilibili:rank071",
+      "type": "anime",
+      "title": "关于我转生变成史莱姆这档事 第二季",
+      "hotScore": 510000
+    }
+  ],
+  "笨女孩": [
+    {
+      "id": "anime:bilibili:rank070",
+      "type": "anime",
+      "title": "笨女孩",
+      "hotScore": 507000
+    }
+  ],
+  "银魂 第三季": [
+    {
+      "id": "anime:bilibili:rank065",
+      "type": "anime",
+      "title": "银魂 第三季",
+      "hotScore": 506000
     }
   ],
   "奇幻世界舅舅": [
@@ -2107,110 +2171,6 @@
       "type": "anime",
       "title": "地缚少年花子君 第二季",
       "hotScore": 503000
-    }
-  ],
-  "Ｄｒ．ＳＴＯＮＥ 石纪元": [
-    {
-      "id": "anime:bilibili:rank064",
-      "type": "anime",
-      "title": "Ｄｒ．ＳＴＯＮＥ 石纪元",
-      "hotScore": 532000
-    }
-  ],
-  "银魂 第三季": [
-    {
-      "id": "anime:bilibili:rank065",
-      "type": "anime",
-      "title": "银魂 第三季",
-      "hotScore": 506000
-    }
-  ],
-  "齐木楠雄的灾难（日播&精选版）": [
-    {
-      "id": "anime:bilibili:rank066",
-      "type": "anime",
-      "title": "齐木楠雄的灾难（日播&精选版）",
-      "hotScore": 522000
-    }
-  ],
-  "甘城光辉游乐园": [
-    {
-      "id": "anime:bilibili:rank067",
-      "type": "anime",
-      "title": "甘城光辉游乐园",
-      "hotScore": 519000
-    }
-  ],
-  "堀与宫村": [
-    {
-      "id": "anime:bilibili:rank068",
-      "type": "anime",
-      "title": "堀与宫村",
-      "hotScore": 522000
-    }
-  ],
-  "关于我转生变成史莱姆这档事": [
-    {
-      "id": "anime:bilibili:rank069",
-      "type": "anime",
-      "title": "关于我转生变成史莱姆这档事",
-      "hotScore": 516000
-    }
-  ],
-  "笨女孩": [
-    {
-      "id": "anime:bilibili:rank070",
-      "type": "anime",
-      "title": "笨女孩",
-      "hotScore": 507000
-    }
-  ],
-  "关于我转生变成史莱姆这档事 第二季": [
-    {
-      "id": "anime:bilibili:rank071",
-      "type": "anime",
-      "title": "关于我转生变成史莱姆这档事 第二季",
-      "hotScore": 510000
-    }
-  ],
-  "梦比优斯奥特曼": [
-    {
-      "id": "anime:bilibili:rank072",
-      "type": "anime",
-      "title": "梦比优斯奥特曼",
-      "hotScore": 465000
-    }
-  ],
-  "超常技能开启奇幻世界美食之旅 第二季（中配版）": [
-    {
-      "id": "anime:bilibili:rank073",
-      "type": "anime",
-      "title": "超常技能开启奇幻世界美食之旅 第二季（中配版）",
-      "hotScore": 442000
-    }
-  ],
-  "泽塔奥特曼": [
-    {
-      "id": "anime:bilibili:rank074",
-      "type": "anime",
-      "title": "泽塔奥特曼",
-      "hotScore": 462000
-    }
-  ],
-  "假面骑士艾克赛德": [
-    {
-      "id": "anime:bilibili:rank075",
-      "type": "anime",
-      "title": "假面骑士艾克赛德",
-      "hotScore": 441000
-    }
-  ],
-  "我独自升级": [
-    {
-      "id": "anime:bilibili:rank076",
-      "type": "anime",
-      "title": "我独自升级",
-      "hotScore": 451000
     }
   ],
   "欢迎光临樱兰高校": [
@@ -2237,12 +2197,20 @@
       "hotScore": 468000
     }
   ],
-  "初高中同校！！鬼灭学园物语": [
+  "梦比优斯奥特曼": [
     {
-      "id": "anime:bilibili:rank080",
+      "id": "anime:bilibili:rank072",
       "type": "anime",
-      "title": "初高中同校！！鬼灭学园物语",
-      "hotScore": 414000
+      "title": "梦比优斯奥特曼",
+      "hotScore": 465000
+    }
+  ],
+  "泽塔奥特曼": [
+    {
+      "id": "anime:bilibili:rank074",
+      "type": "anime",
+      "title": "泽塔奥特曼",
+      "hotScore": 462000
     }
   ],
   "宇崎学妹想要玩！": [
@@ -2253,28 +2221,12 @@
       "hotScore": 460000
     }
   ],
-  "米奇与达利": [
+  "我独自升级": [
     {
-      "id": "anime:bilibili:rank082",
+      "id": "anime:bilibili:rank076",
       "type": "anime",
-      "title": "米奇与达利",
-      "hotScore": 412000
-    }
-  ],
-  "怪盗基德1412（中配）": [
-    {
-      "id": "anime:bilibili:rank083",
-      "type": "anime",
-      "title": "怪盗基德1412（中配）",
-      "hotScore": 405000
-    }
-  ],
-  "小马国女孩系列": [
-    {
-      "id": "anime:bilibili:rank084",
-      "type": "anime",
-      "title": "小马国女孩系列",
-      "hotScore": 395000
+      "title": "我独自升级",
+      "hotScore": 451000
     }
   ],
   "地缚少年花子君": [
@@ -2285,20 +2237,20 @@
       "hotScore": 445000
     }
   ],
-  "Ｄｒ．ＳＴＯＮＥ 石纪元 (第三季)": [
+  "超常技能开启奇幻世界美食之旅 第二季（中配版）": [
     {
-      "id": "anime:bilibili:rank086",
+      "id": "anime:bilibili:rank073",
       "type": "anime",
-      "title": "Ｄｒ．ＳＴＯＮＥ 石纪元 (第三季)",
-      "hotScore": 406000
+      "title": "超常技能开启奇幻世界美食之旅 第二季（中配版）",
+      "hotScore": 442000
     }
   ],
-  "怪兽8号 第二季": [
+  "假面骑士艾克赛德": [
     {
-      "id": "anime:bilibili:rank087",
+      "id": "anime:bilibili:rank075",
       "type": "anime",
-      "title": "怪兽8号 第二季",
-      "hotScore": 393000
+      "title": "假面骑士艾克赛德",
+      "hotScore": 441000
     }
   ],
   "游戏王 怪兽之决斗": [
@@ -2317,14 +2269,6 @@
       "hotScore": 423000
     }
   ],
-  "赛马娘四格": [
-    {
-      "id": "anime:bilibili:rank090",
-      "type": "anime",
-      "title": "赛马娘四格",
-      "hotScore": 371000
-    }
-  ],
   "魔法少女小圆": [
     {
       "id": "anime:bilibili:rank091",
@@ -2341,6 +2285,22 @@
       "hotScore": 416000
     }
   ],
+  "初高中同校！！鬼灭学园物语": [
+    {
+      "id": "anime:bilibili:rank080",
+      "type": "anime",
+      "title": "初高中同校！！鬼灭学园物语",
+      "hotScore": 414000
+    }
+  ],
+  "米奇与达利": [
+    {
+      "id": "anime:bilibili:rank082",
+      "type": "anime",
+      "title": "米奇与达利",
+      "hotScore": 412000
+    }
+  ],
   "颂乐人偶": [
     {
       "id": "anime:bilibili:rank093",
@@ -2349,12 +2309,20 @@
       "hotScore": 408000
     }
   ],
-  "光死去的夏天": [
+  "Ｄｒ．ＳＴＯＮＥ 石纪元 (第三季)": [
     {
-      "id": "anime:bilibili:rank094",
+      "id": "anime:bilibili:rank086",
       "type": "anime",
-      "title": "光死去的夏天",
-      "hotScore": 359000
+      "title": "Ｄｒ．ＳＴＯＮＥ 石纪元 (第三季)",
+      "hotScore": 406000
+    }
+  ],
+  "怪盗基德1412（中配）": [
+    {
+      "id": "anime:bilibili:rank083",
+      "type": "anime",
+      "title": "怪盗基德1412（中配）",
+      "hotScore": 405000
     }
   ],
   "排球少年！！": [
@@ -2365,12 +2333,12 @@
       "hotScore": 401000
     }
   ],
-  "咔嗒咔嗒": [
+  "小马国女孩系列": [
     {
-      "id": "anime:bilibili:rank096",
+      "id": "anime:bilibili:rank084",
       "type": "anime",
-      "title": "咔嗒咔嗒",
-      "hotScore": 356000
+      "title": "小马国女孩系列",
+      "hotScore": 395000
     }
   ],
   "路人女主的养成方法": [
@@ -2381,12 +2349,20 @@
       "hotScore": 395000
     }
   ],
-  "不正经的魔术讲师与禁忌教典": [
+  "怪兽8号 第二季": [
     {
-      "id": "anime:bilibili:rank098",
+      "id": "anime:bilibili:rank087",
       "type": "anime",
-      "title": "不正经的魔术讲师与禁忌教典",
-      "hotScore": 354000
+      "title": "怪兽8号 第二季",
+      "hotScore": 393000
+    }
+  ],
+  "灵笼 第二季": [
+    {
+      "id": "anime:bilibili:rank100",
+      "type": "anime",
+      "title": "灵笼 第二季",
+      "hotScore": 390000
     }
   ],
   "龙与虎": [
@@ -2397,12 +2373,36 @@
       "hotScore": 387000
     }
   ],
-  "灵笼 第二季": [
+  "赛马娘四格": [
     {
-      "id": "anime:bilibili:rank100",
+      "id": "anime:bilibili:rank090",
       "type": "anime",
-      "title": "灵笼 第二季",
-      "hotScore": 390000
+      "title": "赛马娘四格",
+      "hotScore": 371000
+    }
+  ],
+  "光死去的夏天": [
+    {
+      "id": "anime:bilibili:rank094",
+      "type": "anime",
+      "title": "光死去的夏天",
+      "hotScore": 359000
+    }
+  ],
+  "咔嗒咔嗒": [
+    {
+      "id": "anime:bilibili:rank096",
+      "type": "anime",
+      "title": "咔嗒咔嗒",
+      "hotScore": 356000
+    }
+  ],
+  "不正经的魔术讲师与禁忌教典": [
+    {
+      "id": "anime:bilibili:rank098",
+      "type": "anime",
+      "title": "不正经的魔术讲师与禁忌教典",
+      "hotScore": 354000
     }
   ],
   "非人哉": [
@@ -2429,28 +2429,12 @@
       "hotScore": 869000
     }
   ],
-  "衔尾蛇": [
-    {
-      "id": "comic:tencent_comic:rank004",
-      "type": "comic",
-      "title": "衔尾蛇",
-      "hotScore": 817000
-    }
-  ],
   "镖人": [
     {
       "id": "comic:tencent_comic:rank005",
       "type": "comic",
       "title": "镖人",
       "hotScore": 863000
-    }
-  ],
-  "暗神榜": [
-    {
-      "id": "comic:tencent_comic:rank006",
-      "type": "comic",
-      "title": "暗神榜",
-      "hotScore": 797000
     }
   ],
   "三体": [
@@ -2461,28 +2445,12 @@
       "hotScore": 851000
     }
   ],
-  "重生之女将星": [
-    {
-      "id": "comic:tencent_comic:rank008",
-      "type": "comic",
-      "title": "重生之女将星",
-      "hotScore": 766000
-    }
-  ],
   "钢铁契约": [
     {
       "id": "comic:tencent_comic:rank009",
       "type": "comic",
       "title": "钢铁契约",
       "hotScore": 842000
-    }
-  ],
-  "小苟丢了魂": [
-    {
-      "id": "comic:tencent_comic:rank010",
-      "type": "comic",
-      "title": "小苟丢了魂",
-      "hotScore": 764000
     }
   ],
   "我终将肝成神明": [
@@ -2493,44 +2461,12 @@
       "hotScore": 832000
     }
   ],
-  "我帅得诡异": [
+  "衔尾蛇": [
     {
-      "id": "comic:tencent_comic:rank012",
+      "id": "comic:tencent_comic:rank004",
       "type": "comic",
-      "title": "我帅得诡异",
-      "hotScore": 730000
-    }
-  ],
-  "愚女": [
-    {
-      "id": "comic:tencent_comic:rank013",
-      "type": "comic",
-      "title": "愚女",
-      "hotScore": 729000
-    }
-  ],
-  "焦糖玛奇怪": [
-    {
-      "id": "comic:tencent_comic:rank014",
-      "type": "comic",
-      "title": "焦糖玛奇怪",
-      "hotScore": 748000
-    }
-  ],
-  "铜雀锁金钗": [
-    {
-      "id": "comic:tencent_comic:rank015",
-      "type": "comic",
-      "title": "铜雀锁金钗",
-      "hotScore": 715000
-    }
-  ],
-  "猛兽匣：机甲纪元": [
-    {
-      "id": "comic:tencent_comic:rank016",
-      "type": "comic",
-      "title": "猛兽匣：机甲纪元",
-      "hotScore": 759000
+      "title": "衔尾蛇",
+      "hotScore": 817000
     }
   ],
   "黑白双龙": [
@@ -2549,12 +2485,12 @@
       "hotScore": 804000
     }
   ],
-  "走诡录": [
+  "暗神榜": [
     {
-      "id": "comic:tencent_comic:rank019",
+      "id": "comic:tencent_comic:rank006",
       "type": "comic",
-      "title": "走诡录",
-      "hotScore": 763000
+      "title": "暗神榜",
+      "hotScore": 797000
     }
   ],
   "火影忍者（全彩版）": [
@@ -2563,14 +2499,6 @@
       "type": "comic",
       "title": "火影忍者（全彩版）",
       "hotScore": 792000
-    }
-  ],
-  "故障乌托邦": [
-    {
-      "id": "comic:tencent_comic:rank021",
-      "type": "comic",
-      "title": "故障乌托邦",
-      "hotScore": 704000
     }
   ],
   "暴君爹爹的团宠小娇包": [
@@ -2589,12 +2517,12 @@
       "hotScore": 783000
     }
   ],
-  "我一个人砍翻乱世": [
+  "黑白有常": [
     {
-      "id": "comic:tencent_comic:rank024",
+      "id": "comic:tencent_comic:rank026",
       "type": "comic",
-      "title": "我一个人砍翻乱世",
-      "hotScore": 733000
+      "title": "黑白有常",
+      "hotScore": 773000
     }
   ],
   "盗墓笔记重启": [
@@ -2605,20 +2533,36 @@
       "hotScore": 769000
     }
   ],
-  "黑白有常": [
+  "重生之女将星": [
     {
-      "id": "comic:tencent_comic:rank026",
+      "id": "comic:tencent_comic:rank008",
       "type": "comic",
-      "title": "黑白有常",
-      "hotScore": 773000
+      "title": "重生之女将星",
+      "hotScore": 766000
     }
   ],
-  "月沉海未名": [
+  "小苟丢了魂": [
     {
-      "id": "comic:tencent_comic:rank027",
+      "id": "comic:tencent_comic:rank010",
       "type": "comic",
-      "title": "月沉海未名",
-      "hotScore": 661000
+      "title": "小苟丢了魂",
+      "hotScore": 764000
+    }
+  ],
+  "走诡录": [
+    {
+      "id": "comic:tencent_comic:rank019",
+      "type": "comic",
+      "title": "走诡录",
+      "hotScore": 763000
+    }
+  ],
+  "猛兽匣：机甲纪元": [
+    {
+      "id": "comic:tencent_comic:rank016",
+      "type": "comic",
+      "title": "猛兽匣：机甲纪元",
+      "hotScore": 759000
     }
   ],
   "我和影帝同居了": [
@@ -2637,12 +2581,12 @@
       "hotScore": 752000
     }
   ],
-  "此星": [
+  "焦糖玛奇怪": [
     {
-      "id": "comic:tencent_comic:rank030",
+      "id": "comic:tencent_comic:rank014",
       "type": "comic",
-      "title": "此星",
-      "hotScore": 660000
+      "title": "焦糖玛奇怪",
+      "hotScore": 748000
     }
   ],
   "灵笼·月魁传": [
@@ -2669,12 +2613,36 @@
       "hotScore": 736000
     }
   ],
+  "我一个人砍翻乱世": [
+    {
+      "id": "comic:tencent_comic:rank024",
+      "type": "comic",
+      "title": "我一个人砍翻乱世",
+      "hotScore": 733000
+    }
+  ],
+  "我帅得诡异": [
+    {
+      "id": "comic:tencent_comic:rank012",
+      "type": "comic",
+      "title": "我帅得诡异",
+      "hotScore": 730000
+    }
+  ],
   "阎王不高兴": [
     {
       "id": "comic:tencent_comic:rank034",
       "type": "comic",
       "title": "阎王不高兴",
       "hotScore": 730000
+    }
+  ],
+  "愚女": [
+    {
+      "id": "comic:tencent_comic:rank013",
+      "type": "comic",
+      "title": "愚女",
+      "hotScore": 729000
     }
   ],
   "末日边境·王者荣耀篇": [
@@ -2693,12 +2661,20 @@
       "hotScore": 718000
     }
   ],
-  "南部档案": [
+  "铜雀锁金钗": [
     {
-      "id": "comic:tencent_comic:rank037",
+      "id": "comic:tencent_comic:rank015",
       "type": "comic",
-      "title": "南部档案",
-      "hotScore": 651000
+      "title": "铜雀锁金钗",
+      "hotScore": 715000
+    }
+  ],
+  "出柜通告": [
+    {
+      "id": "comic:tencent_comic:rank039",
+      "type": "comic",
+      "title": "出柜通告",
+      "hotScore": 714000
     }
   ],
   "喵与喵薄荷": [
@@ -2709,12 +2685,12 @@
       "hotScore": 710000
     }
   ],
-  "出柜通告": [
+  "故障乌托邦": [
     {
-      "id": "comic:tencent_comic:rank039",
+      "id": "comic:tencent_comic:rank021",
       "type": "comic",
-      "title": "出柜通告",
-      "hotScore": 714000
+      "title": "故障乌托邦",
+      "hotScore": 704000
     }
   ],
   "开挂也是宗门最弱？！": [
@@ -2733,38 +2709,6 @@
       "hotScore": 693000
     }
   ],
-  "聊斋•少年游": [
-    {
-      "id": "comic:tencent_comic:rank042",
-      "type": "comic",
-      "title": "聊斋•少年游",
-      "hotScore": 590000
-    }
-  ],
-  "星甲：剑意化形": [
-    {
-      "id": "comic:tencent_comic:rank043",
-      "type": "comic",
-      "title": "星甲：剑意化形",
-      "hotScore": 652000
-    }
-  ],
-  "乐舞华庭": [
-    {
-      "id": "comic:tencent_comic:rank044",
-      "type": "comic",
-      "title": "乐舞华庭",
-      "hotScore": 587000
-    }
-  ],
-  "临时停驻": [
-    {
-      "id": "comic:tencent_comic:rank045",
-      "type": "comic",
-      "title": "临时停驻",
-      "hotScore": 578000
-    }
-  ],
   "王者荣耀英雄志": [
     {
       "id": "comic:tencent_comic:rank046",
@@ -2781,12 +2725,28 @@
       "hotScore": 668000
     }
   ],
+  "月沉海未名": [
+    {
+      "id": "comic:tencent_comic:rank027",
+      "type": "comic",
+      "title": "月沉海未名",
+      "hotScore": 661000
+    }
+  ],
   "我在异界卡bug": [
     {
       "id": "comic:tencent_comic:rank048",
       "type": "comic",
       "title": "我在异界卡bug",
       "hotScore": 661000
+    }
+  ],
+  "此星": [
+    {
+      "id": "comic:tencent_comic:rank030",
+      "type": "comic",
+      "title": "此星",
+      "hotScore": 660000
     }
   ],
   "行于过去的我们": [
@@ -2797,12 +2757,20 @@
       "hotScore": 657000
     }
   ],
-  "快把动物放进冰箱": [
+  "星甲：剑意化形": [
     {
-      "id": "comic:tencent_comic:rank050",
+      "id": "comic:tencent_comic:rank043",
       "type": "comic",
-      "title": "快把动物放进冰箱",
-      "hotScore": 612000
+      "title": "星甲：剑意化形",
+      "hotScore": 652000
+    }
+  ],
+  "南部档案": [
+    {
+      "id": "comic:tencent_comic:rank037",
+      "type": "comic",
+      "title": "南部档案",
+      "hotScore": 651000
     }
   ],
   "奥拉星·平行宇宙": [
@@ -2829,28 +2797,20 @@
       "hotScore": 641000
     }
   ],
-  "我的末世系统崩了": [
-    {
-      "id": "comic:tencent_comic:rank054",
-      "type": "comic",
-      "title": "我的末世系统崩了",
-      "hotScore": 584000
-    }
-  ],
-  "一目江湖": [
-    {
-      "id": "comic:tencent_comic:rank055",
-      "type": "comic",
-      "title": "一目江湖",
-      "hotScore": 534000
-    }
-  ],
   "我是我妻": [
     {
       "id": "comic:tencent_comic:rank056",
       "type": "comic",
       "title": "我是我妻",
       "hotScore": 628000
+    }
+  ],
+  "超神灵主": [
+    {
+      "id": "comic:tencent_comic:rank058",
+      "type": "comic",
+      "title": "超神灵主",
+      "hotScore": 622000
     }
   ],
   "死神/BLEACH（全彩版）": [
@@ -2861,12 +2821,12 @@
       "hotScore": 620000
     }
   ],
-  "超神灵主": [
+  "快把动物放进冰箱": [
     {
-      "id": "comic:tencent_comic:rank058",
+      "id": "comic:tencent_comic:rank050",
       "type": "comic",
-      "title": "超神灵主",
-      "hotScore": 622000
+      "title": "快把动物放进冰箱",
+      "hotScore": 612000
     }
   ],
   "恋上一屋吸血鬼": [
@@ -2885,14 +2845,6 @@
       "hotScore": 611000
     }
   ],
-  "十万个谐音梗": [
-    {
-      "id": "comic:tencent_comic:rank061",
-      "type": "comic",
-      "title": "十万个谐音梗",
-      "hotScore": 552000
-    }
-  ],
   "三界志·神魔录": [
     {
       "id": "comic:tencent_comic:rank062",
@@ -2909,12 +2861,28 @@
       "hotScore": 594000
     }
   ],
-  "爱欲九霄": [
+  "聊斋•少年游": [
     {
-      "id": "comic:tencent_comic:rank064",
+      "id": "comic:tencent_comic:rank042",
       "type": "comic",
-      "title": "爱欲九霄",
-      "hotScore": 564000
+      "title": "聊斋•少年游",
+      "hotScore": 590000
+    }
+  ],
+  "乐舞华庭": [
+    {
+      "id": "comic:tencent_comic:rank044",
+      "type": "comic",
+      "title": "乐舞华庭",
+      "hotScore": 587000
+    }
+  ],
+  "我的末世系统崩了": [
+    {
+      "id": "comic:tencent_comic:rank054",
+      "type": "comic",
+      "title": "我的末世系统崩了",
+      "hotScore": 584000
     }
   ],
   "神武之灵": [
@@ -2925,28 +2893,12 @@
       "hotScore": 583000
     }
   ],
-  "妖言惑君": [
+  "临时停驻": [
     {
-      "id": "comic:tencent_comic:rank066",
+      "id": "comic:tencent_comic:rank045",
       "type": "comic",
-      "title": "妖言惑君",
-      "hotScore": 480000
-    }
-  ],
-  "古乐风华录": [
-    {
-      "id": "comic:tencent_comic:rank067",
-      "type": "comic",
-      "title": "古乐风华录",
-      "hotScore": 476000
-    }
-  ],
-  "重生西游之最强白骨大圣": [
-    {
-      "id": "comic:tencent_comic:rank068",
-      "type": "comic",
-      "title": "重生西游之最强白骨大圣",
-      "hotScore": 470000
+      "title": "临时停驻",
+      "hotScore": 578000
     }
   ],
   "八宝山下": [
@@ -2955,6 +2907,14 @@
       "type": "comic",
       "title": "八宝山下",
       "hotScore": 565000
+    }
+  ],
+  "爱欲九霄": [
+    {
+      "id": "comic:tencent_comic:rank064",
+      "type": "comic",
+      "title": "爱欲九霄",
+      "hotScore": 564000
     }
   ],
   "世界上最遥远的距离漫画": [
@@ -2981,6 +2941,14 @@
       "hotScore": 553000
     }
   ],
+  "十万个谐音梗": [
+    {
+      "id": "comic:tencent_comic:rank061",
+      "type": "comic",
+      "title": "十万个谐音梗",
+      "hotScore": 552000
+    }
+  ],
   "霸情恶少：调教小逃妻": [
     {
       "id": "comic:tencent_comic:rank073",
@@ -2997,14 +2965,6 @@
       "hotScore": 544000
     }
   ],
-  "末世收割者": [
-    {
-      "id": "comic:tencent_comic:rank075",
-      "type": "comic",
-      "title": "末世收割者",
-      "hotScore": 439000
-    }
-  ],
   "天下第二就挺好": [
     {
       "id": "comic:tencent_comic:rank076",
@@ -3013,12 +2973,12 @@
       "hotScore": 535000
     }
   ],
-  "青芒天启十一人": [
+  "一目江湖": [
     {
-      "id": "comic:tencent_comic:rank077",
+      "id": "comic:tencent_comic:rank055",
       "type": "comic",
-      "title": "青芒天启十一人",
-      "hotScore": 432000
+      "title": "一目江湖",
+      "hotScore": 534000
     }
   ],
   "吸血鬼殿下别咬我": [
@@ -3037,20 +2997,20 @@
       "hotScore": 518000
     }
   ],
+  "魔王恋爱指南": [
+    {
+      "id": "comic:tencent_comic:rank085",
+      "type": "comic",
+      "title": "魔王恋爱指南",
+      "hotScore": 512000
+    }
+  ],
   "空速星痕": [
     {
       "id": "comic:tencent_comic:rank081",
       "type": "comic",
       "title": "空速星痕",
       "hotScore": 510000
-    }
-  ],
-  "沙奴": [
-    {
-      "id": "comic:tencent_comic:rank082",
-      "type": "comic",
-      "title": "沙奴",
-      "hotScore": 417000
     }
   ],
   "斩妖成神": [
@@ -3069,14 +3029,6 @@
       "hotScore": 496000
     }
   ],
-  "魔王恋爱指南": [
-    {
-      "id": "comic:tencent_comic:rank085",
-      "type": "comic",
-      "title": "魔王恋爱指南",
-      "hotScore": 512000
-    }
-  ],
   "魔王大掌柜": [
     {
       "id": "comic:tencent_comic:rank086",
@@ -3093,14 +3045,6 @@
       "hotScore": 484000
     }
   ],
-  "拯救世界的话需要很多萌萌哒": [
-    {
-      "id": "comic:tencent_comic:rank088",
-      "type": "comic",
-      "title": "拯救世界的话需要很多萌萌哒",
-      "hotScore": 478000
-    }
-  ],
   "别碰我！": [
     {
       "id": "comic:tencent_comic:rank089",
@@ -3109,12 +3053,44 @@
       "hotScore": 482000
     }
   ],
-  "5秒童话": [
+  "妖言惑君": [
     {
-      "id": "comic:tencent_comic:rank090",
+      "id": "comic:tencent_comic:rank066",
       "type": "comic",
-      "title": "5秒童话",
-      "hotScore": 389000
+      "title": "妖言惑君",
+      "hotScore": 480000
+    }
+  ],
+  "拯救世界的话需要很多萌萌哒": [
+    {
+      "id": "comic:tencent_comic:rank088",
+      "type": "comic",
+      "title": "拯救世界的话需要很多萌萌哒",
+      "hotScore": 478000
+    }
+  ],
+  "古乐风华录": [
+    {
+      "id": "comic:tencent_comic:rank067",
+      "type": "comic",
+      "title": "古乐风华录",
+      "hotScore": 476000
+    }
+  ],
+  "重生西游之最强白骨大圣": [
+    {
+      "id": "comic:tencent_comic:rank068",
+      "type": "comic",
+      "title": "重生西游之最强白骨大圣",
+      "hotScore": 470000
+    }
+  ],
+  "女神的陷阱": [
+    {
+      "id": "comic:tencent_comic:rank097",
+      "type": "comic",
+      "title": "女神的陷阱",
+      "hotScore": 466000
     }
   ],
   "我怀疑你暗恋我": [
@@ -3149,14 +3125,6 @@
       "hotScore": 451000
     }
   ],
-  "光临地球": [
-    {
-      "id": "comic:tencent_comic:rank095",
-      "type": "comic",
-      "title": "光临地球",
-      "hotScore": 370000
-    }
-  ],
   "一条狗（条漫）": [
     {
       "id": "comic:tencent_comic:rank096",
@@ -3165,12 +3133,12 @@
       "hotScore": 443000
     }
   ],
-  "女神的陷阱": [
+  "末世收割者": [
     {
-      "id": "comic:tencent_comic:rank097",
+      "id": "comic:tencent_comic:rank075",
       "type": "comic",
-      "title": "女神的陷阱",
-      "hotScore": 466000
+      "title": "末世收割者",
+      "hotScore": 439000
     }
   ],
   "你什么档次敢在我七个师姐面前装": [
@@ -3179,6 +3147,14 @@
       "type": "comic",
       "title": "你什么档次敢在我七个师姐面前装",
       "hotScore": 433000
+    }
+  ],
+  "青芒天启十一人": [
+    {
+      "id": "comic:tencent_comic:rank077",
+      "type": "comic",
+      "title": "青芒天启十一人",
+      "hotScore": 432000
     }
   ],
   "侠十七": [
@@ -3195,6 +3171,30 @@
       "type": "comic",
       "title": "画诡",
       "hotScore": 423000
+    }
+  ],
+  "沙奴": [
+    {
+      "id": "comic:tencent_comic:rank082",
+      "type": "comic",
+      "title": "沙奴",
+      "hotScore": 417000
+    }
+  ],
+  "5秒童话": [
+    {
+      "id": "comic:tencent_comic:rank090",
+      "type": "comic",
+      "title": "5秒童话",
+      "hotScore": 389000
+    }
+  ],
+  "光临地球": [
+    {
+      "id": "comic:tencent_comic:rank095",
+      "type": "comic",
+      "title": "光临地球",
+      "hotScore": 370000
     }
   ]
 }
