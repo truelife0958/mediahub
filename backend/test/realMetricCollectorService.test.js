@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 
 import {
+  buildFetchTextWithRetry,
   collectRealMetricsForItem,
   enrichItemsWithRealMetrics,
   extractRealMetricSourcesFromJson,
@@ -187,8 +188,12 @@ test('getReliableMetricSourceCandidates builds official and trusted fallback sou
 
   assert.equal(candidates[0].confidence, 'official');
   assert.equal(candidates[0].method, 'public_page');
+  // The self-media auto candidate for hongguoduanju is now at index 1
   assert.equal(candidates[1].confidence, 'trusted_third_party');
-  assert.equal(candidates[1].method, 'third_party');
+  assert.equal(candidates[1].method, 'public_page');
+  // The maoyan candidate from realMetricSourceCandidates is at index 2
+  assert.equal(candidates[2].confidence, 'trusted_third_party');
+  assert.equal(candidates[2].method, 'third_party');
   assert.equal(candidates.some(item => item.sourceId === 'random_heat_board'), false);
 });
 
@@ -266,4 +271,31 @@ test('collectRealMetricsForItem falls back to trusted third-party when official 
   assert.equal(patch.realMetricStatus, 'trusted_third_party');
   assert.equal(patch.realPlayCount, 56_000_000);
   assert.equal(patch.realMetricSources[0].method, 'third_party');
+});
+
+test('buildFetchTextWithRetry returns a function and degrades gracefully on failure', async () => {
+  const fetchText = buildFetchTextWithRetry({ maxRetries: 2, baseDelayMs: 10, timeoutMs: 500 });
+  assert.equal(typeof fetchText, 'function');
+
+  // Test with a URL that will fail (invalid host)
+  const result = await fetchText('http://localhost.invalid.nonexistent.example.com/page');
+  assert.equal(result, null);
+});
+
+test('getReliableMetricSourceCandidates adds self-media fetch candidate for known platform URLs', () => {
+  const candidates = getReliableMetricSourceCandidates({
+    type: 'drama',
+    source: { provider: 'hongguo', url: 'https://www.hongguoduanju.com/detail/123' },
+    sourceName: '红果短剧',
+    summary: '短剧描述',
+  });
+
+  // Should have: 1) inline text candidate (official, primary), 2) self-media fetch candidate (trusted_third_party)
+  const fetchCandidates = candidates.filter(c => !c.text);
+  assert.ok(fetchCandidates.length > 0, 'should have at least one fetch candidate for known platform URL');
+
+  const selfMediaCandidate = fetchCandidates.find(c => c.confidence === 'trusted_third_party');
+  assert.ok(selfMediaCandidate, 'should have a trusted_third_party candidate from self-media catalog');
+  assert.equal(selfMediaCandidate.sourceId, 'hongguoduanju');
+  assert.equal(selfMediaCandidate.sourceUrl, 'https://www.hongguoduanju.com/detail/123');
 });

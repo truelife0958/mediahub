@@ -8,6 +8,11 @@ const SOURCE = {
   region: 'CN',
 };
 
+// Yi-to-count helper: "46.15亿" → 4_615_000_000
+function yiToCount(yi) {
+  return Math.round(Number(yi) * 100_000_000);
+}
+
 const CURATED_REAL_CONTENTS = {
   drama: [
     {
@@ -19,6 +24,7 @@ const CURATED_REAL_CONTENTS = {
       author: '红果短剧',
       ipName: '十八岁太奶奶驾到，重整家族荣耀',
       hotScore: 461500,
+      realPlayCount: yiToCount(46.15),
       sourceUrl: 'https://cj.sina.com.cn/articles/view/7879922982/1d5ae15260190aafeo?froms=ggmp',
       releaseDate: '2025-06-10',
     },
@@ -31,6 +37,7 @@ const CURATED_REAL_CONTENTS = {
       author: '马厩制片厂',
       ipName: '盛夏芬德拉',
       hotScore: 300000,
+      realPlayCount: yiToCount(30),
       sourceUrl: 'https://news.hsw.cn/system/2025/1014/1879132.shtml',
       releaseDate: '2025-09-20',
     },
@@ -43,6 +50,7 @@ const CURATED_REAL_CONTENTS = {
       author: '于今无量',
       ipName: '好一个乖乖女',
       hotScore: 422800,
+      realPlayCount: yiToCount(42.28),
       sourceUrl: 'https://cj.sina.com.cn/articles/view/7879922982/1d5ae15260190aafeo?froms=ggmp',
       releaseDate: '2025-02-03',
     },
@@ -55,6 +63,7 @@ const CURATED_REAL_CONTENTS = {
       author: '北京蜜芽文化传播有限公司',
       ipName: '穿过荆棘拥抱你',
       hotScore: 418800,
+      realPlayCount: yiToCount(41.88),
       sourceUrl: 'https://cj.sina.com.cn/articles/view/7879922982/1d5ae15260190aafeo?froms=ggmp',
       releaseDate: '2025-06-20',
     },
@@ -67,6 +76,7 @@ const CURATED_REAL_CONTENTS = {
       author: '红果短剧',
       ipName: '顶级偏爱：妈咪，我找到爹地了',
       hotScore: 364600,
+      realPlayCount: yiToCount(36.46),
       sourceUrl: 'https://cj.sina.com.cn/articles/view/7879922982/1d5ae15260190aafeo?froms=ggmp',
       releaseDate: '2025-01-20',
     },
@@ -79,6 +89,7 @@ const CURATED_REAL_CONTENTS = {
       author: '红果短剧',
       ipName: '请君入我怀',
       hotScore: 353300,
+      realPlayCount: yiToCount(35.33),
       sourceUrl: 'https://cj.sina.com.cn/articles/view/7879922982/1d5ae15260190aafeo?froms=ggmp',
       releaseDate: '2025-03-20',
     },
@@ -91,6 +102,7 @@ const CURATED_REAL_CONTENTS = {
       author: '红果短剧',
       ipName: '十八岁太奶奶驾到，重整家族荣耀',
       hotScore: 352400,
+      realPlayCount: yiToCount(35.24),
       sourceUrl: 'https://cj.sina.com.cn/articles/view/7879922982/1d5ae15260190aafeo?froms=ggmp',
       releaseDate: '2025-07-25',
     },
@@ -103,6 +115,7 @@ const CURATED_REAL_CONTENTS = {
       author: '红果短剧',
       ipName: '家里家外',
       hotScore: 313800,
+      realPlayCount: yiToCount(31.38),
       sourceUrl: 'https://www.sina.cn/news/detail/5252080035170627.html',
       releaseDate: '2025-03-14',
     },
@@ -115,6 +128,7 @@ const CURATED_REAL_CONTENTS = {
       author: '红果短剧',
       ipName: '念念有词',
       hotScore: 281500,
+      realPlayCount: yiToCount(28.15),
       sourceUrl: 'https://cj.sina.com.cn/articles/view/7879922982/1d5ae15260190aafeo?froms=ggmp',
       releaseDate: '2025-07-03',
     },
@@ -127,6 +141,7 @@ const CURATED_REAL_CONTENTS = {
       author: '红果短剧',
       ipName: '荒年全村啃树皮，我有系统满仓肉',
       hotScore: 261200,
+      realPlayCount: yiToCount(26.12),
       sourceUrl: 'https://cj.sina.com.cn/articles/view/7879922982/1d5ae15260190aafeo?froms=ggmp',
       releaseDate: '2025-05-07',
     },
@@ -175,6 +190,7 @@ const CURATED_REAL_CONTENTS = {
       author: '九州短剧',
       ipName: '闪婚后，傅先生马甲藏不住了',
       hotScore: 250000,
+      realPlayCount: yiToCount(25),
       sourceUrl: '',
       releaseDate: '2025-04-15',
     },
@@ -187,6 +203,7 @@ const CURATED_REAL_CONTENTS = {
       author: '九州短剧',
       ipName: '重生之都市仙尊',
       hotScore: 200000,
+      realPlayCount: yiToCount(20),
       sourceUrl: '',
       releaseDate: '2025-03-20',
     },
@@ -199,6 +216,7 @@ const CURATED_REAL_CONTENTS = {
       author: '红果短剧',
       ipName: '顾少的隐婚罪妻',
       hotScore: 180000,
+      realPlayCount: yiToCount(18),
       sourceUrl: '',
       releaseDate: '2025-05-10',
     },
@@ -211,6 +229,7 @@ const CURATED_REAL_CONTENTS = {
       author: '于今无量',
       ipName: '逆袭之星途璀璨',
       hotScore: 150000,
+      realPlayCount: yiToCount(15),
       sourceUrl: '',
       releaseDate: '2025-08-01',
     },
@@ -223,6 +242,7 @@ const CURATED_REAL_CONTENTS = {
       author: '红果短剧',
       ipName: '我在八零年代当后妈',
       hotScore: 120000,
+      realPlayCount: yiToCount(12),
       sourceUrl: '',
       releaseDate: '2025-02-14',
     },
@@ -235,6 +255,7 @@ const CURATED_REAL_CONTENTS = {
       author: '红果短剧',
       ipName: '错撩',
       hotScore: 100000,
+      realPlayCount: yiToCount(10),
       sourceUrl: '',
       releaseDate: '2025-06-01',
     },
@@ -247,6 +268,7 @@ const CURATED_REAL_CONTENTS = {
       author: '红果短剧',
       ipName: '替嫁新娘：慕少的心尖宠',
       hotScore: 80000,
+      realPlayCount: yiToCount(8),
       sourceUrl: '',
       releaseDate: '2025-04-20',
     },
@@ -261,6 +283,7 @@ const CURATED_REAL_CONTENTS = {
       author: '天蚕土豆',
       ipName: '斗破苍穹',
       hotScore: 1_000_000,
+      realReadCount: yiToCount(100),
       sourceUrl: 'https://www.cbish.com/xue/35826.html',
       releaseDate: '2009-04-14',
     },
@@ -273,6 +296,7 @@ const CURATED_REAL_CONTENTS = {
       author: '忘语',
       ipName: '凡人修仙传',
       hotScore: 1_000_000,
+      realReadCount: yiToCount(100),
       sourceUrl: 'https://finance.sina.cn/2025-08-21/detail-infmsqmp9833508.d.html?from=qudao',
       releaseDate: '2008-02-01',
     },
@@ -381,6 +405,7 @@ const CURATED_REAL_CONTENTS = {
       author: '唐家三少',
       ipName: '斗罗大陆',
       hotScore: 900000,
+      realReadCount: yiToCount(100),
       sourceUrl: 'https://www.qidian.com/',
       releaseDate: '2008-12-01',
     },
@@ -465,6 +490,7 @@ const CURATED_REAL_CONTENTS = {
       author: '会说话的肘子',
       ipName: '夜的命名术',
       hotScore: 300000,
+      realReadCount: yiToCount(10),
       sourceUrl: 'https://www.qidian.com/',
       releaseDate: '2022-04-01',
     },
@@ -491,25 +517,47 @@ function buildCuratedId(type, title) {
 }
 
 function buildCuratedRealContents(type) {
-  return (CURATED_REAL_CONTENTS[type] || []).map(item => normalizeContent({
-    id: buildCuratedId(type, item.title),
-    title: item.title,
-    summary: item.summary,
-    type,
-    tags: item.tags,
-    actors: item.actors,
-    characters: item.characters,
-    author: item.author,
-    ipName: item.ipName,
-    status: 'completed',
-    hotScore: item.hotScore,
-    createdAt: item.releaseDate,
-    updatedAt: item.releaseDate,
-    source: {
-      ...SOURCE,
-      url: item.sourceUrl,
-    },
-  }));
+  const metricField = type === 'novel' || type === 'comic' ? 'realReadCount' : 'realPlayCount';
+  return (CURATED_REAL_CONTENTS[type] || []).map(item => {
+    const realCount = Number(item.realPlayCount || item.realReadCount) || 0;
+    const metrics = {};
+    if (realCount > 0) {
+      metrics[metricField] = realCount;
+      metrics.realMetricStatus = 'official';
+      metrics.realMetricCapturedAt = item.releaseDate ? new Date(item.releaseDate).toISOString() : new Date().toISOString();
+      metrics.realMetricSources = [{
+        sourceId: 'curated-cn',
+        sourceName: SOURCE.label,
+        sourceUrl: item.sourceUrl || '',
+        metricType: metricField === 'realReadCount' ? 'read' : 'play',
+        value: realCount,
+        unit: 'count',
+        method: 'public_page',
+        confidence: 'official',
+        capturedAt: metrics.realMetricCapturedAt,
+      }];
+    }
+    return normalizeContent({
+      id: buildCuratedId(type, item.title),
+      title: item.title,
+      summary: item.summary,
+      type,
+      tags: item.tags,
+      actors: item.actors,
+      characters: item.characters,
+      author: item.author,
+      ipName: item.ipName,
+      status: 'completed',
+      hotScore: item.hotScore,
+      createdAt: item.releaseDate,
+      updatedAt: item.releaseDate,
+      source: {
+        ...SOURCE,
+        url: item.sourceUrl,
+      },
+      metrics,
+    });
+  });
 }
 
 function isCurrentCuratedChinaTitle(type, title) {

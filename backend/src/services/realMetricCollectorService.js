@@ -50,6 +50,49 @@ const TRUSTED_THIRD_PARTY_SOURCE_CATALOG = [
   { sourceId: 'datawin', sourceName: '德塔文', sourceUrl: 'https://www.datawin.com/', metricTypes: ['play'], methods: ['third_party'] },
 ];
 
+// Self-media sources: public content platforms that publish play/read metrics.
+// Confidence is 'trusted_third_party' — lower than official platform data but still valuable.
+const SELF_MEDIA_SOURCE_CATALOG = [
+  { sourceId: 'sina', sourceName: '新浪', sourceUrl: 'https://www.sina.com.cn/', metricTypes: ['play', 'read'], methods: ['public_page'], hostPatterns: ['sina.com', 'sina.cn'] },
+  { sourceId: 'sohu', sourceName: '搜狐', sourceUrl: 'https://www.sohu.com/', metricTypes: ['play', 'read'], methods: ['public_page'], hostPatterns: ['sohu.com'] },
+  { sourceId: 'ifeng', sourceName: '凤凰网', sourceUrl: 'https://www.ifeng.com/', metricTypes: ['play', 'read'], methods: ['public_page'], hostPatterns: ['ifeng.com'] },
+  { sourceId: 'ithome', sourceName: 'IT之家', sourceUrl: 'https://www.ithome.com/', metricTypes: ['play', 'read'], methods: ['public_page'], hostPatterns: ['ithome.com'] },
+  { sourceId: 'hongguoduanju', sourceName: '红果短剧', sourceUrl: 'https://www.hongguoduanju.com/', metricTypes: ['play'], methods: ['public_page', 'embedded_json'], hostPatterns: ['hongguoduanju.com'] },
+  { sourceId: 'bilibili', sourceName: '哔哩哔哩', sourceUrl: 'https://www.bilibili.com/', metricTypes: ['play'], methods: ['public_page', 'embedded_json'], hostPatterns: ['bilibili.com'] },
+  { sourceId: 'douyin', sourceName: '抖音', sourceUrl: 'https://www.douyin.com/', metricTypes: ['play'], methods: ['public_page', 'embedded_json'], hostPatterns: ['douyin.com'] },
+];
+
+// Build a fetchText implementation with retry logic for robust page fetching.
+// Retries up to 3 times with exponential backoff. Returns null on all-fail (graceful degradation).
+function buildFetchTextWithRetry({ maxRetries = 3, baseDelayMs = 500, timeoutMs = 10_000 } = {}) {
+  const userAgent = process.env.UPSTREAM_USER_AGENT || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 MediaHubBot/1.0';
+
+  return async (url) => {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetch(url, {
+          headers: { 'User-Agent': userAgent, Accept: 'text/html,application/xhtml+xml' },
+          signal: controller.signal,
+          redirect: 'follow',
+        });
+        clearTimeout(timer);
+        if (response.ok) return await response.text();
+        if (response.status === 404 || response.status === 410) return null;
+        // 429/5xx — retry with backoff
+      } catch (error) {
+        clearTimeout(timer);
+        // Network error — retry
+      }
+      if (attempt < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, baseDelayMs * Math.pow(2, attempt)));
+      }
+    }
+    return null;
+  };
+}
+
 function normalizeCountMetric(input) {
   if (input === null || input === undefined) return null;
   const text = String(input).replace(/,/g, '').trim();
@@ -233,6 +276,15 @@ function normalizeMetricSourceCandidate(candidate = {}, base = {}) {
   };
 }
 
+function getKnownSelfMediaSource(url) {
+  if (!url) return null;
+  const host = (() => { try { return new URL(url).hostname; } catch { return ''; } })();
+  for (const entry of SELF_MEDIA_SOURCE_CATALOG) {
+    if (entry.hostPatterns?.some(pattern => host.includes(pattern))) return entry;
+  }
+  return null;
+}
+
 function getReliableMetricSourceCandidates(item = {}, options = {}) {
   const metricType = TYPE_METRIC[item?.type] || (item?.heatMetric === 'reading' ? 'read' : 'play');
   const sourceId = item?.source?.provider || item?.source || item?.sourceId || 'unknown';
@@ -241,6 +293,7 @@ function getReliableMetricSourceCandidates(item = {}, options = {}) {
   const base = { type: item?.type, metricType, sourceId, sourceName, sourceUrl };
   const candidates = [];
 
+  // Primary: inline text from summary/description
   candidates.push({
     sourceId,
     sourceName,
@@ -251,6 +304,20 @@ function getReliableMetricSourceCandidates(item = {}, options = {}) {
     text: [item?.summary, item?.description].filter(Boolean).join(' '),
     primary: true,
   });
+
+  // Auto-candidate: if sourceUrl points to a known self-media or official platform,
+  // add a fetch candidate to scrape the page for embedded play/read metrics
+  const selfMediaSource = getKnownSelfMediaSource(sourceUrl);
+  if (selfMediaSource && sourceUrl) {
+    candidates.push({
+      sourceId: selfMediaSource.sourceId,
+      sourceName: selfMediaSource.sourceName,
+      sourceUrl,
+      metricType,
+      confidence: 'trusted_third_party',
+      method: 'public_page',
+    });
+  }
 
   const candidateInputs = [
     ...(Array.isArray(item?.realMetricSourceCandidates) ? item.realMetricSourceCandidates : []),
@@ -438,6 +505,7 @@ async function enrichItemsWithRealMetrics(items = [], options = {}) {
 }
 
 export {
+  buildFetchTextWithRetry,
   collectRealMetricsForItem,
   enrichItemsWithRealMetrics,
   extractRealMetricSourcesFromJson,

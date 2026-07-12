@@ -9,6 +9,7 @@ import { refreshHotDataset } from './hotDatasetService.js';
 import { appendCrawlLog, isJsonHotDataEnabled } from '../store/jsonStore.js';
 import { fetchTargetPlatformHotItems } from './targetPlatformCrawlerService.js';
 import { enrichItemsWithPublicReportFields } from './publicReportFieldCollectorService.js';
+import { enrichItemsWithRealMetrics, buildFetchTextWithRetry } from './realMetricCollectorService.js';
 import { fetchSupplementalHotSignals, normalizeSignalLoaderResult } from './hotSignalCrawlerService.js';
 import { mergeHotSignalsIntoItems } from '../store/hotSignalMerger.js';
 import { recordSourceOutcome } from './sourceStrategyService.js';
@@ -397,13 +398,17 @@ async function executeRefreshContentType(
       type,
       now: new Date(startedAt),
     });
+    const enrichedWithRealMetrics = await enrichItemsWithRealMetrics(enriched.list, {
+      fetchText: buildFetchTextWithRetry(),
+      now: new Date(startedAt),
+    });
     const jsonDataset = isJsonHotDataEnabled()
       ? await refreshHotDataset(type, {
-        extraItems: enriched.list,
+        extraItems: enrichedWithRealMetrics.list,
         now: new Date(startedAt),
       })
       : null;
-    const writableList = jsonDataset?.list || enriched.list;
+    const writableList = jsonDataset?.list || enrichedWithRealMetrics.list;
     const resolvedSource = jsonDataset?.list?.find(item => item?.source?.provider)?.source?.provider
       || collected.list.find(item => item?.source?.provider)?.source?.provider
       || source;

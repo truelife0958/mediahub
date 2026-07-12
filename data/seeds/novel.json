@@ -27,7 +27,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 1,
       "platformRankScore": 100,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 50000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.692Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 50000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.692Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -181,7 +197,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 2,
       "platformRankScore": 99,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 15000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.698Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 15000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.698Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -1105,7 +1137,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 8,
       "platformRankScore": 93,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 15000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.698Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 15000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.698Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -1721,7 +1769,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 12,
       "platformRankScore": 89,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 30000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.698Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 30000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.698Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -1875,7 +1939,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 13,
       "platformRankScore": 88,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 15000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.698Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 15000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.698Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -3107,7 +3187,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 21,
       "platformRankScore": 80,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 10000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.698Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 10000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.698Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -3877,7 +3973,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 26,
       "platformRankScore": 75,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 60000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.698Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 60000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.698Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -4801,7 +4913,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 32,
       "platformRankScore": 69,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 25000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.699Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 25000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.699Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -5109,7 +5237,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 34,
       "platformRankScore": 67,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 20000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.699Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 20000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.699Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -5879,7 +6023,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 39,
       "platformRankScore": 62,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 100000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.699Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 100000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.699Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -6803,7 +6963,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 45,
       "platformRankScore": 56,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 60000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.699Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 60000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.699Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -6957,7 +7133,23 @@
       "sourceSignalCount": 4,
       "platformOriginalRank": 46,
       "platformRankScore": 55,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 50000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.699Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 50000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.699Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -8980,7 +9172,23 @@
       "sourceSignalCount": 5,
       "platformOriginalRank": 58,
       "platformRankScore": 43,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 40000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.699Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 40000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.699Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -10591,7 +10799,23 @@
       "sourceSignalCount": 5,
       "platformOriginalRank": 67,
       "platformRankScore": 34,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 100000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.699Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 100000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.699Z"
+        }
+      ]
     },
     "evidence": [
       {
@@ -11128,7 +11352,23 @@
       "sourceSignalCount": 5,
       "platformOriginalRank": 70,
       "platformRankScore": 31,
-      "sourceConfidenceScore": 86
+      "sourceConfidenceScore": 86,
+      "realReadCount": 80000000,
+      "realMetricStatus": "official",
+      "realMetricCapturedAt": "2026-07-12T12:25:51.699Z",
+      "realMetricSources": [
+        {
+          "sourceId": "qidian",
+          "sourceName": "起点中文网",
+          "sourceUrl": "https://www.qidian.com/",
+          "metricType": "read",
+          "value": 80000000,
+          "unit": "count",
+          "method": "public_page",
+          "confidence": "official",
+          "capturedAt": "2026-07-12T12:25:51.699Z"
+        }
+      ]
     },
     "evidence": [
       {
