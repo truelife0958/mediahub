@@ -195,6 +195,28 @@ describe('four-module dashboard pages', () => {
     assert.match(cssSource, /@media \(max-width: 640px\)[\s\S]*\.dashboard-rank-metrics[\s\S]*display:\s*none/);
   });
 
+  it('accepts content IDs with underscores in the source segment', () => {
+    const apiSource = readFileSync(new URL('../src/api/contents.ts', import.meta.url), 'utf8');
+    const detailSource = readFileSync(new URL('../src/pages/Detail.tsx', import.meta.url), 'utf8');
+
+    // Real source names like baike_public, public_search, iqiyi_public contain underscores.
+    // The validation regex must allow [a-z0-9_-] in the middle segment, not just [a-z0-9-].
+    const validIds = ['drama:baike_public:rank001', 'novel:public_search:rank042', 'anime:iqiyi_public:rank007'];
+    const invalidIds = ['drama:rank001', 'drama:baike.public:rank001', '   ', 'drama:baike:rank001:extra'];
+
+    const apiRegexMatch = apiSource.match(/!\s*\/\^(\[a-z\]\+:\S+)\$\/i\.test\(id\)/);
+    assert.ok(apiRegexMatch, 'contents.ts should contain a content ID validation regex');
+    const apiRegex = new RegExp(`^${apiRegexMatch[1]}$`, 'i');
+    for (const id of validIds) assert.ok(apiRegex.test(id), `API regex should accept ${id}`);
+    for (const id of invalidIds) assert.ok(!apiRegex.test(id), `API regex should reject ${id}`);
+
+    const detailRegexMatch = detailSource.match(/!\s*\/\^(\[a-z\]\+:\S+)\$\/i\.test\(contentId\)/);
+    assert.ok(detailRegexMatch, 'Detail.tsx should contain a content ID validation regex');
+    const detailRegex = new RegExp(`^${detailRegexMatch[1]}$`, 'i');
+    for (const id of validIds) assert.ok(detailRegex.test(id), `Detail regex should accept ${id}`);
+    for (const id of invalidIds) assert.ok(!detailRegex.test(id), `Detail regex should reject ${id}`);
+  });
+
   it('keeps the desktop inline detail panel bounded inside the viewport', () => {
     const cssSource = readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
 

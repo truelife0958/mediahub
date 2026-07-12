@@ -46,7 +46,7 @@ export default function Detail() {
   const navigate = useNavigate();
   const [retryKey, setRetryKey] = useState(0);
   const contentId = id || '';
-  const invalidContentId = contentId.length > 200 || !/^[a-z]+:[a-z0-9-]+:[\w.-]+$/i.test(contentId);
+  const invalidContentId = contentId.length > 200 || !/^[a-z]+:[a-z0-9_-]+:[\w.-]+$/i.test(contentId);
   const { content, loading, error } = useContentDetail(contentId, retryKey);
 
   const handleGoBack = useCallback(() => navigate(-1), [navigate]);

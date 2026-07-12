@@ -230,7 +230,7 @@ export function useContentDetail(id: string, retryKey = 0) {
       setError('内容 ID 缺失');
       return;
     }
-    if (!/^[a-z]+:[a-z0-9-]+:[\w-]+$/i.test(id)) {
+    if (!/^[a-z]+:[a-z0-9_-]+:[\w.-]+$/i.test(id)) {
       setContent(null);
       setLoading(false);
       setError('内容链接无效，请返回首页重新选择内容。');
